@@ -1,0 +1,164 @@
+<?php
+
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+return [
+    'landing' => [
+        'download' => 'Stiahni teraz',
+        'online' => '<strong>:players</strong> momentálne v <strong>:games</strong> hre',
+        'peak' => 'Vrchol, :count online užívateľov',
+        'players' => '<strong>:count</strong> registrovaných hráčov',
+        'title' => 'vitajte',
+        'see_more_news' => '',
+
+        'slogan' => [
+            'main' => 'najlepšia free-to-win rytmická hra',
+            'sub' => 'rytmus je iba o klikaní',
+        ],
+    ],
+
+    'search' => [
+        'advanced_link' => 'Pokročilé vyhľadávanie',
+        'button' => 'Hľadať',
+        'empty_result' => 'Nič sa nenašlo!',
+        'keyword_required' => '',
+        'placeholder' => 'zadajte pre vyhľadávanie',
+        'title' => 'Hľadať',
+
+        'artist_track' => [
+            'more_simple' => '',
+        ],
+        'beatmapset' => [
+            'login_required' => '',
+            'more' => ':count ďalších výsledkov vyhladávaní máp',
+            'more_simple' => 'Zobraziť ďalšie výsledký vyhladávania máp',
+            'title' => 'Beatmapy',
+        ],
+
+        'forum_post' => [
+            'all' => 'Všetky fóra',
+            'link' => 'Prehľadať fórum',
+            'login_required' => '',
+            'more_simple' => 'Zobraziť ďalšie výsledky prehľadávania fóra',
+            'title' => 'Fórum',
+
+            'label' => [
+                'forum' => 'hľadať vo fóroch',
+                'forum_children' => 'zahrnúť subfóra',
+                'include_deleted' => '',
+                'topic_id' => 'téma #',
+                'username' => 'autor',
+            ],
+        ],
+
+        'mode' => [
+            'all' => 'všetko',
+            'artist_track' => 'skladba od významného umelca',
+            'beatmapset' => 'beatmapy',
+            'forum_post' => 'fórum',
+            'team' => 'tím',
+            'user' => 'hráč',
+            'wiki_page' => 'wiki',
+        ],
+
+        'team' => [
+            'login_required' => 'Prihlás sa na vyhľadávanie tímov',
+            'more_simple' => 'Zobraziť ďalšie tímy',
+        ],
+
+        'user' => [
+            'login_required' => 'Prihlás sa na vyhľadávanie používateľov',
+            'more' => ':count ďalších výsledkov vyhľadávania hráčov',
+            'more_simple' => 'Zobraziť ďalśie výsledky vyhľadávania hráčov',
+            'more_hidden' => 'Vyhľadávanie hráčov bolo obmedzené na :max hráčov. Skús upraviť tvoje vyhľadávanie.',
+            'title' => 'Hráči',
+        ],
+
+        'wiki_page' => [
+            'link' => 'Prehľadať wiki',
+            'more_simple' => 'Zobraziť ďalšie výsledky prehľadávaním wiki',
+            'title' => 'Wiki',
+        ],
+    ],
+
+    'download' => [
+        'action_lazer_info' => 'klikni sem pre viac informácií',
+        'download' => 'Stiahnuť',
+        'for_os' => 'pre :os',
+        'macos-fallback' => 'macOS užívateľ',
+        'mirror' => 'mirror',
+        'or' => 'alebo',
+        'os_version_or_later' => ':os_version a novšie',
+        'other_os' => 'iné platformy',
+        'quick_start_guide' => 'stručná príručka',
+        'stable_text' => 'ak hľadáš to staršie',
+        'tagline_1' => 'poďme',
+        'tagline_2' => 'začať!',
+        'video-guide' => 'video návod',
+
+        'help' => [
+            '_' => '',
+            'help_forum_link' => '',
+            'support_button' => '',
+        ],
+
+        'os' => [
+            'windows' => 'pre Windows',
+            'macos' => 'pre macOS',
+            'linux' => 'pre Linux',
+        ],
+        'steps' => [
+            'register' => [
+                'title' => 'vytvor si účet',
+                'description' => 'pri spustení hry postupuj podľa pokynov pre prihlásenie alebo vytvorenie účtu',
+            ],
+            'download' => [
+                'title' => 'stiahni hru',
+                'description' => 'klikni na tlačítko vyššie a stiahni inštalačný program, potom ho spusti!',
+            ],
+            'beatmaps' => [
+                'title' => 'získaj beatmapy',
+                'description' => [
+                    '_' => 'už ostáva iba :browse rozsiahlu knižnicu používateľmi vytvorených máp a pustiť sa do hrania!',
+                    'browse' => 'prehľadávať',
+                ],
+            ],
+        ],
+    ],
+
+    'user' => [
+        'title' => 'nástenka',
+        'news' => [
+            'title' => 'Novinky',
+            'error' => 'Nastala chyba pri načítavaní noviniek, skúste obnoviť stránku?...',
+        ],
+        'header' => [
+            'stats' => [
+                'friends' => 'Online Priatelia',
+                'games' => 'Hry',
+                'online' => 'Online Používatelia',
+            ],
+        ],
+        'beatmaps' => [
+            'daily_challenge' => '',
+            'new' => 'Nové Hodnotené Beatmapy',
+            'popular' => 'Populárne Beatmapy',
+            'by_user' => 'od :user',
+            'resets' => '',
+        ],
+        'buttons' => [
+            'download' => 'Stiahnuť osu!',
+            'support' => 'Podpor osu!',
+            'store' => 'osu!store',
+        ],
+        'livestream' => [
+            'title' => '',
+        ],
+        'show' => [
+            'admin' => [
+                'page' => '',
+            ],
+        ],
+    ],
+];
