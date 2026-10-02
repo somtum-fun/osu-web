@@ -173,7 +173,7 @@ class BeatmapsetSearch extends RecordSearch
         }
     }
 
-    // TomYum: sets uploaded to this server ("osu!somtum only"), numbered from BnController::CUSTOM_ID_FLOOR.
+    // TomYum: sets uploaded to this server ("Uploaded here only"), numbered from BnController::CUSTOM_ID_FLOOR.
     private function addSomtumFilter($query)
     {
         if ($this->params->showSomtum) {
