@@ -25,8 +25,8 @@ let movie: Promise<Movie> | undefined;
 let playback: Playback | undefined;
 
 function fileUrl(name: string) {
-  // osu.<domain> -> dl.<domain>
-  return `https://dl.${window.location.hostname.replace(/^[^.]+\./, '')}/easter/${name}`;
+  // served by the website itself (public/media/easter)
+  return `/media/easter/${name}`;
 }
 
 async function load(): Promise<Movie> {
