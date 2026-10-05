@@ -1,6 +1,7 @@
 // TomYum: Bad Apple!! on the profile's rank graph. Run `badApple()` in the browser console on a
-// player's profile and the graph's line draws the video's outlines; run it again to stop. The frames
-// (made by bin/tomyum_bad_apple.py, about 1 MB) are only downloaded from the file host when it plays.
+// player's profile and the graph's line draws the video's outlines to the song; run it again to stop.
+// The frames (made by bin/tomyum_bad_apple.py, about 1 MB) and the song are only downloaded from the
+// file host when it plays.
 
 interface Movie {
   count: number;
@@ -16,19 +17,20 @@ interface Playback {
 }
 
 const headerLength = 15;
+const musicVolume = 0.5;
 const maxHeight = 360;
 const svgNs = 'http://www.w3.org/2000/svg';
 
 let movie: Promise<Movie> | undefined;
 let playback: Playback | undefined;
 
-function framesUrl() {
+function fileUrl(name: string) {
   // osu.<domain> -> dl.<domain>
-  return `https://dl.${window.location.hostname.replace(/^[^.]+\./, '')}/easter/bad-apple.bin.gz`;
+  return `https://dl.${window.location.hostname.replace(/^[^.]+\./, '')}/easter/${name}`;
 }
 
 async function load(): Promise<Movie> {
-  const response = await fetch(framesUrl());
+  const response = await fetch(fileUrl('bad-apple.bin.gz'));
   if (!response.ok || response.body == null) {
     throw new Error(`couldn't download the frames (${response.status})`);
   }
@@ -144,16 +146,54 @@ function play(chart: HTMLElement, movie: Movie): Playback {
   chart.appendChild(screen);
   screen.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+  // The song is the clock. A browser may refuse to start sound that wasn't asked for with a click
+  // (and typing in the console isn't one): then the video plays on its own and the song joins in,
+  // at the same point, on the first click or key press on the page.
+  const music = new Audio(fileUrl('bad-apple.m4a'));
+  music.volume = musicVolume;
+  let clock: 'music' | 'silent' | 'starting' = 'starting';
+  let silentSince = 0;
+
+  const seconds = (now: number) => clock === 'music'
+    ? music.currentTime
+    : clock === 'silent' ? (now - silentSince) / 1000 : 0;
+
+  const joinMusic = () => {
+    removeJoinListeners();
+    music.currentTime = seconds(performance.now());
+    void music.play().then(() => {
+      if (!stopped) clock = 'music';
+    }).catch(() => undefined);
+  };
+  const removeJoinListeners = () => {
+    document.removeEventListener('pointerdown', joinMusic);
+    document.removeEventListener('keydown', joinMusic);
+  };
+
   let animationFrame = 0;
   let shown = -1;
   let stopped = false;
-  const started = performance.now();
+
+  music.play().then(() => {
+    if (!stopped) clock = 'music';
+  }).catch(() => {
+    if (stopped) return;
+    clock = 'silent';
+    silentSince = performance.now();
+    console.info('Bad Apple!!: click anywhere on the page to hear the music.');
+    document.addEventListener('pointerdown', joinMusic);
+    document.addEventListener('keydown', joinMusic);
+  });
 
   const stop = () => {
     if (stopped) return;
     stopped = true;
     cancelAnimationFrame(animationFrame);
     document.removeEventListener('turbo:before-cache', stop);
+    removeJoinListeners();
+    music.pause();
+    music.removeAttribute('src');
+    music.load();
     screen.remove();
     if (grow != null) grow.style[growStyle] = previousSize;
     if (graph != null) graph.style.display = '';
@@ -169,7 +209,7 @@ function play(chart: HTMLElement, movie: Movie): Playback {
       stop();
       return;
     }
-    const frame = Math.floor((now - started) / 1000 * movie.fps);
+    const frame = Math.floor(seconds(now) * movie.fps);
     if (frame >= movie.count) {
       stop();
       return;
@@ -208,7 +248,7 @@ function badApple() {
     console.error('Bad Apple!!:', error);
   });
 
-  return 'Bad Apple!! (run badApple() again to stop)';
+  return 'Bad Apple!! \u266a (run badApple() again to stop)';
 }
 
 Object.assign(window, { badApple });
