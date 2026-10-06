@@ -1,0 +1,75 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the osu!dan panel (inside .tomyum-panel cards). A course's form is a grid of osu-web's
+// input-container fields like the packs and changelog panels: the fields the same height, each row
+// below the last with the same room between them, the ticks on rows of their own.
+.panel-dan {
+  &__form {
+    align-items: end;
+    display: grid;
+    gap: 10px 12px;
+    grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tomyum-panel__hint {
+      margin: 0;
+    }
+
+    // A field's label on one line: a wrapped label runs into what's typed.
+    .input-container__label {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    textarea.input-text {
+      min-height: 120px;
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  // The name: a whole row on a phone.
+  &__name {
+    @media @mobile {
+      grid-column: 1 / -1;
+    }
+  }
+
+  // Ticks (the mods, the options): a row that wraps, with room beside each, not under each.
+  &__checks {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+
+    .tomyum-panel__check {
+      min-height: 32px;
+    }
+  }
+
+  &__checks-label {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    margin-right: 4px;
+  }
+
+  // A course's maps in the list: their difficulty names, the whole title on hover.
+  &__maps {
+    display: grid;
+    font-size: @font-size--normal;
+    gap: 2px;
+    white-space: nowrap;
+  }
+
+  &__course {
+    min-width: 140px;
+  }
+}
