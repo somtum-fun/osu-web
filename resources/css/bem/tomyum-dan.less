@@ -7,6 +7,7 @@
 .tomyum-dan {
   display: grid;
   gap: 20px;
+  grid-template-columns: minmax(0, 1fr); // a wide table scrolls in its box instead of widening the page on a phone
   padding-bottom: 20px;
   padding-top: 20px;
 
@@ -26,6 +27,7 @@
 
   &__subtitle {
     font-size: @font-size--title-small;
+    font-weight: 700;
     margin: 0 0 10px;
   }
 
@@ -81,7 +83,84 @@
       color: hsl(var(--hsl-c2));
       font-size: @font-size--normal;
       font-weight: 600;
+      white-space: nowrap;
     }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    // The courses on a phone: a block each (its name, its maps, then the rest with their names),
+    // not five columns squeezed to a word per line.
+    &--courses {
+      @media @mobile {
+        &,
+        tbody,
+        tr,
+        td {
+          display: block;
+        }
+
+        tr:first-child {
+          display: none;
+        }
+
+        tr {
+          border-bottom: 1px solid hsl(var(--hsl-b4));
+          padding: 10px 0;
+
+          &:last-child {
+            border-bottom: 0;
+          }
+        }
+
+        td {
+          border: 0;
+          padding: 2px 0;
+        }
+
+        .tomyum-dan__maps {
+          padding-bottom: 6px;
+        }
+
+        .tomyum-dan__course-cell {
+          width: auto;
+        }
+
+        td[data-label] {
+          display: inline-block;
+          margin-right: 15px;
+
+          &::before {
+            color: hsl(var(--hsl-c2));
+            content: attr(data-label) ": ";
+            font-size: @font-size--normal;
+          }
+        }
+      }
+    }
+  }
+
+  &__course-cell {
+    width: 30%;
+  }
+
+  // The maps: one per line, a little smaller than the rest, so a long course stays readable.
+  &__maps {
+    font-size: @font-size--normal;
+    line-height: 1.5;
+  }
+
+  &__nowrap {
+    white-space: nowrap;
+  }
+
+  // A player: their flag beside their name (osu-web's flag is a block of its own).
+  &__user {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    vertical-align: bottom;
   }
 
   &__facts {
@@ -104,13 +183,6 @@
     gap: 6px;
     margin: 0;
     padding-left: 20px;
-  }
-
-  &__clear {
-    .flag-country {
-      margin-right: 5px;
-      vertical-align: middle;
-    }
   }
 
   &__player {

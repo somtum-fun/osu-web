@@ -70,12 +70,14 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    @include('objects._flag_country', ['country' => $clear->user->country_acronym])
-                                    {!! link_to_user($clear->user, null, null, ['tomyum-dan__player']) !!}
+                                    <span class="tomyum-dan__user">
+                                        @include('objects._flag_country', ['country' => $clear->user->country_acronym])
+                                        {!! link_to_user($clear->user, null, null, ['tomyum-dan__player']) !!}
+                                    </span>
                                 </td>
                                 <td>{{ TomYumDan::accuracyText($clear->accuracy) }}</td>
                                 <td>{{ TomYumDan::playModNames((int) $clear->mods) }}</td>
-                                <td>{!! timeago(Carbon\Carbon::parse($clear->cleared_at, 'UTC')) !!}</td>
+                                <td class="tomyum-dan__nowrap">{!! timeago(Carbon\Carbon::parse($clear->cleared_at, 'UTC')) !!}</td>
                             </tr>
                         @endforeach
                     </table>

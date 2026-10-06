@@ -23,7 +23,7 @@
             <form method="POST" action="{{ route('panel.dan.update', ['course' => $course->id]) }}">
                 @csrf
                 @include('panel.dan._form', ['course' => $course])
-                <div style="margin-top: 12px">
+                <div style="margin-top: 15px">
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Save</button>
                 </div>
             </form>
@@ -34,33 +34,35 @@
             @if ($attempts->isEmpty())
                 <p class="tomyum-panel__empty">None yet.</p>
             @else
-                <table class="tomyum-panel__table">
-                    <tr><th>When</th><th>Player</th><th>Result</th><th>Accuracy</th><th>Mods</th><th>Client</th><th>Score</th></tr>
-                    @foreach ($attempts as $attempt)
-                        @php
-                            $player = $users[$attempt->user_id] ?? null;
-                        @endphp
-                        <tr>
-                            <td style="white-space: nowrap">{!! timeago(Carbon\Carbon::parse($attempt->created_at, 'UTC')) !!}</td>
-                            <td>
-                                @if ($player !== null)
-                                    <a href="{{ route('users.show', ['user' => $player->getKey()]) }}">{{ $player->username }}</a>
-                                @else
-                                    #{{ $attempt->user_id }}
-                                @endif
-                            </td>
-                            <td>
-                                <span class="tomyum-panel__pill tomyum-panel__pill--{{ $attempt->result === 'clear' ? 'good' : ($attempt->result === 'failed' ? 'info' : 'bad') }}">
-                                    {{ TomYumDan::RESULTS[$attempt->result] ?? $attempt->result }}
-                                </span>
-                            </td>
-                            <td>{{ TomYumDan::accuracyText($attempt->accuracy) }}</td>
-                            <td>{{ TomYumDan::playModNames((int) $attempt->mods) }}</td>
-                            <td>{{ $attempt->client_version }}</td>
-                            <td>{{ $attempt->score_id }}</td>
-                        </tr>
-                    @endforeach
-                </table>
+                <div class="tomyum-panel__scroll">
+                    <table class="tomyum-panel__table">
+                        <tr><th>When</th><th>Player</th><th>Result</th><th>Accuracy</th><th>Mods</th><th>Client</th><th>Score</th></tr>
+                        @foreach ($attempts as $attempt)
+                            @php
+                                $player = $users[$attempt->user_id] ?? null;
+                            @endphp
+                            <tr>
+                                <td style="white-space: nowrap">{!! timeago(Carbon\Carbon::parse($attempt->created_at, 'UTC')) !!}</td>
+                                <td>
+                                    @if ($player !== null)
+                                        <a href="{{ route('users.show', ['user' => $player->getKey()]) }}">{{ $player->username }}</a>
+                                    @else
+                                        #{{ $attempt->user_id }}
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="tomyum-panel__pill tomyum-panel__pill--{{ $attempt->result === 'clear' ? 'good' : ($attempt->result === 'failed' ? 'info' : 'bad') }}">
+                                        {{ TomYumDan::RESULTS[$attempt->result] ?? $attempt->result }}
+                                    </span>
+                                </td>
+                                <td>{{ TomYumDan::accuracyText($attempt->accuracy) }}</td>
+                                <td class="tomyum-panel__nowrap">{{ TomYumDan::playModNames((int) $attempt->mods) }}</td>
+                                <td class="tomyum-panel__nowrap">{{ $attempt->client_version }}</td>
+                                <td>{{ $attempt->score_id }}</td>
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
             @endif
         </div>
 

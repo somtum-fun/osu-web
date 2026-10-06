@@ -60,7 +60,7 @@
             <div class="page-extra">
                 <h2 class="title title--page-extra">{{ $keys }}K courses</h2>
                 <div class="tomyum-dan__table-wrap">
-                    <table class="tomyum-dan__table">
+                    <table class="tomyum-dan__table tomyum-dan__table--courses">
                         <tr>
                             <th>Course</th>
                             <th>Map</th>
@@ -73,7 +73,8 @@
                                 $clears = $clearCounts[(int) $course->id] ?? 0;
                             @endphp
                             <tr>
-                                <td>
+                                {{-- TomYum: data-label names a cell on a phone, where each course is a block, not a row. --}}
+                                <td class="tomyum-dan__course-cell">
                                     <a class="tomyum-dan__course" href="{{ route('dan.show', ['course' => $course->id]) }}">{{ $course->name }}</a>
                                     @if ($course->is_intro)
                                         <span class="tomyum-dan__tag">intro</span>
@@ -82,21 +83,21 @@
                                         <div class="tomyum-dan__hint">{{ $course->description }}</div>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="tomyum-dan__maps">
                                     @forelse ($course->maps as $map)
                                         <div>@include('dan._map', ['map' => $map])</div>
                                     @empty
                                         <span class="tomyum-dan__hint">No maps yet</span>
                                     @endforelse
                                 </td>
-                                <td>{{ TomYumDan::accuracyText($course->min_accuracy) }}</td>
-                                <td>
+                                <td data-label="Accuracy">{{ TomYumDan::accuracyText($course->min_accuracy) }}</td>
+                                <td data-label="Mods">
                                     {{ TomYumDan::modNames((int) $course->allowed_mods) }}
                                     @if (!$course->no_pause)
                                         <div class="tomyum-dan__hint">pausing allowed</div>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="Cleared by">
                                     <a href="{{ route('dan.show', ['course' => $course->id]) }}">{{ i18n_number_format($clears) }} {{ $clears === 1 ? 'player' : 'players' }}</a>
                                 </td>
                             </tr>
@@ -116,8 +117,10 @@
                         @endphp
                         @continue($course === null)
                         <li class="tomyum-dan__clear">
-                            @include('objects._flag_country', ['country' => $clear->user->country_acronym])
-                            {!! link_to_user($clear->user, null, null, ['tomyum-dan__player']) !!}
+                            <span class="tomyum-dan__user">
+                                @include('objects._flag_country', ['country' => $clear->user->country_acronym])
+                                {!! link_to_user($clear->user, null, null, ['tomyum-dan__player']) !!}
+                            </span>
                             cleared
                             <a href="{{ route('dan.show', ['course' => $course->id]) }}">{{ $course->name }} ({{ $course->keys }}K)</a>
                             with {{ TomYumDan::accuracyText($clear->accuracy) }}
