@@ -29,4 +29,4 @@
 {!! osu_trans('mail.store_payment_completed.questions') !!}
 
 {!! osu_trans('mail.common.closing') !!}
-The osu!somtum team
+The {{ App\Libraries\TomYumBranding::name() }} team

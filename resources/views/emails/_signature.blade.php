@@ -3,4 +3,4 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 --
-osu!somtum | {{ $GLOBALS['cfg']['app']['url'] }}
+{{ App\Libraries\TomYumBranding::name() }} | {{ $GLOBALS['cfg']['app']['url'] }}

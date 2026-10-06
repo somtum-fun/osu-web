@@ -12,9 +12,9 @@
     opacity 200ms ease-in-out;
 
   &--body {
-    // TomYum: the osu!somtum wordmark (somtum.fun), without the hover triangles.
-    --nav-logo: url("~@images/layout/somtum-logo@2x.png");
-    --nav-logo-bg: none;
+    // TomYum: this server's logo (TomYumBranding).
+    --nav-logo: var(--brand-logo-nav);
+    --nav-logo-bg: var(--brand-logo-nav-bg);
 
     background-color: @osu-colour-b6;
   }
@@ -39,8 +39,8 @@
   }
 
   &--body-lazer {
-    --nav-logo: url("~@images/layout/somtum-logo@2x.png");
-    --nav-logo-bg: none;
+    --nav-logo: var(--brand-logo-nav);
+    --nav-logo-bg: var(--brand-logo-nav-bg);
   }
 
   &--full {

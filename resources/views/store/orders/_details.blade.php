@@ -18,11 +18,16 @@
             </div>
         </div>
         <div>
-            <p>
-                <em class="store-text store-text--emphasis">Phaphum Saksri</em>
-            </p>
+            {{-- TomYum: who sells, and how to reach them (Admin panel > Branding). --}}
+            @if (present($invoiceSeller = App\Libraries\TomYumBranding::text('invoice_seller')))
+                <p>
+                    <em class="store-text store-text--emphasis">{{ $invoiceSeller }}</em>
+                </p>
+            @endif
 
-            <p>{{ osu_trans('store.invoice.contact') }} mind@mindhas403.dev / +66 61 556 6467</p>
+            @if (present($invoiceContact = App\Libraries\TomYumBranding::text('invoice_contact')))
+                <p>{{ osu_trans('store.invoice.contact') }} {{ $invoiceContact }}</p>
+            @endif
         </div>
     </div>
 
