@@ -56,7 +56,7 @@
                                     </span>
                                 </td>
                                 <td>{{ TomYumDan::accuracyText($attempt->accuracy) }}</td>
-                                <td class="tomyum-panel__nowrap">{{ TomYumDan::playModNames((int) $attempt->mods) }}</td>
+                                <td class="tomyum-panel__nowrap">@include('panel._mods', ['mods' => (int) $attempt->mods])</td>
                                 <td class="tomyum-panel__nowrap">{{ $attempt->client_version }}</td>
                                 <td>{{ $attempt->score_id }}</td>
                             </tr>
