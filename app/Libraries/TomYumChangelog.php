@@ -20,7 +20,7 @@ class TomYumChangelog
 {
     /** name => [id, name on the page]. */
     public const STREAMS = [
-        'lazer' => [6, 'osu!tumthai'],
+        'lazer' => [6, 'TumThai'],
         'stable40' => [5, 'Stable'],
         'legacy' => [13, 'Legacy clients'],
         'server' => [10, 'Server'],

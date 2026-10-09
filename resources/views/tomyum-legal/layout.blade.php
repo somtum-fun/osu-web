@@ -29,8 +29,8 @@
         <p class="tomyum-legal__updated">@yield('legal-updated', 'Last updated: 5 October 2026')</p>
 
         <div class="tomyum-legal__notice">
-            {{ App\Libraries\TomYumBranding::name() }} is an unofficial, fan-run osu! private server. It is not affiliated with, endorsed by
-            or connected to ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.
+            {{ App\Libraries\TomYumBranding::name() }} is a fan-run private server for the osu! game. It is not affiliated with, endorsed by
+            or connected to ppy Pty Ltd or the osu! team. osu! is a trademark of ppy Pty Ltd.
         </div>
 
         <div class="tomyum-legal__body">

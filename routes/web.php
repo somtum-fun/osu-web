@@ -121,6 +121,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('users/{user}', 'GmtController@show')->name('users.show');
             Route::post('users/{user}/restrict', 'GmtController@restrict')->name('users.restrict');
             Route::post('users/{user}/unrestrict', 'GmtController@unrestrict')->name('users.unrestrict');
+            // TomYum: restrict the player and every account on the same hardware (admins only).
+            Route::post('users/{user}/nuke', 'GmtController@nuke')->name('users.nuke');
             Route::post('users/{user}/silence', 'GmtController@silence')->name('users.silence');
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
@@ -1028,7 +1030,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
-// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is osu!somtum's).
+// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is somtum.fun's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
 Route::get('brand-logo.svg', 'HomeController@brandLogo')->name('brand.logo');

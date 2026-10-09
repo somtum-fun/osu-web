@@ -12,14 +12,14 @@ namespace App\Libraries;
  * and legal pages), its logo and favicons, the addresses on its own domain, and the texts only its
  * team can write (the support page's note, the invoice's seller). Staff set them in Admin panel >
  * Branding (TomYumSiteSettings, brand_*); unset ones fall back to config('tomyum.branding'), and the
- * texts to osu!somtum's, the server this was first written for.
+ * texts to somtum.fun's, the server this was first written for.
  */
 class TomYumBranding
 {
     /** Built-in logos: the image (normal, @2x), the white one for the menu bar, its triangles, and width ÷ height. */
     public const LOGOS = [
         'somtum' => [
-            'label' => 'osu!somtum wordmark',
+            'label' => 'somtum.fun wordmark',
             'image' => '/images/layout/somtum-logo.png',
             'image_2x' => '/images/layout/somtum-logo@2x.png',
             'nav' => '/images/layout/somtum-logo@2x.png',
@@ -42,7 +42,7 @@ class TomYumBranding
 
     /** Built-in favicon sets (folders under public/images; letter: the name's first letter, drawn). */
     public const FAVICONS = [
-        'somtum' => ['label' => 'osu!somtum\'s', 'folder' => '/images/favicon', 'ico' => '/favicon.ico'],
+        'somtum' => ['label' => 'somtum.fun\'s', 'folder' => '/images/favicon', 'ico' => '/favicon.ico'],
         'osu' => ['label' => 'osu!\'s (ppy\'s trademark)', 'folder' => '/images/favicon-osu', 'ico' => '/images/favicon-osu/favicon.ico'],
         'letter' => ['label' => 'The name\'s first letter', 'folder' => null, 'ico' => null],
     ];
@@ -50,7 +50,7 @@ class TomYumBranding
     /** The text logo's and letter favicon's colour (osu-web's pink, the site's own accent). */
     public const TEXT_COLOUR = '#ff66ab';
 
-    /** The texts' defaults: osu!somtum's (":brand" is the name; :vote_url the vote page). */
+    /** The texts' defaults: somtum.fun's (":brand" is the name; :vote_url the vote page). */
     public const DEFAULTS = [
         'support_note' => "Running :brand isn't easy or cheap.\n\n"
             ."We're committed to making :brand a free-to-win experience. We put in a lot of time, effort, "
@@ -62,12 +62,12 @@ class TomYumBranding
         'support_signature' => 'Phapoom "blueskychan_" Saksri, :brand',
         'invoice_seller' => 'Phaphum Saksri',
         'invoice_contact' => 'mind@mindhas403.dev / +66 61 556 6467',
-        'keywords' => ':brand, somtum, osu! private server, osu private server, :country, rhythm game, relax, autopilot',
+        'keywords' => ':brand, somtum, private server, :country, rhythm game, relax, autopilot',
         // Who runs the server and where (:operator and :country in the texts and the legal pages).
         'operator' => 'Phapoom Saksri',
         'country' => 'Thailand',
         // The page description search engines and link previews show.
-        'description' => ':brand, an unofficial osu! private server from :country: osu!(stable) and lazer, Relax and Autopilot leaderboards, custom beatmaps and more.',
+        'description' => ':brand, a fan-run private server for the osu! game from :country: stable and lazer clients, Relax and Autopilot leaderboards, custom beatmaps and more. Not affiliated with ppy Pty Ltd.',
         // The Privacy Policy's parts that depend on how the server is run (markdown lists).
         'privacy_payments' => "- TrueMoney Privacy Policy (for players in Thailand): <https://www.truemoney.com/privacy-notice>\n"
             .'- Stripe Privacy Policy (for players outside Thailand): <https://stripe.com/th/privacy>',
@@ -75,12 +75,12 @@ class TomYumBranding
         'privacy_laws' => "- **Thailand users:** [Thailand PDPA (Personal Data Protection Act)](https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF)\n"
             ."- **European Union users:** [General Data Protection Regulation (GDPR)](https://gdpr-info.eu)\n"
             .'- **Other countries/regions:** We strive to comply with the privacy laws applicable in your specific country or state.',
-        'footer' => ':brand :year · an unofficial osu! private server, not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.',
+        'footer' => ':brand :year · a fan-run server, not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.',
         // The support page's "Run by Volunteers" reason.
         'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in :country. Nobody here gets paid.',
         // The download page: the lazer build's name, and the stable patcher's.
-        'downloads_client_name' => 'osu!tumthai',
-        'downloads_patcher_name' => ':brand patcher',
+        'downloads_client_name' => 'TumThai',
+        'downloads_patcher_name' => 'Somtum Patcher',
     ];
 
     /** The legal pages (LegalController): their key, path and title. */
@@ -251,7 +251,7 @@ class TomYumBranding
 
     /**
      * A text setting with its placeholders filled in (:brand, :year, :vote_url); an empty one is ''
-     * (hidden), an unset one osu!somtum's default.
+     * (hidden), an unset one somtum.fun's default.
      */
     public static function text(string $name): string
     {
@@ -359,7 +359,7 @@ class TomYumBranding
 
     /**
      * A legal page's own text (markdown) when staff wrote one; null for the built-in page
-     * (tomyum-legal/*, osu!somtum's wording with this server's name); '' when it's hidden.
+     * (tomyum-legal/*, somtum.fun's wording with this server's name); '' when it's hidden.
      */
     public static function legalText(string $page): ?string
     {

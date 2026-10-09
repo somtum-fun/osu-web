@@ -68,7 +68,7 @@ class HomeController extends Controller
 
     public function getDownload()
     {
-        // TomYum: osu!tumthai (lazer) is built for Windows and Linux only.
+        // TomYum: TumThai (lazer) is built for Windows and Linux only.
         $lazerPlatformNames = [
             'windows_x64' => 'Windows (x64)',
             'linux_x64' => 'Linux (x64)',
@@ -426,7 +426,7 @@ class HomeController extends Controller
             // There are 5 perk rendering types: image, image-flipped, hero, group and image-group.
             // image, image-flipped, hero each show an individual perk (with image) while group and image-group show groups of perks (the latter with images)
             'perks' => [
-                // TomYum: osu!somtum's own perks first (somtum.fun/support).
+                // TomYum: somtum.fun's own perks first (somtum.fun/support).
                 [
                     'type' => 'group',
                     'items' => [

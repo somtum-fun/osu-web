@@ -175,6 +175,65 @@ class GmtController extends Controller
     }
 
     /**
+     * TomYum: the hardware nuke (admins only): restricts the player and every account seen on the same
+     * hardware, following it from account to account (the game server's machine-accounts, up to 3 steps).
+     * Each is restricted as the Restrict button does it. Staff accounts are left alone. New accounts from
+     * those machines are then refused at their first login (the game server's ban evasion check).
+     */
+    public function nuke(string $user)
+    {
+        $this->ensure(static::canUseAdmin(Auth::user()));
+        $target = $this->moderatable($user);
+        $reason = $this->reason();
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Give a reason.');
+        }
+
+        $response = $this->tomyum()->get("/users/{$target->getKey()}/machine-accounts");
+        if (!$response->successful()) {
+            return $this->back($target, 'error', 'The game server didn\'t say which accounts share this hardware, so nothing was restricted.');
+        }
+        $ids = array_column($response->json() ?? [], 'id');
+        $accounts = collect([$target])->merge(User::whereIn('user_id', $ids)->get());
+
+        $offense = Request::input('offense');
+        $offense = array_key_exists($offense, TomYumAppeals::OFFENSES) ? $offense : 'other';
+        $appealAfter = static::appealDate();
+        $restricted = [];
+        $skipped = [];
+        foreach ($accounts as $account) {
+            if ($account->isRestricted() || $account->isBot()) {
+                continue;
+            }
+            if ($account->getKey() === Auth::user()->getKey() || $account->isPrivileged() || $account->isGMT() || $account->isNAT()) {
+                $skipped[] = $account->username;
+                continue;
+            }
+            $why = $account->is($target) ? $reason : "{$reason} (same hardware as {$target->username})";
+            DB::transaction(function () use ($account, $why, $offense, $appealAfter) {
+                $account->update(['user_warnings' => 1]);
+                $this->history($account, UserAccountHistory::TYPES['restriction'], $why, 0, true);
+                TomYumAppeals::restricted($account, $offense, Auth::user()->getKey(), $appealAfter, $why);
+            });
+            TomYumCountryStats::recalculate($account->country_acronym);
+            $this->staffLog('user.restrict', $account->getKey(), "Restricted {$account->username} with the hardware nuke on {$target->username}: {$reason}");
+            $this->refreshInGame($account->getKey());
+            $restricted[] = $account->username;
+        }
+
+        $names = $restricted === [] ? 'none' : implode(', ', $restricted);
+        $this->staffLog('user.nuke', $target->getKey(), "Hardware nuke on {$target->username}: restricted ".count($restricted)." account(s) ({$names}): {$reason}");
+        $message = count($restricted) === 0
+            ? 'Nothing to restrict: every account on this hardware is already restricted.'
+            : 'Restricted '.count($restricted).' account(s): '.$names.'. New accounts from this hardware are refused.';
+        if ($skipped !== []) {
+            $message .= ' Left alone (staff): '.implode(', ', $skipped).'.';
+        }
+
+        return $this->back($target, 'success', $message);
+    }
+
+    /**
      * TomYum: a restricted player's appeal cooldown: another offense (it starts again from today), or
      * a date set by hand.
      */

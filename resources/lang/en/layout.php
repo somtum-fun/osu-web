@@ -189,8 +189,8 @@ return [
         ],
 
         'register' => [
-            'download' => 'Download',
-            'info' => 'Download osu! to create your own account!',
+            'download' => 'Download page',
+            'info' => 'Find a way to connect and create an account on the download page.',
             'title' => "Don't have an account?",
         ],
     ],

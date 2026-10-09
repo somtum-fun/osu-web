@@ -11,7 +11,7 @@ use Http;
 
 /**
  * TomYum: what the download page offers, from the file host's manifest.json (dl.blueskychan.dev):
- * osu!tumthai (lazer) for Windows and Linux, the osu!somtum patcher, the hook, and the patched
+ * TumThai (lazer) for Windows and Linux, the Somtum Patcher, the hook, and the patched
  * legacy clients (2008 to 2015).
  */
 class TomYumDownloads

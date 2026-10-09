@@ -24,12 +24,12 @@
 
                 <ol>
                     <li>
-                        Get <a href="{{ route('download') }}">osu!tumthai (lazer)</a>, or connect a current osu! stable
+                        Get <a href="{{ route('download') }}">TumThai (lazer)</a>, or connect a current osu! stable
                         client to {{ $serverName }}, and open it. (The old 2008-2015 builds can't make accounts, but they
                         can sign in with one.)
                     </li>
                     <li>
-                        <strong>osu!tumthai:</strong> open the sign-in panel at the top right and choose
+                        <strong>TumThai:</strong> open the sign-in panel at the top right and choose
                         "Create account".<br>
                         <strong>Stable:</strong> click your profile at the top left and choose to create an account.
                     </li>

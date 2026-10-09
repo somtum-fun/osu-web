@@ -71,6 +71,19 @@
         @endif
     </div>
 
+    {{-- TomYum: the hardware nuke: this player and every account on the same hardware (GmtController@nuke). --}}
+    <form method="POST" action="{{ route('panel.gmt.users.nuke', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px"
+        onsubmit="return confirm('Restrict {{ $target->username }} and every account seen on the same hardware (following it from account to account)? Staff accounts are left alone.')">
+        @csrf
+        <input type="hidden" name="from" value="admin">
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Hardware nuke: reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+        @include('panel.gmt._appeal_offense')
+        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-radiation"></i>Nuke hardware</button>
+    </form>
+    <p class="tomyum-panel__hint">Restricts {{ $target->username }} and every account seen on their hardware, then on those accounts' hardware (up to 3 steps). New accounts from that hardware can't log in afterwards.</p>
+
     <div class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px">
         @if ($silencedUntil !== null)
             <form method="POST" action="{{ route('panel.gmt.users.unsilence', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">

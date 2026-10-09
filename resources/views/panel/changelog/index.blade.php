@@ -14,7 +14,7 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-plus"></i>New version</h2>
             <p class="tomyum-panel__hint">
-                A version holds the changes players read on the <a href="{{ route('changelog.index') }}">changelog</a> (and in osu!tumthai).
+                A version holds the changes players read on the <a href="{{ route('changelog.index') }}">changelog</a> (and in TumThai).
                 Leave the version empty for the next one of the day (like {{ App\Libraries\TomYumChangelog::nextVersion(6, Carbon\Carbon::now()) }}),
                 or write your own (1.4.0, b20150203-somtum.3). Hidden versions aren't shown until you untick it.
             </p>

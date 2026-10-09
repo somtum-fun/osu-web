@@ -19,7 +19,7 @@ class TomYumSiteSettings
     private const CACHE_KEY = 'tomyum:site-settings';
 
     /** The development banner's text until staff write their own (markdown: links work). */
-    public const DEVELOPMENT_BANNER_DEFAULT = 'This is a development instance of the [osu! website](https://osu.ppy.sh). Please do not login with your osu! credentials.';
+    public const DEVELOPMENT_BANNER_DEFAULT = 'This is a development instance of this website. Please do not log in with your osu! account details.';
 
     public static function get(string $name, ?string $default = null): ?string
     {
