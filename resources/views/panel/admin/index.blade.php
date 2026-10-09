@@ -200,6 +200,70 @@
             </form>
         </div>
 
+        {{-- TomYum: pkms version registry (AdminController@pkmsVersions); TomYum's handshake-flag plugin enforces it. --}}
+        <div class="tomyum-panel__card" id="pkms-versions">
+            <h2>
+                <i class="fas fa-shield-alt"></i>pkms versions
+                @if (count($pkmsVersions) === 0)
+                    <span class="tomyum-panel__badge">OPEN</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($pkmsVersions) }}</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Modern-stable anti-cheat (pkms) sends its <code>build_id</code> on every handshake (e.g.&nbsp;<code>pkms/0.3.1-test2</code>).
+                <strong>revoked</strong> rejects the handshake (client is dropped). <strong>grace</strong> accepts the handshake with an "update required" marker until <em>grace_until</em>, then it becomes revoked.
+                <strong>enabled</strong> is the normal state; a build id that isn't in the list is also allowed (default accept). Changes apply within a minute without a server restart.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pkms-versions') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th>build_id</th>
+                            <th style="width: 110px">status</th>
+                            <th style="width: 130px">grace_until (YYYY-MM-DD)</th>
+                            <th>note</th>
+                            <th style="width: 50px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pkmsVersions as $i => $version)
+                            <tr>
+                                <td><input class="input-text" type="text" name="build_id[{{ $i }}]" value="{{ $version['build_id'] }}" required></td>
+                                <td>
+                                    <select class="input-text" name="status[{{ $i }}]">
+                                        @foreach (App\Libraries\TomYumPkmsVersions::STATUSES as $status)
+                                            <option value="{{ $status }}" @if ($status === $version['status']) selected @endif>{{ $status }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input class="input-text" type="date" name="grace_until[{{ $i }}]" value="{{ $version['grace_until'] }}"></td>
+                                <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $version['note'] }}"></td>
+                                <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <td><input class="input-text" type="text" name="new_build_id" placeholder="pkms/0.3.1-test2"></td>
+                            <td>
+                                <select class="input-text" name="new_status">
+                                    @foreach (App\Libraries\TomYumPkmsVersions::STATUSES as $status)
+                                        <option value="{{ $status }}">{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td><input class="input-text" type="date" name="new_grace_until"></td>
+                            <td><input class="input-text" type="text" name="new_note" placeholder="(optional)"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                </div>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

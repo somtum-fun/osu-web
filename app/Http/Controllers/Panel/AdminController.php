@@ -75,6 +75,7 @@ class AdminController extends Controller
             ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'tumthai' => static::tumthaiSettings(),
+            'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
@@ -128,6 +129,65 @@ class AdminController extends Controller
         $unrestricted = $min === '0' && $whitelist === [];
 
         return $this->backToIndex('success', $unrestricted ? 'TumThai versions: no limit.' : 'TumThai versions updated.');
+    }
+
+    /**
+     * TomYum: edit the pkms version registry. The form posts each row as parallel arrays, which we
+     * stitch back together, keep the valid entries, and save as the JSON blob.
+     */
+    public function pkmsVersions()
+    {
+        $buildIds = Request::input('build_id', []);
+        $statuses = Request::input('status', []);
+        $graces = Request::input('grace_until', []);
+        $notes = Request::input('note', []);
+        $delete = (array) Request::input('delete', []);
+
+        if (!is_array($buildIds)) $buildIds = [];
+        if (!is_array($statuses)) $statuses = [];
+        if (!is_array($graces)) $graces = [];
+        if (!is_array($notes)) $notes = [];
+
+        $entries = [];
+        foreach ($buildIds as $i => $buildId) {
+            if (isset($delete[$i])) continue;
+            $buildId = trim((string) $buildId);
+            if ($buildId === '') continue;
+            $status = $statuses[$i] ?? 'enabled';
+            if (!in_array($status, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $status = 'enabled';
+            $graceUntil = trim((string) ($graces[$i] ?? ''));
+            if ($graceUntil !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $graceUntil)) {
+                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+            }
+            $entries[] = [
+                'build_id' => $buildId,
+                'status' => $status,
+                'grace_until' => $graceUntil === '' ? null : $graceUntil,
+                'note' => trim((string) ($notes[$i] ?? '')) ?: null,
+            ];
+        }
+
+        // Add a new row if the admin filled the "new" fields in the form.
+        $newBuildId = trim((string) Request::input('new_build_id', ''));
+        if ($newBuildId !== '') {
+            $newStatus = Request::input('new_status', 'enabled');
+            if (!in_array($newStatus, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $newStatus = 'enabled';
+            $newGrace = trim((string) Request::input('new_grace_until', ''));
+            if ($newGrace !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $newGrace)) {
+                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+            }
+            $entries[] = [
+                'build_id' => $newBuildId,
+                'status' => $newStatus,
+                'grace_until' => $newGrace === '' ? null : $newGrace,
+                'note' => trim((string) Request::input('new_note', '')) ?: null,
+            ];
+        }
+
+        \App\Libraries\TomYumPkmsVersions::save($entries);
+        $this->staffLog('site.pkms_versions', null, 'pkms version registry: '.count($entries).' entries.');
+
+        return $this->backToIndex('success', count($entries) === 0 ? 'pkms version registry cleared.' : 'Saved '.count($entries).' pkms versions.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */

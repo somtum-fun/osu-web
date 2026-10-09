@@ -187,6 +187,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
             // TomYum: which TumThai (lazer) builds are allowed to connect (admin panel section).
             Route::post('tumthai', 'AdminController@tumthai')->name('tumthai');
+            // TomYum: pkms version registry editor (modern-stable anti-cheat).
+            Route::post('pkms-versions', 'AdminController@pkmsVersions')->name('pkms-versions');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
