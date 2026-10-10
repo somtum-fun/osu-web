@@ -254,6 +254,7 @@ class AdminController extends Controller
         '' => 'Everything',
         'user.' => 'Players (moderation)',
         'score.' => 'Scores',
+        'score.pkms_' => 'Scores (pkms flags)',
         'admin.' => 'Accounts',
         'report.' => 'Reports',
         'beatmapset.' => 'Beatmaps',

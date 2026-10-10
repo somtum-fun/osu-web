@@ -260,6 +260,7 @@
                 </table>
                 <div class="tomyum-panel__row" style="margin-top: 10px">
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                    <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.log', ['kind' => 'score.pkms_']) }}"><i class="fas fa-flag"></i>Flagged scores</a>
                 </div>
             </form>
         </div>
