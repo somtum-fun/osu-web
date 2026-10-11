@@ -92,8 +92,10 @@ class HomeController extends Controller
         $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
         // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
         // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
-        $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($manifest['self']['windows_x64']['url'])
-            ? [...$manifest['self']['windows_x64'], 'version' => $manifest['self']['version'] ?? null]
+        // Its installer when the list has one (the plain exe before that), and its portable zip.
+        $launcherSelf = $manifest['self']['windows_x64_setup'] ?? $manifest['self']['windows_x64'] ?? null;
+        $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($launcherSelf['url'])
+            ? [...$launcherSelf, 'version' => $manifest['self']['version'] ?? null, 'portable' => $manifest['self']['windows_x64_portable'] ?? null]
             : null;
         // TomYum: the Linux launcher, a line under TumThai's Linux button.
         $launcherLinux = $platform === 'linux_x64' && TomYumBranding::downloadsLazerUrl() === null

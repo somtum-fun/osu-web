@@ -53,6 +53,10 @@
                     </a>
                     <div class="download-page__text download-page__text--download-launcher">
                         Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.
+                        @if (isset($launcher['portable']['url']))
+                            No install wanted? <a href="{{ $launcher['portable']['url'] }}">Get the portable version</a>
+                            ({{ App\Libraries\TomYumDownloads::size($launcher['portable']['size'] ?? null) }}).
+                        @endif
                     </div>
                     <div class="download-page__text download-page__text--download-portable">
                         Just {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}?
