@@ -74,6 +74,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping(10)
             ->onOneServer();
 
+        // TomYum: the players online on each client stream, on the changelog.
+        $schedule->command('tomyum:changelog-online')
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->onOneServer();
+
         // TomYum: players online every 5 minutes, for the admin panel's chart.
         $schedule->command('tomyum:online-sample')
             ->everyFiveMinutes()

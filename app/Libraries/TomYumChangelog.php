@@ -26,6 +26,7 @@ class TomYumChangelog
         'server' => [10, 'Server'],
         'web' => [1, 'Web / Wiki'],
         'discord' => [11, 'Discord'],
+        'launcher' => [14, 'Somtum Launcher'],
     ];
 
     /** Makes the streams that aren't there yet (names given on the panel are kept). */
