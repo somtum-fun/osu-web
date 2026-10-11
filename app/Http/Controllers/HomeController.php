@@ -68,17 +68,22 @@ class HomeController extends Controller
 
     public function getDownload()
     {
-        // TomYum: TumThai (lazer) is built for Windows and Linux only.
+        // TomYum: TumThai (lazer) is built for Windows, Linux and Android.
         $lazerPlatformNames = [
             'windows_x64' => 'Windows (x64)',
             'linux_x64' => 'Linux (x64)',
+            'android' => 'Android',
         ];
 
         $platform = get_string(request('platform'));
         if (!array_key_exists($platform, $lazerPlatformNames)) {
             $deviceDetector = new DeviceDetector(\Request::header('User-Agent') ?? '');
             $deviceDetector->parse();
-            $platform = $deviceDetector->getOs('family') === 'GNU/Linux' ? 'linux_x64' : 'windows_x64';
+            $platform = match ($deviceDetector->getOs('family')) {
+                'GNU/Linux' => 'linux_x64',
+                'Android' => 'android',
+                default => 'windows_x64',
+            };
         }
 
         $manifest = TomYumDownloads::manifest();
