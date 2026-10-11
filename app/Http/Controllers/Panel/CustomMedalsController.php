@@ -36,7 +36,7 @@ class CustomMedalsController extends Controller
 
     public function index()
     {
-        $state = Request::input('state');
+        $state = (string) Request::input('state');
         if (!array_key_exists($state, TomYumCustomMedals::STATES)) {
             $state = 'pending';
         }

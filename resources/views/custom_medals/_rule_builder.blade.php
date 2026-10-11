@@ -152,13 +152,25 @@
                 }
                 input.className = 'input-text js-medal-value';
                 input.style.width = '100%';
+                const wrap = document.createElement('label');
+                wrap.className = `input-container${type === 'grade' ? ' input-container--select' : ''}`;
+                wrap.append(input);
                 input.addEventListener('input', build);
-                valueBox.replaceChildren(input);
+                valueBox.replaceChildren(wrap);
                 build();
             };
             field.addEventListener('change', refresh);
             op.addEventListener('change', build);
-            row.append(field, op, valueBox, remove);
+            // Each in a field box, like the form's other fields.
+            const box = (element, flex) => {
+                const wrap = document.createElement('label');
+                wrap.className = `input-container${element.tagName === 'SELECT' ? ' input-container--select' : ''}`;
+                wrap.style.flex = flex;
+                element.style.flex = '';
+                wrap.append(element);
+                return wrap;
+            };
+            row.append(box(field, '1 1 200px'), box(op, '0 1 140px'), valueBox, remove);
             list.append(row);
             refresh();
         };
