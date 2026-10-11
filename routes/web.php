@@ -194,6 +194,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
+            // TomYum: the notice osu! (stable) shows at login (TomYum's BanchoWelcome reads it).
+            Route::post('bancho-welcome', 'AdminController@banchoWelcome')->name('bancho-welcome');
             // TomYum: which TumThai (lazer) builds are allowed to connect (admin panel section).
             Route::post('tumthai', 'AdminController@tumthai')->name('tumthai');
             // TomYum: pkms version registry editor (modern-stable anti-cheat).
