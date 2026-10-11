@@ -30,7 +30,7 @@
                             $statusIsRendered = false;
                         @endphp
                         @foreach (App\Models\UserProfileCustomization::BEATMAPSET_DOWNLOAD as $name)
-                            @if ($name === 'direct' && !$currentUser->isSupporter())
+                            @if ($name === 'direct' && !App\Libraries\TomYumVotes::hasDirect($currentUser)) {{-- TomYum: voters too --}}
                                 @continue
                             @endif
                             <label class="account-edit-entry__checkbox">

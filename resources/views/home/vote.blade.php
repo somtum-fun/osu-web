@@ -25,8 +25,9 @@
                         @if ($site['url'] === null)
                             Coming soon.
                         @elseif ($site['rewarded'] && $daysPerVote > 0)
+                            {{-- TomYum: votes give osu!direct (the votes plugin), not supporter. --}}
                             Each vote gives you {{ $daysPerVote }} {{ $daysPerVote === 1 ? 'day' : 'days' }} of
-                            {{ App\Libraries\TomYumBranding::name() }} supporter. Vote with your {{ App\Libraries\TomYumBranding::name() }} username
+                            osu!direct, in the game and on the website. Vote with your {{ App\Libraries\TomYumBranding::name() }} username
                             @if ($user !== null)
                                 (<strong>{{ $user->username }}</strong>)
                             @endif
@@ -55,12 +56,15 @@
                 @endif
                 @if ($user->osu_subscriber && $user->osu_subscriptionexpiry !== null)
                     Your supporter tag lasts until {{ i18n_date($user->osu_subscriptionexpiry) }}.
+                @elseif (($directUntil = App\Libraries\TomYumVotes::directUntil($user)) !== null)
+                    Your osu!direct lasts until {{ i18n_date($directUntil) }}.
                 @endif
             </p>
         @endif
         <p class="vote-page__text vote-page__text--small">
-            In osu!stable, type <code>!vote</code> to BanchoBot to see your votes. New supporter time shows in
-            the game the next time you log in.
+            In osu!stable, type <code>!vote</code> to BanchoBot to see your votes. New osu!direct time shows in
+            the game the next time you log in. Voting gives osu!direct only; the other supporter perks (like
+            unlimited name changes) come with a supporter tag.
         </p>
 
         @if (count($topVoters) > 0)

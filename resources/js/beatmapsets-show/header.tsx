@@ -591,7 +591,8 @@ export default class Header extends React.Component<Props> {
 
               <a
                 className='beatmapset-header-v2__button beatmapset-header-v2__button--wide'
-                href={currentUser.is_supporter ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
+                // TomYum: osu_direct is supporters and voters with time left.
+                href={currentUser.osu_direct ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
               >
                 {trans('beatmapsets.show.details.download.direct')}
               </a>
