@@ -90,6 +90,11 @@ class HomeController extends Controller
         $lazer = $manifest['lazer'][$platform] ?? null;
         // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
         $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
+        // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
+        // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
+        $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($manifest['self']['windows_x64']['url'])
+            ? [...$manifest['self']['windows_x64'], 'version' => $manifest['self']['version'] ?? null]
+            : null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -106,6 +111,7 @@ class HomeController extends Controller
         return ext_view('home.download', [
             'dlUrl' => TomYumDownloads::baseUrl(),
             'hook' => $manifest['hook'] ?? null,
+            'launcher' => $launcher,
             'lazer' => $lazer,
             'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],

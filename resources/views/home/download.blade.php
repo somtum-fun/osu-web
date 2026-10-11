@@ -24,6 +24,48 @@
                         <span class="download-page__tagline-1">{{ osu_trans('home.download.tagline_1') }}</span>
                         <span class="download-page__tagline-2">{{ osu_trans('home.download.tagline_2') }}</span>
                     </div>
+                    @if ($launcher !== null)
+                    {{-- TomYum: Somtum Launcher first on Windows: TumThai, stable and the old clients, kept up to date. --}}
+                    <a
+                        class="btn-osu-big btn-osu-big--download"
+                        href="{{ $launcher['url'] }}"
+                    >
+                        <div class="btn-osu-big__content">
+                            <div class="btn-osu-big__left">
+                                {{ osu_trans('home.download.download') }}
+                                <div>
+                                    <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
+                                        Somtum Launcher
+                                    </div>
+                                    {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
+                                </div>
+                                <div class="btn-osu-big__text-bottom btn-osu-big__text-bottom--download-version">
+                                    {{ $launcher['version'] }}
+                                    @if (isset($launcher['size']))
+                                        ({{ App\Libraries\TomYumDownloads::size($launcher['size']) }})
+                                    @endif
+                                </div>
+                            </div>
+                            <span class="btn-osu-big__icon">
+                                <span class="svg-icon svg-icon--download"></span>
+                            </span>
+                        </div>
+                    </a>
+                    <div class="download-page__text download-page__text--download-launcher">
+                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.
+                    </div>
+                    <div class="download-page__text download-page__text--download-portable">
+                        Just {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}?
+                        <a href="{{ $lazerUrl }}">Download the installer</a>
+                        @if (isset($lazer['size']))
+                            ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
+                        @endif
+                        @if ($lazerPortable !== null)
+                            or <a href="{{ $lazerPortable['url'] }}">the portable zip</a>
+                            ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
+                        @endif
+                    </div>
+                    @else
                     <a
                         class="btn-osu-big btn-osu-big--download"
                         href="{{ $lazerUrl }}"
@@ -59,6 +101,7 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         </div>
                     @endif
+                    @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
                         <div class="download-page__other-platforms">
                             @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])
@@ -72,7 +115,7 @@
             <div class="download-page__banner-tail">
                 <div class="download-page__banner-content download-page__banner-content--tail">
                     <div class="download-page__text download-page__text--download-stable">
-                        Playing on osu!(stable)? Patch it to play on {{ App\Libraries\TomYumBranding::name() }} (required):
+                        Playing on osu!(stable)? Patch it to play on {{ App\Libraries\TomYumBranding::name() }} (required{{ $launcher !== null ? '; Somtum Launcher does it for you' : '' }}):
                     </div>
                     <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
                         <div class="btn-osu-big__content">
