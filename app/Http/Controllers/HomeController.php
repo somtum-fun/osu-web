@@ -95,6 +95,10 @@ class HomeController extends Controller
         $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($manifest['self']['windows_x64']['url'])
             ? [...$manifest['self']['windows_x64'], 'version' => $manifest['self']['version'] ?? null]
             : null;
+        // TomYum: the Linux launcher, a line under TumThai's Linux button.
+        $launcherLinux = $platform === 'linux_x64' && TomYumBranding::downloadsLazerUrl() === null
+            ? ($manifest['self']['linux_x64'] ?? null)
+            : null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -112,6 +116,7 @@ class HomeController extends Controller
             'dlUrl' => TomYumDownloads::baseUrl(),
             'hook' => $manifest['hook'] ?? null,
             'launcher' => $launcher,
+            'launcherLinux' => $launcherLinux,
             'lazer' => $lazer,
             'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],

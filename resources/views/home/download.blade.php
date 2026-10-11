@@ -101,6 +101,14 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         </div>
                     @endif
+                    @if ($launcherLinux !== null && isset($launcherLinux['url']))
+                        {{-- TomYum: the Linux launcher (TumThai, osu!(stable) through osu-winello, the old clients). --}}
+                        <div class="download-page__text download-page__text--download-launcher">
+                            Also for Linux: <a href="{{ $launcherLinux['url'] }}">Somtum Launcher</a>
+                            (TumThai, osu!(stable) through <a href="https://github.com/NelloKudo/osu-winello">osu-winello</a>,
+                            and the 2008-2015 clients). Download it, then run <code>python3 somtum-linux-{{ $launcherLinux['version'] ?? '' }} install</code>.
+                        </div>
+                    @endif
                     @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
                         <div class="download-page__other-platforms">
