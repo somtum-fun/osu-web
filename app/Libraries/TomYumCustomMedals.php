@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * TomYum: custom medals. A player asks for one (its name, description, hint, category, icon and an
@@ -48,6 +49,9 @@ class TomYumCustomMedals
     /** Requests a player can send (bancho.py's limits). */
     public const PER_HOUR = 2;
     public const PER_DAY = 5;
+
+    /** Tries (sent or not) a player gets an hour: each checks the rule with the game server and reads the icon. */
+    public const ATTEMPTS_PER_HOUR = 10;
 
     /** The icon sizes (osu!'s medal icons). */
     public const ICON_SIZE = [115, 126];
@@ -149,6 +153,12 @@ class TomYumCustomMedals
         if ($user->isRestricted() || $user->isSilenced()) {
             return [null, 'You can\'t ask for medals right now.'];
         }
+        // Every try counts, so failed ones can't be used to keep the game server and image reading busy.
+        $attempts = 'tomyum-medal-request:'.$user->getKey();
+        if (RateLimiter::tooManyAttempts($attempts, static::ATTEMPTS_PER_HOUR)) {
+            return [null, 'Too many tries. Please wait a while before trying again.'];
+        }
+        RateLimiter::hit($attempts, 3600);
         $recent = fn (int $hours) => static::table()->where('user_id', $user->getKey())
             ->where('created_at', '>=', Carbon::now()->subHours($hours))->count();
         if ($recent(1) >= static::PER_HOUR || $recent(24) >= static::PER_DAY) {
@@ -324,6 +334,15 @@ class TomYumCustomMedals
 
     public static function iconsFromBytes(string $bytes): array
     {
+        // The size from the header first: a small file can be a huge image once decoded.
+        $size = @getimagesizefromstring($bytes);
+        if ($size === false || !in_array($size[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP, IMAGETYPE_GIF], true)) {
+            return [null, null, 'The icon isn\'t an image (use PNG, JPG or WebP).'];
+        }
+        if ($size[0] > 2000 || $size[1] > 2000 || $size[0] < 16 || $size[1] < 16) {
+            return [null, null, 'The icon is 16 to 2000 pixels each way.'];
+        }
+
         $source = @imagecreatefromstring($bytes);
         if ($source === false) {
             return [null, null, 'The icon isn\'t an image (use PNG, JPG or WebP).'];
