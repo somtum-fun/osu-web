@@ -15,12 +15,12 @@ import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
 import { htmlElementOrNull } from 'utils/html';
 import { trans } from 'utils/lang';
-import { wikiUrl } from 'utils/url';
+import { ppyWikiUrl } from 'utils/url';
 import AvailableFilters, { FilterOption } from './available-filters';
 import { SearchFilter } from './search-filter';
 import UserTagPicker from './user-tag-picker';
 
-const helpUrl = wikiUrl('Beatmap_search');
+const helpUrl = ppyWikiUrl('Beatmap_search');
 
 interface Props {
   availableFilters: AvailableFilters;

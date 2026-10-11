@@ -23,7 +23,7 @@ import { classWithModifiers } from 'utils/css';
 import { formatDuration, formatNumber } from 'utils/html';
 import { trans } from 'utils/lang';
 import { present } from 'utils/string';
-import { beatmapDownloadDirect, wikiUrl } from 'utils/url';
+import { beatmapDownloadDirect, ppyWikiUrl, wikiUrl } from 'utils/url';
 import BeatmapPicker from './beatmap-picker';
 import Controller from './controller';
 import Stats from './stats';
@@ -782,6 +782,6 @@ export default class Header extends React.Component<Props> {
     } else {
       fragment = status;
     }
-    return wikiUrl(`Beatmap/Category#${fragment}`);
+    return ppyWikiUrl(`Beatmap/Category#${fragment}`);
   }
 }
