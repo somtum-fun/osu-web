@@ -51,6 +51,14 @@
                             </span>
                         </div>
                     </a>
+                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null && $lazerPortable !== null)
+                        {{-- TomYum: the same build without installing it. --}}
+                        <div class="download-page__text download-page__text--download-portable">
+                            No install needed?
+                            <a href="{{ $lazerPortable['url'] }}">Download the portable zip</a>
+                            ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
+                        </div>
+                    @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
                         <div class="download-page__other-platforms">
                             @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])

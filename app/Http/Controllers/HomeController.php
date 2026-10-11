@@ -83,6 +83,8 @@ class HomeController extends Controller
 
         $manifest = TomYumDownloads::manifest();
         $lazer = $manifest['lazer'][$platform] ?? null;
+        // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
+        $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -102,6 +104,7 @@ class HomeController extends Controller
             'lazer' => $lazer,
             'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],
+            'lazerPortable' => $lazerPortable,
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),
             'patcherUrl' => TomYumBranding::downloadsPatcherUrl() ?? $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             // TomYum: what the page shows (Admin panel > Branding).
