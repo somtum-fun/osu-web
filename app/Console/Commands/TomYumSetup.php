@@ -35,10 +35,11 @@ class TomYumSetup extends Command
         'bng' => ['Beatmap Nominators', 'BN', 'A347EB', 5, true],
         'bng_limited' => ['Beatmap Nominators (Probationary)', 'BN', 'D6A8F2', 6, true],
         'loved' => ['Project Loved', 'LVD', 'FFD1DC', 7, true],
-        'spt' => ['Support Team', 'SPT', 'EB8C47', 8, true],
-        'alumni' => ['osu! Alumni', 'ALM', '999999', 9, true],
-        'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 10, true],
-        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 11, true],
+        'medal' => ['Medal Team', 'MDL', '9CCB6B', 8, true],
+        'spt' => ['Support Team', 'SPT', 'EB8C47', 9, true],
+        'alumni' => ['osu! Alumni', 'ALM', '999999', 10, true],
+        'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 11, true],
+        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 12, true],
         // Permission only (chat announcements): no badge, no listing, like on osu.ppy.sh.
         'announce' => ['Announcers', 'ANN', 'FFD966', null, false],
     ];
@@ -53,6 +54,7 @@ class TomYumSetup extends Command
         'bng' => 'Mod maps and nominate them for ranking, each in their own modes. A map needs two nominations to be qualified.',
         'bng_limited' => 'New Beatmap Nominators on probation: they can nominate maps, but not give one its final nomination.',
         'loved' => 'Decide which maps players ask for get [Loved](/community/loved), each in their own modes.',
+        'medal' => 'Review the [custom medals](/community/medals) players ask for, and look after the ones that are out.',
         'spt' => 'Answer support tickets: account problems, appeals and questions sent to the support addresses.',
         'alumni' => 'People who helped run the server before. Thank you!',
         'featured_artist' => 'Artists whose music is featured on the server.',

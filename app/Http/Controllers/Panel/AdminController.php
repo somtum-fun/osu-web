@@ -35,7 +35,7 @@ class AdminController extends Controller
     private const UNASSIGNABLE_GROUPS = ['default', 'bot'];
 
     // TomYum: groups that come with a title (see groupTitle): identifier => the title.
-    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'featured_artist' => 'Featured Artist'];
+    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'medal' => 'Medal Team', 'featured_artist' => 'Featured Artist'];
 
     private const PLAYMODES = ['osu' => 'osu!', 'taiko' => 'osu!taiko', 'fruits' => 'osu!catch', 'mania' => 'osu!mania'];
 
@@ -264,6 +264,7 @@ class AdminController extends Controller
         'news.' => 'News',
         'site.' => 'Site settings',
         'menu_banner.' => 'Menu banners',
+        'medal.' => 'Custom medals',
     ];
 
     /** The whole staff log: by kind, about a player, by a staff member, 50 at a time (older with "before"). */

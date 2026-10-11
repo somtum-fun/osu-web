@@ -1045,6 +1045,14 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         return $group !== null && $this->isGroup($group);
     }
 
+    // TomYum: the Medal Team (custom medal requests).
+    public function isMedalTeam(): bool
+    {
+        $group = app('groups')->byIdentifier('medal');
+
+        return $group !== null && $this->isGroup($group);
+    }
+
     public function isBNG(?string $mode = null)
     {
         return $this->isFullBN($mode) || $this->isLimitedBN($mode);

@@ -66,6 +66,15 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('{pack}/remove', 'PacksController@destroy')->name('destroy');
         });
 
+        // TomYum: custom medals (the Medal Team and admins).
+        Route::group(['as' => 'medals.', 'prefix' => 'medals'], function () {
+            Route::get('/', 'CustomMedalsController@index')->name('index');
+            Route::post('{medal}', 'CustomMedalsController@update')->name('update');
+            Route::post('{medal}/approve', 'CustomMedalsController@approve')->name('approve');
+            Route::post('{medal}/reject', 'CustomMedalsController@reject')->name('reject');
+            Route::post('{medal}/disable', 'CustomMedalsController@disable')->name('disable');
+        });
+
         // TomYum: the changelog by hand (admins and developers).
         Route::group(['as' => 'changelog.', 'prefix' => 'changelog'], function () {
             Route::get('/', 'ChangelogController@index')->name('index');
@@ -432,6 +441,11 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('tournaments/{tournament}/unregister', 'TournamentsController@unregister')->name('tournaments.unregister');
         Route::post('tournaments/{tournament}/register', 'TournamentsController@register')->name('tournaments.register');
         Route::resource('tournaments', 'TournamentsController', ['only' => ['index', 'show']]);
+
+        // TomYum: custom medals: the community's medals and asking for one.
+        Route::get('medals', 'CustomMedalsController@index')->name('custom-medals.index');
+        Route::post('medals', 'CustomMedalsController@store')->name('custom-medals.store');
+        Route::post('medals/{medal}/withdraw', 'CustomMedalsController@withdraw')->name('custom-medals.withdraw');
 
         // TomYum: Project Loved: requests, their reviews, the team's decisions and the blacklist.
         Route::get('loved', 'LovedController@index')->name('loved.index');
