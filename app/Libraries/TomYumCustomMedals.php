@@ -331,7 +331,6 @@ class TomYumCustomMedals
         $width = imagesx($source);
         $height = imagesy($source);
         if ($width > 2000 || $height > 2000 || $width < 16 || $height < 16) {
-            imagedestroy($source);
 
             return [null, null, 'The icon is 16 to 2000 pixels each way.'];
         }
@@ -349,14 +348,12 @@ class TomYumCustomMedals
             imagecopyresampled($image, $source, intdiv($w - $dw, 2), intdiv($h - $dh, 2), 0, 0, $dw, $dh, $width, $height);
             ob_start();
             imagepng($image);
-            imagedestroy($image);
 
             return (string) ob_get_clean();
         };
 
         $normal = $fit(static::ICON_SIZE);
         $retina = $fit(static::ICON_SIZE_2X);
-        imagedestroy($source);
 
         return [$normal, $retina, null];
     }
