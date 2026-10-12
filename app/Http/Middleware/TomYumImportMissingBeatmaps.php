@@ -37,6 +37,9 @@ class TomYumImportMissingBeatmaps
      */
     private const IMPORTS_PER_HOUR = 600;
 
+    /** Seconds a request waits for an import before going on without it. */
+    private const IMPORT_WAIT = 6;
+
     /** Seconds a map being imported isn't asked for again (lazer repeats its lookup before the first is done). */
     private const IN_FLIGHT_TTL = 60;
 
@@ -124,15 +127,18 @@ class TomYumImportMissingBeatmaps
 
         RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
+        // The import log shows who asked, and from which client.
+        $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
         try {
-            // The import log shows who asked, and from which client.
-            $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
-            $response = $send(new TomYumAdmin(auth()->user()), $via);
-            if ($response->status() === 404) {
-                Cache::put($key, true, static::UNKNOWN_TTL);
-            }
-        } finally {
-            Cache::forget($inFlight);
+            // A few seconds, then the request goes on without it (lazer gives up after ten): the game server
+            // finishes the import anyway, and the next lookup finds the map. Meanwhile it isn't asked for again.
+            $response = $send((new TomYumAdmin(auth()->user()))->withTimeout(static::IMPORT_WAIT), $via);
+        } catch (\App\Exceptions\InvariantException) {
+            return;
+        }
+        Cache::forget($inFlight);
+        if ($response->status() === 404) {
+            Cache::put($key, true, static::UNKNOWN_TTL);
         }
     }
 }

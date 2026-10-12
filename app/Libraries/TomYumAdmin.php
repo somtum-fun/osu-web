@@ -40,6 +40,17 @@ class TomYumAdmin
         return $response->successful() ? $response->body() : null;
     }
 
+    /** Seconds a request may take (30 by default). */
+    private int $timeout = 30;
+
+    /** This client, giving up on a request after <code>$seconds</code> (it throws, as when the game server is down). */
+    public function withTimeout(int $seconds): static
+    {
+        $this->timeout = $seconds;
+
+        return $this;
+    }
+
     public function get(string $path, array $query = []): Response
     {
         return $this->send('GET', $path, $query);
@@ -68,7 +79,7 @@ class TomYumAdmin
         $actorId = (string) ($this->actor?->getKey() ?? '');
         $signature = hash_hmac('sha256', "{$method}\n{$pathAndQuery}\n{$actorId}\n{$json}", $secret);
 
-        $request = Http::timeout(30)
+        $request = Http::timeout($this->timeout)
             ->acceptJson()
             ->withHeaders([
                 'X-Actor-Id' => $actorId,
