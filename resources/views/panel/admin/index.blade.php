@@ -137,6 +137,31 @@
             @endif
         </div>
 
+        {{-- TomYum: operator kill switch for the client-side AC (AdminController@anticheatKillSwitch). --}}
+        <div class="tomyum-panel__card" id="anticheat-killswitch">
+            <h2>
+                <i class="fas fa-shield-alt"></i>Client anti-cheat
+                @if ($anticheatKillSwitch['clientRequired'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--error">OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                When ON, modern-stable scores need the Somtum Patcher (pkms) running. OFF lets anyone
+                on plain osu! pointed at <code>-devserver blueskychan.dev</code> submit scores — use
+                for incident response only.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.anticheat-killswitch') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="client_required" value="1" @if ($anticheatKillSwitch['clientRequired']) checked @endif>
+                    pkms required
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="development-banner">
             {{-- On or off beside the title, the explanation as a quiet note. --}}
             <h2>

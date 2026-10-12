@@ -84,6 +84,9 @@ class AdminController extends Controller
                 'enabled' => \App\Libraries\TomYumSiteSettings::banchoWelcomeEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::banchoWelcomeMessage(),
             ],
+            'anticheatKillSwitch' => [
+                'clientRequired' => \App\Libraries\TomYumAnticheatKillSwitch::isClientRequired(),
+            ],
         ]);
     }
 
@@ -216,6 +219,24 @@ class AdminController extends Controller
         $this->staffLog('site.bancho_welcome', null, ($enabled ? 'In-game welcome on' : 'In-game welcome off').($message === '' ? '.' : ": {$message}"));
 
         return $this->backToIndex('success', ($enabled ? 'The in-game welcome is on.' : 'The in-game welcome is off.').' Logins use it within a minute.');
+    }
+
+    /**
+     * Operator kill switch for the client-side anti-cheat. OFF accepts scores from clients without
+     * pkms (plain osu! on -devserver blueskychan.dev); ON requires the Somtum Patcher. Written to a
+     * shared Redis key the game server reads on each request.
+     */
+    public function anticheatKillSwitch()
+    {
+        $required = \Request::boolean('client_required');
+        \App\Libraries\TomYumAnticheatKillSwitch::set($required);
+        $this->staffLog(
+            'site.anticheat_killswitch',
+            null,
+            $required ? 'Anti-cheat kill switch OFF (pkms required).' : 'Anti-cheat kill switch ON (pkms NOT required).',
+        );
+
+        return $this->backToIndex('success', $required ? 'Client anti-cheat is required.' : 'Client anti-cheat is OFF — anyone can submit scores.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
