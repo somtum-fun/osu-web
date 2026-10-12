@@ -285,13 +285,12 @@ export default class Controller {
     const xhr = $.ajax(route('account.options'), {
       data: {
         user_profile_customization: {
-          tomyum_favorite_modes: next,
+          // jQuery leaves an empty array out of the request altogether, so removing the last
+          // favourite looked like no change and it came back on refresh: send "" (none) instead.
+          tomyum_favorite_modes: next.length === 0 ? '' : next,
         },
       },
       method: 'PUT',
-      // jQuery would otherwise send an empty array as nothing at all, which Laravel then can't
-      // tell apart from "no update". A real empty value needs to clear the saved favourites.
-      traditional: false,
     }).fail(action(() => {
       this.state.user.tomyum_favorite_modes = current;
     })) as JQuery.jqXHR<CurrentUserJson>;
