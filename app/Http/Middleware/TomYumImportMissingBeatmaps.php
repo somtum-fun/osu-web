@@ -37,6 +37,12 @@ class TomYumImportMissingBeatmaps
      */
     private const IMPORTS_PER_HOUR = 120;
 
+    /** And at most this many a minute, per player and per IP: a burst (scrolling fast) waits its turn. */
+    private const IMPORTS_PER_MINUTE = 15;
+
+    /** Seconds a map being imported isn't asked for again (lazer repeats its lookup before the first is done). */
+    private const IN_FLIGHT_TTL = 60;
+
     public function handle(Request $request, Closure $next)
     {
         // Only for signed-in clients (lazer always sends a token; site visitors have a session),
@@ -108,17 +114,39 @@ class TomYumImportMissingBeatmaps
             return;
         }
 
+        // Per IP and per player (players behind one network, or one player on several), an hour and a minute.
         $ip = request()->ip() ?? 'unknown';
-        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", static::IMPORTS_PER_HOUR)) {
+        $limits = [
+            ["tomyum-import:{$ip}", static::IMPORTS_PER_HOUR, 3600],
+            ['tomyum-import:user:'.auth()->id(), static::IMPORTS_PER_HOUR, 3600],
+            ["tomyum-import-minute:{$ip}", static::IMPORTS_PER_MINUTE, 60],
+            ['tomyum-import-minute:user:'.auth()->id(), static::IMPORTS_PER_MINUTE, 60],
+        ];
+        foreach ($limits as [$limitKey, $max]) {
+            if (RateLimiter::tooManyAttempts($limitKey, $max)) {
+                return;
+            }
+        }
+
+        // One import of a map at a time: a lookup of a map still being imported doesn't start another.
+        $inFlight = "tomyum:importing-beatmap:{$type}:{$value}";
+        if (!Cache::add($inFlight, true, static::IN_FLIGHT_TTL)) {
             return;
         }
-        RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
-        // The import log shows who asked, and from which client.
-        $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
-        $response = $send(new TomYumAdmin(auth()->user()), $via);
-        if ($response->status() === 404) {
-            Cache::put($key, true, static::UNKNOWN_TTL);
+        foreach ($limits as [$limitKey, , $decay]) {
+            RateLimiter::hit($limitKey, $decay);
+        }
+
+        try {
+            // The import log shows who asked, and from which client.
+            $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
+            $response = $send(new TomYumAdmin(auth()->user()), $via);
+            if ($response->status() === 404) {
+                Cache::put($key, true, static::UNKNOWN_TTL);
+            }
+        } finally {
+            Cache::forget($inFlight);
         }
     }
 }
