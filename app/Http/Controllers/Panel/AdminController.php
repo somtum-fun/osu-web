@@ -76,6 +76,7 @@ class AdminController extends Controller
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'tumthai' => static::tumthaiSettings(),
             'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
+            'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
@@ -195,6 +196,63 @@ class AdminController extends Controller
         $this->staffLog('site.pkms_versions', null, 'pkms version registry: '.count($entries).' entries.');
 
         return $this->backToIndex('success', count($entries) === 0 ? 'pkms version registry cleared.' : 'Saved '.count($entries).' pkms versions.');
+    }
+
+    /**
+     * pkms handle-requester allowlist: which external processes (tosu, overlay, gosumemory, …) can
+     * hold a PROCESS_VM_READ handle to osu! while pkms is attached. Server exposes it to pkms via
+     * /anticheat/approved-requesters; pkms refreshes every few minutes. No pkms rebuild on changes.
+     */
+    public function handleRequesters()
+    {
+        $basenames = Request::input('basename', []);
+        $sha256s = Request::input('sha256', []);
+        $notes = Request::input('note', []);
+        $delete = (array) Request::input('delete', []);
+
+        if (!is_array($basenames)) $basenames = [];
+        if (!is_array($sha256s)) $sha256s = [];
+        if (!is_array($notes)) $notes = [];
+
+        $entries = [];
+        foreach ($basenames as $i => $basename) {
+            if (isset($delete[$i])) continue;
+            $basename = trim((string) $basename);
+            $sha256 = strtolower(trim((string) ($sha256s[$i] ?? '')));
+            if ($basename === '' && $sha256 === '') continue;
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($basename)) {
+                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$basename}'.");
+            }
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($sha256)) {
+                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$sha256}'.");
+            }
+            $entries[] = [
+                'basename' => $basename,
+                'sha256' => $sha256,
+                'note' => trim((string) ($notes[$i] ?? '')) ?: null,
+            ];
+        }
+
+        $newBasename = trim((string) Request::input('new_basename', ''));
+        $newSha256 = strtolower(trim((string) Request::input('new_sha256', '')));
+        if ($newBasename !== '' || $newSha256 !== '') {
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($newBasename)) {
+                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$newBasename}'.");
+            }
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($newSha256)) {
+                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$newSha256}'.");
+            }
+            $entries[] = [
+                'basename' => $newBasename,
+                'sha256' => $newSha256,
+                'note' => trim((string) Request::input('new_note', '')) ?: null,
+            ];
+        }
+
+        \App\Libraries\TomYumHandleRequesterAllowlist::save($entries);
+        $this->staffLog('site.handle_requesters', null, 'pkms handle-requester allowlist: '.count($entries).' entries.');
+
+        return $this->backToIndex('success', count($entries) === 0 ? 'pkms handle-requester allowlist cleared.' : 'Saved '.count($entries).' pkms handle requesters.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */

@@ -319,6 +319,54 @@
             </form>
         </div>
 
+        {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
+        <div class="tomyum-panel__card" id="handle-requesters">
+            <h2>
+                <i class="fas fa-shield-alt"></i>pkms handle requesters
+                @if (count($handleRequesters) === 0)
+                    <span class="tomyum-panel__badge">EMPTY</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($handleRequesters) }}</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Which external processes may hold a <code>PROCESS_VM_READ</code> handle to osu! while pkms is attached. Each row pins a <strong>basename</strong> to a <strong>sha256</strong> of the exact exe (so a renamed cheat masquerading as <code>tosu.exe</code> fails the hash check). pkms refreshes this list every few minutes — <strong>no pkms rebuild</strong> on changes.
+                Hash: <code>certutil -hashfile &lt;file&gt; SHA256</code> on Windows, or <code>sha256sum</code> on Linux.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.handle-requesters') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th style="width: 180px">basename</th>
+                            <th>sha256 (64 lowercase hex)</th>
+                            <th>note</th>
+                            <th style="width: 50px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($handleRequesters as $i => $requester)
+                            <tr>
+                                <td><input class="input-text" type="text" name="basename[{{ $i }}]" value="{{ $requester['basename'] }}" required></td>
+                                <td><input class="input-text" type="text" name="sha256[{{ $i }}]" value="{{ $requester['sha256'] }}" pattern="[0-9a-f]{64}" required style="font-family: monospace"></td>
+                                <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $requester['note'] }}"></td>
+                                <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <td><input class="input-text" type="text" name="new_basename" placeholder="tosu.exe"></td>
+                            <td><input class="input-text" type="text" name="new_sha256" placeholder="0b365384f245..." pattern="[0-9a-f]{64}" style="font-family: monospace"></td>
+                            <td><input class="input-text" type="text" name="new_note" placeholder="tosu v4.26.2"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                </div>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

@@ -200,6 +200,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tumthai', 'AdminController@tumthai')->name('tumthai');
             // TomYum: pkms version registry editor (modern-stable anti-cheat).
             Route::post('pkms-versions', 'AdminController@pkmsVersions')->name('pkms-versions');
+            // TomYum: pkms handle-requester allowlist (basename + sha256 of each approved external VM_READer).
+            Route::post('handle-requesters', 'AdminController@handleRequesters')->name('handle-requesters');
             // TomYum: operator kill switch for the client-side AC.
             Route::post('anticheat-killswitch', 'AdminController@anticheatKillSwitch')->name('anticheat-killswitch');
             Route::get('users', 'AdminController@users')->name('users.index');
