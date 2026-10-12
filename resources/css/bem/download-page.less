@@ -234,6 +234,51 @@
     padding: @border-radius--extra;
   }
 
+  &__legacy-title {
+    cursor: pointer;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 5px 15px;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__legacy-hint {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+
+    &::after {
+      content: " ▾";
+    }
+
+    .download-page__legacy[open] & {
+      display: none;
+    }
+  }
+
+  // TomYum: the Somtum Patcher by hand, folded under the banner.
+  &__manual {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__manual-title {
+    cursor: pointer;
+    color: hsl(var(--hsl-c1));
+    font-size: @font-size--normal;
+    text-align: right;
+
+    .download-page__manual[open] & {
+      text-align: left;
+      margin-bottom: 10px;
+    }
+  }
+
   &__legacy-year {
     background: hsl(var(--hsl-b3));
     border-radius: @border-radius--large;

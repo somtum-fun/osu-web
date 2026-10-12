@@ -5,7 +5,7 @@
 
 return [
     'landing' => [
-        'download' => 'Download now',
+        'download' => "Let's connect!", // TomYum
         'online' => '<strong>:players</strong> currently online in <strong>:games</strong> games',
         'peak' => 'Peak, :count online users',
         'players' => '<strong>:count</strong> registered players',
@@ -148,7 +148,7 @@ return [
             'resets' => 'resets :ends',
         ],
         'buttons' => [
-            'download' => 'Download osu!',
+            'download' => "Let's connect!", // TomYum
             'support' => 'Support :brand',
             'store' => 'store',
         ],

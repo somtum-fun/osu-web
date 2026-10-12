@@ -69,6 +69,45 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         @endif
                     </div>
+                    @elseif ($launcherLinux !== null && isset($launcherLinux['url']))
+                    {{-- TomYum: the Linux launcher first on Linux too (TumThai, osu!(stable) through osu-winello, the old clients). --}}
+                    <a
+                        class="btn-osu-big btn-osu-big--download"
+                        href="{{ $launcherLinux['url'] }}"
+                    >
+                        <div class="btn-osu-big__content">
+                            <div class="btn-osu-big__left">
+                                {{ osu_trans('home.download.download') }}
+                                <div>
+                                    <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
+                                        Somtum Launcher
+                                    </div>
+                                    {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
+                                </div>
+                                <div class="btn-osu-big__text-bottom btn-osu-big__text-bottom--download-version">
+                                    {{ $launcherLinux['version'] ?? '' }}
+                                    @if (isset($launcherLinux['size']))
+                                        ({{ App\Libraries\TomYumDownloads::size($launcherLinux['size']) }})
+                                    @endif
+                                </div>
+                            </div>
+                            <span class="btn-osu-big__icon">
+                                <span class="svg-icon svg-icon--download"></span>
+                            </span>
+                        </div>
+                    </a>
+                    <div class="download-page__text download-page__text--download-launcher">
+                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) (through
+                        <a href="https://github.com/NelloKudo/osu-winello">osu-winello</a>) and the 2008-2015 clients.
+                        Download it, then run <code>python3 somtum-linux-{{ $launcherLinux['version'] ?? '' }} install</code>.
+                    </div>
+                    <div class="download-page__text download-page__text--download-portable">
+                        Just {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}?
+                        <a href="{{ $lazerUrl }}">Download the AppImage</a>
+                        @if (isset($lazer['size']))
+                            ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
+                        @endif
+                    </div>
                     @else
                     <a
                         class="btn-osu-big btn-osu-big--download"
@@ -113,14 +152,6 @@
                             download the new version from here when there is one.
                         </div>
                     @endif
-                    @if ($launcherLinux !== null && isset($launcherLinux['url']))
-                        {{-- TomYum: the Linux launcher (TumThai, osu!(stable) through osu-winello, the old clients). --}}
-                        <div class="download-page__text download-page__text--download-launcher">
-                            Also for Linux: <a href="{{ $launcherLinux['url'] }}">Somtum Launcher</a>
-                            (TumThai, osu!(stable) through <a href="https://github.com/NelloKudo/osu-winello">osu-winello</a>,
-                            and the 2008-2015 clients). Download it, then run <code>python3 somtum-linux-{{ $launcherLinux['version'] ?? '' }} install</code>.
-                        </div>
-                    @endif
                     @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
                         <div class="download-page__other-platforms">
@@ -131,11 +162,19 @@
                 @endif
             </div>
             {{-- TomYum: this server's patcher for today's osu!(stable), in place of ppy's installer. --}}
-            @if ($showStable)
+            {{-- TomYum: the launcher patches osu!(stable) itself, so the Somtum Patcher on its own is folded
+                 away (it may not work as expected by hand). It's Windows and Linux only. --}}
+            @if ($showStable && ($lazerPlatform === 'windows_x64' || str_starts_with($lazerPlatform, 'linux_')))
             <div class="download-page__banner-tail">
-                <div class="download-page__banner-content download-page__banner-content--tail">
+                <details class="download-page__banner-content download-page__banner-content--tail download-page__manual">
+                    <summary class="download-page__manual-title">
+                        Patch osu!(stable) by hand instead
+                    </summary>
                     <div class="download-page__text download-page__text--download-stable">
-                        Playing on osu!(stable)? Patch it to play on {{ App\Libraries\TomYumBranding::name() }} (required{{ $launcher !== null ? '; Somtum Launcher does it for you' : '' }}):
+                        {{ $launcher !== null || $launcherLinux !== null ? 'The Somtum Launcher already does this for you.' : '' }}
+                        To play today's osu!(stable) on {{ App\Libraries\TomYumBranding::name() }} without the launcher, start it
+                        through the {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }}. Setting it up by hand may not
+                        work as expected, so use the launcher if you can.
                     </div>
                     <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
                         <div class="btn-osu-big__content">
@@ -152,7 +191,7 @@
                             </span>
                         </div>
                     </a>
-                </div>
+                </details>
             </div>
             @endif
         </div>

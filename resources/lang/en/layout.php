@@ -100,7 +100,7 @@ return [
             'home' => 'Home',
             'changelog-index' => 'Changelog',
             'beatmaps' => 'Beatmap Listing',
-            'download' => 'Download osu!',
+            'download' => "Let's connect!", // TomYum
             'vote' => 'Vote for us',
         ],
         'help' => [

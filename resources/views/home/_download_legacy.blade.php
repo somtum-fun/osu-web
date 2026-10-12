@@ -3,10 +3,12 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 {{-- TomYum: osu!(stable) from 2008 to 2015, patched for this server (dl.blueskychan.dev/legacy). --}}
-<div class="download-page__legacy" id="legacy">
-    <div class="download-page__text download-page__text--title">
-        Legacy osu! clients (2008-2015)
-    </div>
+{{-- Folded away: the Somtum Launcher installs and updates these, so most players never need this list. --}}
+<details class="download-page__legacy" id="legacy">
+    <summary class="download-page__legacy-title">
+        <span class="download-page__text download-page__text--title">Legacy osu! clients (2008-2015)</span>
+        <span class="download-page__legacy-hint">The Somtum Launcher installs these for you. Show the downloads</span>
+    </summary>
     <div class="download-page__text download-page__text--description">
         Old osu!(stable) builds, rebuilt to play on {{ App\Libraries\TomYumBranding::name() }}: today's beatmaps load, Relax and
         Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe.
@@ -61,4 +63,8 @@
         osu! is a registered trademark of ppy Pty Ltd. These clients are unofficial and unsupported by ppy, and are offered as is.
         To have something taken down, email <a href="mailto:{{ App\Libraries\TomYumBranding::email('dmca') }}">{{ App\Libraries\TomYumBranding::email('dmca') }}</a>.
     </div>
-</div>
+</details>
+<script>
+    // A #legacy link (the FAQ's, the launcher's) opens the list.
+    if (location.hash === '#legacy') document.getElementById('legacy').open = true;
+</script>
