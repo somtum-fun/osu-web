@@ -81,7 +81,7 @@
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
                                         {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}
                                     </div>
-                                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
+                                    @if ($perPlatform)
                                         {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
                                     @endif
                                 </div>
@@ -97,20 +97,24 @@
                             </span>
                         </div>
                     </a>
-                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null && $lazerPortable !== null)
+                    @if ($perPlatform && $lazerPortable !== null)
                         {{-- TomYum: the same build without installing it. --}}
                         <div class="download-page__text download-page__text--download-portable">
                             No install needed?
                             <a href="{{ $lazerPortable['url'] }}">Download the portable zip</a>
-                            ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
+                            @if (isset($lazerPortable['size']))
+                                ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size']) }})
+                            @endif
                         </div>
                     @endif
-                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null && str_starts_with($lazerPlatform, 'macos_'))
+                    @if ($perPlatform && str_starts_with($lazerPlatform, 'macos_'))
                         {{-- TomYum: the Mac app isn't signed with an Apple developer key, so macOS asks once before opening it. --}}
                         <div class="download-page__text download-page__text--download-portable">
                             Unzip it and move {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} to Applications. The first time, right-click {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} and choose Open
-                            (or System Settings → Privacy &amp; Security → Open Anyway). It doesn't update itself yet:
-                            download the new version from here when there is one.
+                            (or System Settings → Privacy &amp; Security → Open Anyway).
+                            @if (!$ownClient)
+                                It doesn't update itself yet: download the new version from here when there is one.
+                            @endif
                         </div>
                     @endif
                     @if ($launcherLinux !== null && isset($launcherLinux['url']))
@@ -122,7 +126,7 @@
                         </div>
                     @endif
                     @endif
-                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
+                    @if ($perPlatform)
                         <div class="download-page__other-platforms">
                             @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])
                         </div>

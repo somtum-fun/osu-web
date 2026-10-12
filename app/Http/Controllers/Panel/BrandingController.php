@@ -130,6 +130,18 @@ class BrandingController extends Controller
             $put($field, $url);
         }
 
+        // The lazer client's downloads per platform ("windows_x64 | https://..." a line).
+        $files = str_replace("
+", "
+", trim((string) Request::input('downloads_lazer_files')));
+        foreach ($files === '' ? [] : preg_split('/\R/', $files) as $line) {
+            [$platform, $url] = array_map('trim', explode('|', $line, 2) + [1 => '']);
+            if (!in_array($platform, TomYumBranding::LAZER_PLATFORMS, true) || !preg_match('#^https?://#', $url)) {
+                return $this->back('error', "A lazer download is \"platform | https://...\", with the platform one of ".implode(', ', TomYumBranding::LAZER_PLATFORMS)." (\"{$line}\").");
+            }
+        }
+        $put('downloads_lazer_files', $files === '' ? null : mb_substr($files, 0, 5000));
+
         foreach (static::NAMED as $field) {
             $value = $plain($field);
             $put($field, $value === null || $value === TomYumBranding::DEFAULTS[$field] ? null : mb_substr($value, 0, 100));
