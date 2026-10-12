@@ -24,17 +24,14 @@
         Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe.
         They need Windows and .NET Framework 3.5 (a few 2015 builds use .NET Framework 4).
     </div>
-    @if (isset($hook['url']))
-        <div class="download-page__text download-page__text--description">
-            Rather play an unmodified build? Put the
-            <a href="{{ $hook['url'] }}">hook</a>
-            @if (isset($hook['version']))
-                ({{ $hook['version'] }})
-            @endif
-            next to its osu!.exe and start the game with the hook's .exe. The hook may not work with
-            every build; if one doesn't start, try the rebuilt one above.
-        </div>
-    @endif
+    {{-- TomYum: no hook any more (unmodified builds can't pass the anti-cheat, pkms); missing builds are asked for. --}}
+    <div class="download-page__text download-page__text--description">
+        Can't find the build you want? Ask for it
+        @if (osu_url('dev') !== null)
+            in our <a href="{{ osu_url('dev') }}">Discord server</a> or
+        @endif
+        on the <a href="{{ route('forum.forums.show', 4) }}">forum</a>.
+    </div>
 
     @if (count($legacyYears) === 0)
         <div class="download-page__text">
