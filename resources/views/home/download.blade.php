@@ -187,56 +187,46 @@
             @include('home._download_legacy')
         @endif
 
+        {{-- TomYum: our own three steps, in place of ppy's osu!academy video and their screenshots. --}}
         <div class="download-page__guide">
-            <iframe
-                class="download-page__video u-embed-wide"
-                src="https://youtube.com/embed/videoseries?list={{ $GLOBALS['cfg']['osu']['urls']['youtube-tutorial-playlist'] }}"
-            ></iframe>
             <div class="download-page__guide-content">
+                <div class="download-page__text download-page__text--title download-page__guide-title">
+                    Playing in three steps
+                </div>
                 <div class="download-page__steps">
                     <div class="download-page__step">
                         <span class="download-page__step-number">1</span>
                         <div class="download-page__text download-page__text--title">
-                            {{ osu_trans("home.download.steps.download.title") }}
+                            Install
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            {{ osu_trans("home.download.steps.download.description") }}
+                            Download the Somtum Launcher above and open it. It installs
+                            {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) and the old clients for you,
+                            and keeps them up to date. On macOS or Android, download
+                            {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} instead.
                         </div>
-                        {!! img2x([
-                            'class' => 'download-page__example',
-                            'src' => '/images/layout/download-step-1.jpg',
-                        ]) !!}
                     </div>
                     <div class="download-page__step">
                         <span class="download-page__step-number">2</span>
                         <div class="download-page__text download-page__text--title">
-                            {{ osu_trans('home.download.steps.register.title') }}
+                            Make an account
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            {{ osu_trans('home.download.steps.register.description') }}
+                            Sign up in the game, not on this website: start the game and choose to create an account.
+                            Then sign in here with the same name and password.
+                            <a href="{{ wiki_url('FAQ') }}#registration">More about accounts</a>
                         </div>
-                        {!! img2x([
-                            'class' => 'download-page__example',
-                            'src' => '/images/layout/download-step-2.png',
-                        ]) !!}
                     </div>
                     <div class="download-page__step">
                         <span class="download-page__step-number">3</span>
                         <div class="download-page__text download-page__text--title">
-                            {{ osu_trans("home.download.steps.beatmaps.title") }}
+                            Get beatmaps
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            {!! osu_trans('home.download.steps.beatmaps.description._', [
-                                'browse' => link_to(
-                                    route('beatmapsets.index'),
-                                    osu_trans('home.download.steps.beatmaps.description.browse')
-                                )
-                            ]) !!}
+                            Download maps in the game, or <a href="{{ route('beatmapsets.index') }}">browse the beatmap listing</a>
+                            here. Stuck? The <a href="{{ wiki_url('FAQ') }}">FAQ</a> and the
+                            <a href="{{ wiki_url('FAQ') }}#errors">list of error messages</a> may help.
                         </div>
-                        {!! img2x([
-                            'class' => 'download-page__example',
-                            'src' => '/images/layout/download-step-3.jpg',
-                        ]) !!}
                     </div>
                 </div>
 
