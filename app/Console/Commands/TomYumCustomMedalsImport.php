@@ -131,8 +131,13 @@ class TomYumCustomMedalsImport extends Command
     /** bancho.py's unlocks of a medal, on the website and in TomYum (which then doesn't give it again). */
     private function unlocks(string $database, int $banchoId, int $achievementId): void
     {
+        // The importer may have given a player a new id (--remap): its map says which, when it's there.
+        $tomyum = $GLOBALS['cfg']['database']['connections']['tomyum']['database'] ?? 'tomyum';
+        $mapped = DB::select('SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?', [$tomyum, 'bpy_import_user_map']) !== [];
+        $userId = $mapped ? 'COALESCE(m.new_id, ua.userid)' : 'ua.userid';
+        $join = $mapped ? "LEFT JOIN `{$tomyum}`.`bpy_import_user_map` m ON m.old_id = ua.userid" : '';
         $unlocks = DB::select(
-            "SELECT ua.userid, ua.unlocked_at FROM `{$database}`.`user_achievements` ua JOIN phpbb_users u ON u.user_id = ua.userid WHERE ua.achid = ?",
+            "SELECT {$userId} AS userid, ua.unlocked_at FROM `{$database}`.`user_achievements` ua {$join} JOIN phpbb_users u ON u.user_id = {$userId} WHERE ua.achid = ?",
             [$banchoId],
         );
         foreach ($unlocks as $unlock) {
