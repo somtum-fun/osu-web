@@ -28,17 +28,14 @@ class TomYumImportMissingBeatmaps
     private const UNKNOWN_TTL = 3600;
 
     /** At most this many imports per request (a batch lookup can list many maps). */
-    private const MAX_IMPORTS = 10;
+    private const MAX_IMPORTS = 25;
 
     /**
      * At most this many imports per client IP per hour: lazer asks about every set a player looks at in
      * song select. TomYum looks maps up on a mirror first and keeps its osu! API use under osu!'s limit
      * for the whole server; this just stops one player from taking all of it.
      */
-    private const IMPORTS_PER_HOUR = 120;
-
-    /** And at most this many a minute, per player and per IP: a burst (scrolling fast) waits its turn. */
-    private const IMPORTS_PER_MINUTE = 15;
+    private const IMPORTS_PER_HOUR = 600;
 
     /** Seconds a map being imported isn't asked for again (lazer repeats its lookup before the first is done). */
     private const IN_FLIGHT_TTL = 60;
@@ -114,18 +111,9 @@ class TomYumImportMissingBeatmaps
             return;
         }
 
-        // Per IP and per player (players behind one network, or one player on several), an hour and a minute.
         $ip = request()->ip() ?? 'unknown';
-        $limits = [
-            ["tomyum-import:{$ip}", static::IMPORTS_PER_HOUR, 3600],
-            ['tomyum-import:user:'.auth()->id(), static::IMPORTS_PER_HOUR, 3600],
-            ["tomyum-import-minute:{$ip}", static::IMPORTS_PER_MINUTE, 60],
-            ['tomyum-import-minute:user:'.auth()->id(), static::IMPORTS_PER_MINUTE, 60],
-        ];
-        foreach ($limits as [$limitKey, $max]) {
-            if (RateLimiter::tooManyAttempts($limitKey, $max)) {
-                return;
-            }
+        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", static::IMPORTS_PER_HOUR)) {
+            return;
         }
 
         // One import of a map at a time: a lookup of a map still being imported doesn't start another.
@@ -134,9 +122,7 @@ class TomYumImportMissingBeatmaps
             return;
         }
 
-        foreach ($limits as [$limitKey, , $decay]) {
-            RateLimiter::hit($limitKey, $decay);
-        }
+        RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
         try {
             // The import log shows who asked, and from which client.
