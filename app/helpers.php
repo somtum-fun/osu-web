@@ -1219,6 +1219,13 @@ function wiki_url($path = null, $locale = null, $api = null, $fullUrl = true)
     return rtrim(str_replace($params['path'], $path, route($route, $params, $fullUrl)), '/');
 }
 
+// TomYum: a page of osu!'s own wiki, for links about the game itself. Our wiki (somtum-wiki) has
+// somtum.fun's pages only, and osu! shows its page in the reader's language.
+function ppy_wiki_url(string $path): string
+{
+    return 'https://osu.ppy.sh/wiki/'.str_replace(['%2F', '%23'], ['/', '#'], rawurlencode($path));
+}
+
 function bbcode($text, $uid = null, $options = [])
 {
     return (new App\Libraries\BBCodeFromDB($text, $uid, $options))->toHTML();
@@ -1290,7 +1297,7 @@ function nav_links()
     $links['home'] = [
         '_' => route('home'),
         'page_title.main.news_controller._' => route('news.index'),
-        'layout.menu.home.team' => wiki_url('People/osu!_team'),
+        'layout.menu.home.team' => wiki_url('People/Team'), // TomYum: our team page
         'page_title.main.changelog_controller._' => route('changelog.index'),
         'page_title.main.home_controller.get_download' => route('download'),
         'page_title.main.home_controller.search' => route('search'),
@@ -1317,6 +1324,7 @@ function nav_links()
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
         'page_title.main.loved_controller._' => route('loved.index'),
         'page_title.main.dan_controller._' => route('dan.index'), // TomYum: osu!dan
+        'page_title.main.custom_medals_controller._' => route('custom-medals.index'), // TomYum: custom medals
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
     ];
     // TomYum: our Discord, when there's an invite (OSU_URL_DISCORD).

@@ -68,21 +68,44 @@ class HomeController extends Controller
 
     public function getDownload()
     {
-        // TomYum: osu!tumthai (lazer) is built for Windows and Linux only.
+        // TomYum: TumThai (lazer) is built for Windows, Linux, macOS and Android.
         $lazerPlatformNames = [
             'windows_x64' => 'Windows (x64)',
+            'macos_arm64' => 'macOS (Apple Silicon)',
+            'macos_x64' => 'macOS (Intel)',
             'linux_x64' => 'Linux (x64)',
+            'linux_arm64' => 'Linux (ARM64)',
+            'android' => 'Android',
         ];
 
         $platform = get_string(request('platform'));
         if (!array_key_exists($platform, $lazerPlatformNames)) {
             $deviceDetector = new DeviceDetector(\Request::header('User-Agent') ?? '');
             $deviceDetector->parse();
-            $platform = $deviceDetector->getOs('family') === 'GNU/Linux' ? 'linux_x64' : 'windows_x64';
+            $platform = match ($deviceDetector->getOs('family')) {
+                'GNU/Linux' => 'linux_x64',
+                'Android' => 'android',
+                // TomYum: browsers on Apple Silicon still say "Intel", so Macs get the Apple Silicon build; Intel is in the list.
+                'Mac' => 'macos_arm64',
+                default => 'windows_x64',
+            };
         }
 
         $manifest = TomYumDownloads::manifest();
         $lazer = $manifest['lazer'][$platform] ?? null;
+        // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
+        $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
+        // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
+        // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
+        // Its installer when the list has one (the plain exe before that), and its portable zip.
+        $launcherSelf = $manifest['self']['windows_x64_setup'] ?? $manifest['self']['windows_x64'] ?? null;
+        $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($launcherSelf['url'])
+            ? [...$launcherSelf, 'version' => $manifest['self']['version'] ?? null, 'portable' => $manifest['self']['windows_x64_portable'] ?? null]
+            : null;
+        // TomYum: the Linux launcher, a line under TumThai's Linux button.
+        $launcherLinux = $platform === 'linux_x64' && TomYumBranding::downloadsLazerUrl() === null
+            ? ($manifest['self']['linux_x64'] ?? null)
+            : null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -99,9 +122,13 @@ class HomeController extends Controller
         return ext_view('home.download', [
             'dlUrl' => TomYumDownloads::baseUrl(),
             'hook' => $manifest['hook'] ?? null,
+            'launcher' => $launcher,
+            'launcherLinux' => $launcherLinux,
             'lazer' => $lazer,
             'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
+            'lazerPlatform' => $platform,
             'lazerPlatformName' => $lazerPlatformNames[$platform],
+            'lazerPortable' => $lazerPortable,
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),
             'patcherUrl' => TomYumBranding::downloadsPatcherUrl() ?? $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             // TomYum: what the page shows (Admin panel > Branding).
@@ -426,7 +453,7 @@ class HomeController extends Controller
             // There are 5 perk rendering types: image, image-flipped, hero, group and image-group.
             // image, image-flipped, hero each show an individual perk (with image) while group and image-group show groups of perks (the latter with images)
             'perks' => [
-                // TomYum: osu!somtum's own perks first (somtum.fun/support).
+                // TomYum: somtum.fun's own perks first (somtum.fun/support).
                 [
                     'type' => 'group',
                     'items' => [

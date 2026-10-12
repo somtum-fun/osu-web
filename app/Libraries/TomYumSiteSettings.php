@@ -19,7 +19,7 @@ class TomYumSiteSettings
     private const CACHE_KEY = 'tomyum:site-settings';
 
     /** The development banner's text until staff write their own (markdown: links work). */
-    public const DEVELOPMENT_BANNER_DEFAULT = 'This is a development instance of the [osu! website](https://osu.ppy.sh). Please do not login with your osu! credentials.';
+    public const DEVELOPMENT_BANNER_DEFAULT = 'This is a development instance of this website. Please do not log in with your osu! account details.';
 
     public static function get(string $name, ?string $default = null): ?string
     {
@@ -67,6 +67,20 @@ class TomYumSiteSettings
     public static function developmentBannerMessage(): string
     {
         return static::get('development_banner_message') ?? static::DEVELOPMENT_BANNER_DEFAULT;
+    }
+
+    /** TomYum's welcome when staff haven't written their own ({username} is the player's name). */
+    public const BANCHO_WELCOME_DEFAULT = 'Welcome to TomYum, {username}!';
+
+    /** Whether osu! (stable) shows a welcome notice at login (TomYum reads bancho_welcome_*, within a minute). */
+    public static function banchoWelcomeEnabled(): bool
+    {
+        return static::get('bancho_welcome_enabled') !== '0';
+    }
+
+    public static function banchoWelcomeMessage(): string
+    {
+        return presence(static::get('bancho_welcome_message')) ?? static::BANCHO_WELCOME_DEFAULT;
     }
 
     /** The banner's message as HTML: markdown links and emphasis, HTML escaped, on one line. */

@@ -137,6 +137,31 @@
             @endif
         </div>
 
+        {{-- TomYum: operator kill switch for the client-side AC (AdminController@anticheatKillSwitch). --}}
+        <div class="tomyum-panel__card" id="anticheat-killswitch">
+            <h2>
+                <i class="fas fa-shield-alt"></i>Client anti-cheat
+                @if ($anticheatKillSwitch['clientRequired'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--error">OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                When ON, modern-stable scores need the Somtum Patcher (pkms) running. OFF lets anyone
+                on plain osu! pointed at <code>-devserver blueskychan.dev</code> submit scores — use
+                for incident response only.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.anticheat-killswitch') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="client_required" value="1" @if ($anticheatKillSwitch['clientRequired']) checked @endif>
+                    pkms required
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="development-banner">
             {{-- On or off beside the title, the explanation as a quiet note. --}}
             <h2>
@@ -164,6 +189,181 @@
                     Show it
                 </label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
+        <div class="tomyum-panel__card" id="bancho-welcome">
+            <h2>
+                <i class="fas fa-comment-dots"></i>In-game welcome
+                @if ($banchoWelcome['enabled'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
+                @else
+                    <span class="tomyum-panel__badge">OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                The notice osu! (stable) shows when a player logs in. <code>{username}</code> is the player's name.
+                Leave the message empty for the default one. Logins use a change within a minute.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.bancho-welcome') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Message</span>
+                    <input class="input-text" type="text" name="message" maxlength="500"
+                        value="{{ $banchoWelcome['message'] === App\Libraries\TomYumSiteSettings::BANCHO_WELCOME_DEFAULT ? '' : $banchoWelcome['message'] }}"
+                        placeholder="{{ App\Libraries\TomYumSiteSettings::BANCHO_WELCOME_DEFAULT }}">
+                </label>
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="enabled" value="1" @if ($banchoWelcome['enabled']) checked @endif>
+                    Show it
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
+        {{-- TomYum: TumThai (lazer) version gating (AdminController@tumthai); the API middleware TomYumLazerVersionGate enforces it. --}}
+        <div class="tomyum-panel__card" id="tumthai">
+            <h2>
+                <i class="fas fa-gamepad"></i>TumThai versions
+                @if ($tumthai['unrestricted'])
+                    <span class="tomyum-panel__badge">OPEN</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">GATED</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Which TumThai (lazer) builds can connect. Lazer sends its build as <code>x-api-version</code> (YYYYMMDD; 0 for a local build).
+                A disallowed build sees "Realtime online functionality is not supported on this version of the game. Please upgrade to the latest version." (403).
+                Leave the minimum blank (or 0) and the whitelist blank for no limit. If a whitelist is set, only those exact builds are allowed; otherwise the minimum applies.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.tumthai') }}" class="tomyum-panel__row" style="align-items: flex-end; flex-wrap: wrap">
+                @csrf
+                <label class="input-container tomyum-panel__field" style="flex: 0 1 200px">
+                    <span class="input-container__label">Minimum build (YYYYMMDD)</span>
+                    <input class="input-text" type="number" name="min" min="0" step="1" value="{{ $tumthai['min'] ?: '' }}" placeholder="e.g. 20260818">
+                </label>
+                <label class="input-container tomyum-panel__field" style="flex: 1 1 320px">
+                    <span class="input-container__label">Whitelist (comma or space separated, YYYYMMDD)</span>
+                    <input class="input-text" type="text" name="whitelist" value="{{ implode(', ', $tumthai['whitelist']) }}" placeholder="e.g. 20260818, 20260924">
+                </label>
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="allow_local" value="1" @if ($tumthai['allowLocal']) checked @endif>
+                    Allow local builds (version 0)
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
+        {{-- TomYum: pkms version registry (AdminController@pkmsVersions); TomYum's handshake-flag plugin enforces it. --}}
+        <div class="tomyum-panel__card" id="pkms-versions">
+            <h2>
+                <i class="fas fa-shield-alt"></i>pkms versions
+                @if (count($pkmsVersions) === 0)
+                    <span class="tomyum-panel__badge">OPEN</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($pkmsVersions) }}</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Modern-stable anti-cheat (pkms) sends its <code>build_id</code> on every handshake (e.g.&nbsp;<code>pkms/0.3.1-test2</code>).
+                <strong>revoked</strong> rejects the handshake (client is dropped). <strong>grace</strong> accepts the handshake with an "update required" marker until <em>grace_until</em>, then it becomes revoked.
+                <strong>enabled</strong> is the normal state; a build id that isn't in the list is also allowed (default accept). Changes apply within a minute without a server restart.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pkms-versions') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th>build_id</th>
+                            <th style="width: 110px">status</th>
+                            <th style="width: 130px">grace_until (YYYY-MM-DD)</th>
+                            <th>note</th>
+                            <th style="width: 50px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pkmsVersions as $i => $version)
+                            <tr>
+                                <td><input class="input-text" type="text" name="build_id[{{ $i }}]" value="{{ $version['build_id'] }}" required></td>
+                                <td>
+                                    <select class="input-text" name="status[{{ $i }}]">
+                                        @foreach (App\Libraries\TomYumPkmsVersions::STATUSES as $status)
+                                            <option value="{{ $status }}" @if ($status === $version['status']) selected @endif>{{ $status }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input class="input-text" type="date" name="grace_until[{{ $i }}]" value="{{ $version['grace_until'] }}"></td>
+                                <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $version['note'] }}"></td>
+                                <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <td><input class="input-text" type="text" name="new_build_id" placeholder="pkms/0.3.1-test2"></td>
+                            <td>
+                                <select class="input-text" name="new_status">
+                                    @foreach (App\Libraries\TomYumPkmsVersions::STATUSES as $status)
+                                        <option value="{{ $status }}">{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td><input class="input-text" type="date" name="new_grace_until"></td>
+                            <td><input class="input-text" type="text" name="new_note" placeholder="(optional)"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                    <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.log', ['kind' => 'score.pkms_']) }}"><i class="fas fa-flag"></i>Flagged scores</a>
+                </div>
+            </form>
+        </div>
+
+        {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
+        <div class="tomyum-panel__card" id="handle-requesters">
+            <h2>
+                <i class="fas fa-shield-alt"></i>pkms handle requesters
+                @if (count($handleRequesters) === 0)
+                    <span class="tomyum-panel__badge">EMPTY</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($handleRequesters) }}</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Which external processes may hold a <code>PROCESS_VM_READ</code> handle to osu! while pkms is attached. Each row pins a <strong>basename</strong> to a <strong>sha256</strong> of the exact exe (so a renamed cheat masquerading as <code>tosu.exe</code> fails the hash check). pkms refreshes this list every few minutes — <strong>no pkms rebuild</strong> on changes.
+                Hash: <code>certutil -hashfile &lt;file&gt; SHA256</code> on Windows, or <code>sha256sum</code> on Linux.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.handle-requesters') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th style="width: 180px">basename</th>
+                            <th>sha256 (64 lowercase hex)</th>
+                            <th>note</th>
+                            <th style="width: 50px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($handleRequesters as $i => $requester)
+                            <tr>
+                                <td><input class="input-text" type="text" name="basename[{{ $i }}]" value="{{ $requester['basename'] }}" required></td>
+                                <td><input class="input-text" type="text" name="sha256[{{ $i }}]" value="{{ $requester['sha256'] }}" pattern="[0-9a-f]{64}" required style="font-family: monospace"></td>
+                                <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $requester['note'] }}"></td>
+                                <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <td><input class="input-text" type="text" name="new_basename" placeholder="tosu.exe"></td>
+                            <td><input class="input-text" type="text" name="new_sha256" placeholder="0b365384f245..." pattern="[0-9a-f]{64}" style="font-family: monospace"></td>
+                            <td><input class="input-text" type="text" name="new_note" placeholder="tosu v4.26.2"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                </div>
             </form>
         </div>
 

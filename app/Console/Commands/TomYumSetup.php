@@ -35,10 +35,11 @@ class TomYumSetup extends Command
         'bng' => ['Beatmap Nominators', 'BN', 'A347EB', 5, true],
         'bng_limited' => ['Beatmap Nominators (Probationary)', 'BN', 'D6A8F2', 6, true],
         'loved' => ['Project Loved', 'LVD', 'FFD1DC', 7, true],
-        'spt' => ['Support Team', 'SPT', 'EB8C47', 8, true],
-        'alumni' => ['osu! Alumni', 'ALM', '999999', 9, true],
-        'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 10, true],
-        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 11, true],
+        'medal' => ['Medal Team', 'MDL', '9CCB6B', 8, true],
+        'spt' => ['Support Team', 'SPT', 'EB8C47', 9, true],
+        'alumni' => ['osu! Alumni', 'ALM', '999999', 10, true],
+        'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 11, true],
+        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 12, true],
         // Permission only (chat announcements): no badge, no listing, like on osu.ppy.sh.
         'announce' => ['Announcers', 'ANN', 'FFD966', null, false],
     ];
@@ -53,6 +54,7 @@ class TomYumSetup extends Command
         'bng' => 'Mod maps and nominate them for ranking, each in their own modes. A map needs two nominations to be qualified.',
         'bng_limited' => 'New Beatmap Nominators on probation: they can nominate maps, but not give one its final nomination.',
         'loved' => 'Decide which maps players ask for get [Loved](/community/loved), each in their own modes.',
+        'medal' => 'Review the [custom medals](/community/medals) players ask for, and look after the ones that are out.',
         'spt' => 'Answer support tickets: account problems, appeals and questions sent to the support addresses.',
         'alumni' => 'People who helped run the server before. Thank you!',
         'featured_artist' => 'Artists whose music is featured on the server.',
@@ -90,8 +92,22 @@ class TomYumSetup extends Command
 
     private function groups(): void
     {
-        if (Group::count() === 0) {
-            $this->call('db:seed', ['--class' => 'Database\Seeders\ModelSeeders\GroupSeeder', '--force' => true]);
+        // TomYum: the migrations add groups of their own (tc, spt, medal, ...) before this runs, so the
+        // table is rarely empty on a fresh database; make each of osu-web's groups that is missing,
+        // as the GroupSeeder would (which truncates, so it isn't run here).
+        foreach (Group::PRIV_IDENTIFIERS as $identifier) {
+            if (Group::where('identifier', $identifier)->exists()) {
+                continue;
+            }
+            Group::create([
+                'group_desc' => '',
+                'group_name' => $identifier,
+                'group_type' => 2,
+                'has_playmodes' => in_array($identifier, ['bng', 'bng_limited'], true),
+                'identifier' => $identifier,
+                'short_name' => $identifier,
+            ]);
+            $this->line("Group {$identifier}: made.");
         }
 
         foreach (static::GROUPS as $identifier => [$name, $short, $colour, $order, $listed]) {

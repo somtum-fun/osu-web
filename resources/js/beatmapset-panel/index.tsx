@@ -147,7 +147,8 @@ export default class BeatmapsetPanel extends React.Component<Props> {
     }
 
     let type = core.userPreferences.get('beatmapset_download');
-    if (type === 'direct' && !core.currentUser.is_supporter) {
+    // TomYum: osu_direct is supporters and voters with time left.
+    if (type === 'direct' && !core.currentUser.osu_direct) {
       type = 'all';
     }
 

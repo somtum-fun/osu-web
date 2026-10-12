@@ -116,6 +116,11 @@ export function wikiUrl(path: string, locale?: string | null) {
     .replace('WIKI_PATH', encodeURI(path));
 }
 
+// TomYum: a page of osu!'s own wiki, for links about the game itself (our wiki has somtum.fun's pages only).
+export function ppyWikiUrl(path: string) {
+  return `https://osu.ppy.sh/wiki/${encodeURI(path)}`;
+}
+
 export function wikiUrlWithoutLocale(path: string) {
   return route('wiki.show', { path: 'WIKI_PATH' })
     .replace('/WIKI_PATH', encodeURI(path));

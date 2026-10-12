@@ -66,6 +66,15 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('{pack}/remove', 'PacksController@destroy')->name('destroy');
         });
 
+        // TomYum: custom medals (the Medal Team and admins).
+        Route::group(['as' => 'medals.', 'prefix' => 'medals'], function () {
+            Route::get('/', 'CustomMedalsController@index')->name('index');
+            Route::post('{medal}', 'CustomMedalsController@update')->name('update');
+            Route::post('{medal}/approve', 'CustomMedalsController@approve')->name('approve');
+            Route::post('{medal}/reject', 'CustomMedalsController@reject')->name('reject');
+            Route::post('{medal}/disable', 'CustomMedalsController@disable')->name('disable');
+        });
+
         // TomYum: the changelog by hand (admins and developers).
         Route::group(['as' => 'changelog.', 'prefix' => 'changelog'], function () {
             Route::get('/', 'ChangelogController@index')->name('index');
@@ -121,6 +130,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('users/{user}', 'GmtController@show')->name('users.show');
             Route::post('users/{user}/restrict', 'GmtController@restrict')->name('users.restrict');
             Route::post('users/{user}/unrestrict', 'GmtController@unrestrict')->name('users.unrestrict');
+            // TomYum: restrict the player and every account on the same hardware (admins only).
+            Route::post('users/{user}/nuke', 'GmtController@nuke')->name('users.nuke');
             Route::post('users/{user}/silence', 'GmtController@silence')->name('users.silence');
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
@@ -183,6 +194,16 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
+            // TomYum: the notice osu! (stable) shows at login (TomYum's BanchoWelcome reads it).
+            Route::post('bancho-welcome', 'AdminController@banchoWelcome')->name('bancho-welcome');
+            // TomYum: which TumThai (lazer) builds are allowed to connect (admin panel section).
+            Route::post('tumthai', 'AdminController@tumthai')->name('tumthai');
+            // TomYum: pkms version registry editor (modern-stable anti-cheat).
+            Route::post('pkms-versions', 'AdminController@pkmsVersions')->name('pkms-versions');
+            // TomYum: pkms handle-requester allowlist (basename + sha256 of each approved external VM_READer).
+            Route::post('handle-requesters', 'AdminController@handleRequesters')->name('handle-requesters');
+            // TomYum: operator kill switch for the client-side AC.
+            Route::post('anticheat-killswitch', 'AdminController@anticheatKillSwitch')->name('anticheat-killswitch');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
@@ -427,6 +448,11 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('tournaments/{tournament}/register', 'TournamentsController@register')->name('tournaments.register');
         Route::resource('tournaments', 'TournamentsController', ['only' => ['index', 'show']]);
 
+        // TomYum: custom medals: the community's medals and asking for one.
+        Route::get('medals', 'CustomMedalsController@index')->name('custom-medals.index');
+        Route::post('medals', 'CustomMedalsController@store')->name('custom-medals.store');
+        Route::post('medals/{medal}/withdraw', 'CustomMedalsController@withdraw')->name('custom-medals.withdraw');
+
         // TomYum: Project Loved: requests, their reviews, the team's decisions and the blacklist.
         Route::get('loved', 'LovedController@index')->name('loved.index');
         Route::post('loved/requests', 'LovedController@storeRequest')->name('loved.requests.store');
@@ -530,6 +556,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('connections/{kind}', 'Account\ConnectionsController@create')->name('connections.create');
             Route::get('connections/{kind}/callback', 'Account\ConnectionsController@callback')->name('connections.callback');
             Route::delete('connections/{kind}', 'Account\ConnectionsController@destroy')->name('connections.destroy');
+            Route::post('connections/{kind}/profile', 'Account\ConnectionsController@profile')->name('connections.profile');
 
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
@@ -736,6 +763,55 @@ Route::group(['middleware' => ['web']], function () {
     route_redirect('forum/p/{post}', 'forum.posts.show');
     route_redirect('po/{post}', 'forum.posts.show:');
     route_redirect('forum/t/{topic}', 'forum.topics.show');
+
+    // TomYum: legacy clients (2008-2015 builds) hit hardcoded phpBB-era URLs for every forum / profile
+    // / account button in-game. Rewrite them to the modern URLs here so the buttons work. Must be
+    // registered BEFORE route_redirect('forum/{forum}', ...) below — that catch-all would otherwise
+    // match these .php names as a `{forum}` segment and drop the query string.
+    Route::get('forum/ucp.php', function () {
+        $mode = request()->query('mode');
+        $i = request()->query('i');
+        if ($mode === 'register') {
+            return redirect(route('users.create.legacy'), 301);
+        }
+        // Everything else under ucp.php (avatar edit, signature, prefs...) → account edit page.
+        return redirect(route('account.edit').($i === 'profile' && $mode === 'avatar' ? '#avatar' : ''), 301);
+    });
+    Route::get('forum/viewtopic.php', function () {
+        $t = request()->integer('t');
+        $p = request()->integer('p');
+        if ($p > 0) {
+            return redirect(route('forum.posts.show', ['post' => $p]), 301);
+        }
+        if ($t > 0) {
+            return redirect(route('forum.topics.show', ['topic' => $t]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+    Route::get('forum/viewforum.php', function () {
+        $f = request()->integer('f');
+        if ($f > 0) {
+            return redirect(route('forum.forums.show', ['forum' => $f]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+    Route::get('forum/memberlist.php', function () {
+        $mode = request()->query('mode');
+        $u = request()->integer('u');
+        if ($mode === 'viewprofile' && $u > 0) {
+            return redirect(route('users.show', ['user' => $u]), 301);
+        }
+        return redirect(route('rankings', ['mode' => 'osu', 'type' => 'performance']), 301);
+    });
+    Route::get('forum/posting.php', function () {
+        $t = request()->integer('t');
+        if ($t > 0) {
+            // Modern reply box is on the topic page itself.
+            return redirect(route('forum.topics.show', ['topic' => $t]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+
     route_redirect('forum/{forum}', 'forum.forums.show');
     // redirects to beatmapset anyways so there's no point
     // in having an another redirect on top of that
@@ -1028,7 +1104,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
-// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is osu!somtum's).
+// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is somtum.fun's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
 Route::get('brand-logo.svg', 'HomeController@brandLogo')->name('brand.logo');

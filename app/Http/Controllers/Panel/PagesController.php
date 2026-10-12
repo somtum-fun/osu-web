@@ -35,7 +35,11 @@ class PagesController extends Controller
                 'changelog' => ChangelogController::canUseChangelog($user),
                 'dan' => DanController::canManageDan($user), // TomYum: osu!dan courses
                 'tickets' => TicketsController::canUseTickets($user),
+                'medals' => CustomMedalsController::canUseMedals($user), // TomYum: custom medals
             ],
+            'pendingMedals' => CustomMedalsController::canUseMedals($user)
+                ? \App\Libraries\TomYumCustomMedals::table()->where('status', 'pending')->count()
+                : 0,
         ]);
     }
 

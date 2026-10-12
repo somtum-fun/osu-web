@@ -21,4 +21,13 @@ class CurrentUserTransformer extends UserTransformer
             'user_preferences',
         ];
     }
+
+    // TomYum: osu!direct for supporters and voters with time left (TomYumVotes), for its download buttons.
+    public function transform(\App\Models\User $user)
+    {
+        $json = parent::transform($user);
+        $json['osu_direct'] = \App\Libraries\TomYumVotes::hasDirect($user);
+
+        return $json;
+    }
 }

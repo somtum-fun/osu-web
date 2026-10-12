@@ -10,7 +10,7 @@
         ['title' => 'Branding'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <form method="POST" action="{{ route('panel.admin.branding.update') }}">
+        <form method="POST" action="{{ route('panel.admin.branding.update') }}" class="tomyum-panel__form">
             @csrf
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-signature"></i>Name and addresses</h2>
@@ -104,14 +104,14 @@
                         <input class="input-text" type="text" name="download_video_url" value="{{ $saved['download_video_url'] }}" placeholder="{{ $GLOBALS['cfg']['osu']['urls']['download_video'] }}">
                     </label>
                 </div>
-                <p class="tomyum-panel__hint">The built-in ones (/media/landing.mp4, /media/download.mp4) are osu!somtum's.</p>
+                <p class="tomyum-panel__hint">The built-in ones (/media/landing.mp4, /media/download.mp4) are somtum.fun's.</p>
             </div>
 
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-paragraph"></i>Texts</h2>
                 <p class="tomyum-panel__hint">
                     <code>:brand</code> is the name, <code>:year</code> this year, <code>:vote_url</code> the vote page.
-                    Empty one to show nothing there. The defaults are osu!somtum's.
+                    Empty one to show nothing there. The defaults are somtum.fun's.
                 </p>
                 @foreach ([
                     'support_note' => ['Support page note (markdown)', 8],
@@ -137,7 +137,7 @@
                 <h2><i class="fas fa-download"></i>Download page</h2>
                 <p class="tomyum-panel__hint">
                     The buttons come from a file host's <code>manifest.json</code> (the lazer builds, the stable patcher, the hook and the legacy clients),
-                    unless you give a link of your own. The built-in host, dl.blueskychan.dev, is osu!somtum's: its patcher and hook connect to osu!somtum.
+                    unless you give a link of your own. The built-in host, dl.blueskychan.dev, is somtum.fun's: its patcher and hook connect to somtum.fun.
                 </p>
                 <div class="tomyum-panel__row">
                     <label class="input-container tomyum-panel__field">
@@ -190,14 +190,16 @@
                     <textarea class="input-text" name="vote_sites" rows="4" style="width: 100%" placeholder="osu-server-list.com | https://osu-server-list.com/server/…/vote | rewarded">{{ $voteSites }}</textarea>
                 </label>
                 <p class="tomyum-panel__hint">
-                    The built-in links are osu!somtum's listings. "rewarded" only works when that list calls back the game server's votes plugin.
+                    The built-in links are somtum.fun's listings. "rewarded" only works when that list calls back the game server's votes plugin.
                 </p>
             </div>
 
             <div class="tomyum-panel__card" id="legal">
                 <h2><i class="fas fa-balance-scale"></i>Legal pages</h2>
                 <p class="tomyum-panel__hint">
-                    Built-in: osu!somtum's wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
+                    Built-in: somtum.fun's wording with this server's name and addresses. From the wiki: the page <code>Legal/&lt;name&gt;</code>
+                    in the wiki (<a href="https://github.com/{{ App\Libraries\OsuWiki::user() }}/{{ App\Libraries\OsuWiki::repository() }}/tree/{{ App\Libraries\OsuWiki::branch() }}/wiki/Legal" target="_blank">on GitHub</a>),
+                    changed by pull request; the built-in page shows while it's missing. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
                     Hidden: no page and no footer link.
                 </p>
                 <p class="tomyum-panel__hint">The built-in Privacy Policy's parts that depend on how you run the server (markdown lists; empty hides one):</p>
@@ -212,23 +214,27 @@
                     </label>
                 @endforeach
                 @foreach (App\Libraries\TomYumBranding::LEGAL_PAGES as $page => [$path, $title])
-                    <div style="margin-bottom: 14px">
+                    <div class="js-legal-page" style="margin-bottom: 14px">
                         <div class="tomyum-panel__row">
                             <label class="input-container input-container--select tomyum-panel__field">
-                                <span class="input-container__label">
-                                    {{ $title }}
-                                    @if ($legal[$page]['mode'] !== 'hidden')
-                                        · <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}" target="_blank">view</a>
-                                    @endif
-                                </span>
-                                <select class="input-text" name="legal_{{ $page }}_mode">
+                                <span class="input-container__label">{{ $title }}</span>
+                                <select class="input-text js-legal-mode" name="legal_{{ $page }}_mode">
                                     <option value="builtin" @selected($legal[$page]['mode'] === 'builtin')>Built-in</option>
-                                    <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text (below)</option>
+                                    <option value="wiki" @selected($legal[$page]['mode'] === 'wiki')>From the wiki (Legal/{{ $path }})</option>
+                                    <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text</option>
                                     <option value="hidden" @selected($legal[$page]['mode'] === 'hidden')>Hidden</option>
                                 </select>
                             </label>
                         </div>
-                        <textarea class="input-text" name="legal_{{ $page }}" rows="{{ $legal[$page]['mode'] === 'custom' ? 10 : 2 }}" style="width: 100%" placeholder="Your own {{ $title }} (markdown), used when &quot;Your own text&quot; is picked">{{ $legal[$page]['text'] }}</textarea>
+                        <p class="tomyum-panel__hint">
+                            @if ($legal[$page]['mode'] !== 'hidden')
+                                <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}" target="_blank">View the page</a>
+                            @endif
+                            <span class="js-legal-wiki" @if ($legal[$page]['mode'] !== 'wiki') hidden @endif>
+                                · <a href="https://github.com/{{ App\Libraries\OsuWiki::user() }}/{{ App\Libraries\OsuWiki::repository() }}/blob/{{ App\Libraries\OsuWiki::branch() }}/wiki/Legal/{{ $path }}/en.md" target="_blank">its wiki page on GitHub</a>
+                            </span>
+                        </p>
+                        <textarea class="input-text js-legal-text" name="legal_{{ $page }}" rows="10" style="width: 100%" placeholder="Your own {{ $title }} (markdown)" @if ($legal[$page]['mode'] !== 'custom') hidden @endif>{{ $legal[$page]['text'] }}</textarea>
                     </div>
                 @endforeach
             </div>
@@ -238,4 +244,20 @@
             </div>
         </form>
     </div>
+@endsection
+
+@section('script')
+    @parent
+    <script>
+        (() => {
+            // Each legal page: its text box only for "Your own text", its GitHub link only for the wiki.
+            document.querySelectorAll('.js-legal-page').forEach((page) => {
+                const mode = page.querySelector('.js-legal-mode');
+                mode.addEventListener('change', () => {
+                    page.querySelector('.js-legal-text').hidden = mode.value !== 'custom';
+                    page.querySelector('.js-legal-wiki').hidden = mode.value !== 'wiki';
+                });
+            });
+        })();
+    </script>
 @endsection

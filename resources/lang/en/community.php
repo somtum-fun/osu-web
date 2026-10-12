@@ -39,7 +39,7 @@ return [
             // TomYum
             'vote' => [
                 'title' => 'Can\'t Pay? Vote!',
-                'description' => 'Every vote for :brand on a server list gives you supporter time for free, and helps new players find us.',
+                'description' => 'Every vote for :brand on a server list gives you osu!direct for free, and helps new players find us.',
                 'link_text' => 'Vote for us &raquo;',
             ],
             'bounty-program' => [

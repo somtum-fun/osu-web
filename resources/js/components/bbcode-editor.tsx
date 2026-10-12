@@ -5,7 +5,7 @@ import { snakeCase } from 'lodash';
 import * as React from 'react';
 import { classWithModifiers, Modifiers } from 'utils/css';
 import { trans } from 'utils/lang';
-import { wikiUrl } from 'utils/url';
+import { ppyWikiUrl } from 'utils/url';
 
 type ChangeType = 'cancel' | 'save';
 
@@ -166,7 +166,7 @@ export default class BbcodeEditor extends React.Component<Props> {
 
         <a
           className='post-box-toolbar__help'
-          href={wikiUrl('BBCode')}
+          href={ppyWikiUrl('BBCode')}
           rel="noreferrer"
           target='_blank'
         >

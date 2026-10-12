@@ -107,6 +107,10 @@ return [
         'dan_controller' => [
             '_' => 'osu!dan',
         ],
+        // TomYum: custom medals.
+        'custom_medals_controller' => [
+            '_' => 'medals',
+        ],
         'news_controller' => [
             '_' => 'news',
         ],

@@ -26,7 +26,7 @@
 @if ($pack->no_diff_reduction)
     <div class="beatmap-pack-description">
         {!! osu_trans('beatmappacks.show.no_diff_reduction._', [
-            'link' => link_to(wiki_url('Game_modifier'), osu_trans('beatmappacks.show.no_diff_reduction.link')),
+            'link' => link_to(ppy_wiki_url('Gameplay/Game_modifier'), osu_trans('beatmappacks.show.no_diff_reduction.link')),
         ]) !!}
     </div>
 @endif

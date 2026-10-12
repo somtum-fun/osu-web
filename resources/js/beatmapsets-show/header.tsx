@@ -23,7 +23,7 @@ import { classWithModifiers } from 'utils/css';
 import { formatDuration, formatNumber } from 'utils/html';
 import { trans } from 'utils/lang';
 import { present } from 'utils/string';
-import { beatmapDownloadDirect, wikiUrl } from 'utils/url';
+import { beatmapDownloadDirect, ppyWikiUrl, wikiUrl } from 'utils/url';
 import BeatmapPicker from './beatmap-picker';
 import Controller from './controller';
 import Stats from './stats';
@@ -591,7 +591,8 @@ export default class Header extends React.Component<Props> {
 
               <a
                 className='beatmapset-header-v2__button beatmapset-header-v2__button--wide'
-                href={currentUser.is_supporter ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
+                // TomYum: osu_direct is supporters and voters with time left.
+                href={currentUser.osu_direct ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
               >
                 {trans('beatmapsets.show.details.download.direct')}
               </a>
@@ -782,6 +783,6 @@ export default class Header extends React.Component<Props> {
     } else {
       fragment = status;
     }
-    return wikiUrl(`Beatmap/Category#${fragment}`);
+    return ppyWikiUrl(`Beatmap/Category#${fragment}`);
   }
 }

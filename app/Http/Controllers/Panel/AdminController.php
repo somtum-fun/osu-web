@@ -35,7 +35,7 @@ class AdminController extends Controller
     private const UNASSIGNABLE_GROUPS = ['default', 'bot'];
 
     // TomYum: groups that come with a title (see groupTitle): identifier => the title.
-    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'featured_artist' => 'Featured Artist'];
+    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'medal' => 'Medal Team', 'featured_artist' => 'Featured Artist'];
 
     private const PLAYMODES = ['osu' => 'osu!', 'taiko' => 'osu!taiko', 'fruits' => 'osu!catch', 'mania' => 'osu!mania'];
 
@@ -74,11 +74,185 @@ class AdminController extends Controller
                 'signups' => \App\Libraries\TomYumCharts::signupsPerDay(),
             ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
+            'tumthai' => static::tumthaiSettings(),
+            'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
+            'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
             ],
+            'banchoWelcome' => [
+                'enabled' => \App\Libraries\TomYumSiteSettings::banchoWelcomeEnabled(),
+                'message' => \App\Libraries\TomYumSiteSettings::banchoWelcomeMessage(),
+            ],
+            'anticheatKillSwitch' => [
+                'clientRequired' => \App\Libraries\TomYumAnticheatKillSwitch::isClientRequired(),
+            ],
         ]);
+    }
+
+    /** TumThai (lazer) version gating: the current settings. */
+    public static function tumthaiSettings(): array
+    {
+        return [
+            'min' => \App\Libraries\TomYumLazerVersions::minVersion(),
+            'whitelist' => \App\Libraries\TomYumLazerVersions::whitelist(),
+            'allowLocal' => \App\Libraries\TomYumLazerVersions::allowLocalBuild(),
+            'unrestricted' => \App\Libraries\TomYumLazerVersions::unrestricted(),
+        ];
+    }
+
+    /**
+     * TomYum: whichever TumThai (lazer) builds are allowed to connect, by API version (YYYYMMDD). A
+     * minimum, or an exact whitelist, or both left blank for no limit. 0 means a local build.
+     */
+    public function tumthai()
+    {
+        $min = Request::input('min');
+        $min = $min === null || trim($min) === '' ? '0' : (ctype_digit(trim($min)) ? trim($min) : null);
+        if ($min === null) {
+            return $this->backToIndex('error', 'Minimum must be a YYYYMMDD number, or blank.');
+        }
+
+        $whitelistRaw = trim((string) Request::input('whitelist', ''));
+        $whitelist = [];
+        foreach (preg_split('/[\s,]+/', $whitelistRaw) ?: [] as $part) {
+            if ($part === '') continue;
+            if (!ctype_digit($part)) {
+                return $this->backToIndex('error', 'Whitelist takes YYYYMMDD numbers, one or more (comma or space separated).');
+            }
+            $whitelist[] = $part;
+        }
+
+        \App\Libraries\TomYumSiteSettings::set('tumthai_min_api_version', $min);
+        \App\Libraries\TomYumSiteSettings::set('tumthai_whitelist', $whitelist === [] ? null : implode(',', $whitelist));
+        \App\Libraries\TomYumSiteSettings::set('tumthai_allow_zero', Request::boolean('allow_local') ? '1' : '0');
+
+        $parts = [];
+        $parts[] = $min === '0' ? 'no minimum' : "min {$min}";
+        $parts[] = $whitelist === [] ? 'no whitelist' : 'whitelist '.implode(',', $whitelist);
+        $parts[] = Request::boolean('allow_local') ? 'local allowed' : 'local blocked';
+        $this->staffLog('site.tumthai_versions', null, 'TumThai versions: '.implode(', ', $parts).'.');
+
+        $unrestricted = $min === '0' && $whitelist === [];
+
+        return $this->backToIndex('success', $unrestricted ? 'TumThai versions: no limit.' : 'TumThai versions updated.');
+    }
+
+    /**
+     * TomYum: edit the pkms version registry. The form posts each row as parallel arrays, which we
+     * stitch back together, keep the valid entries, and save as the JSON blob.
+     */
+    public function pkmsVersions()
+    {
+        $buildIds = Request::input('build_id', []);
+        $statuses = Request::input('status', []);
+        $graces = Request::input('grace_until', []);
+        $notes = Request::input('note', []);
+        $delete = (array) Request::input('delete', []);
+
+        if (!is_array($buildIds)) $buildIds = [];
+        if (!is_array($statuses)) $statuses = [];
+        if (!is_array($graces)) $graces = [];
+        if (!is_array($notes)) $notes = [];
+
+        $entries = [];
+        foreach ($buildIds as $i => $buildId) {
+            if (isset($delete[$i])) continue;
+            $buildId = trim((string) $buildId);
+            if ($buildId === '') continue;
+            $status = $statuses[$i] ?? 'enabled';
+            if (!in_array($status, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $status = 'enabled';
+            $graceUntil = trim((string) ($graces[$i] ?? ''));
+            if ($graceUntil !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $graceUntil)) {
+                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+            }
+            $entries[] = [
+                'build_id' => $buildId,
+                'status' => $status,
+                'grace_until' => $graceUntil === '' ? null : $graceUntil,
+                'note' => trim((string) ($notes[$i] ?? '')) ?: null,
+            ];
+        }
+
+        // Add a new row if the admin filled the "new" fields in the form.
+        $newBuildId = trim((string) Request::input('new_build_id', ''));
+        if ($newBuildId !== '') {
+            $newStatus = Request::input('new_status', 'enabled');
+            if (!in_array($newStatus, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $newStatus = 'enabled';
+            $newGrace = trim((string) Request::input('new_grace_until', ''));
+            if ($newGrace !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $newGrace)) {
+                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+            }
+            $entries[] = [
+                'build_id' => $newBuildId,
+                'status' => $newStatus,
+                'grace_until' => $newGrace === '' ? null : $newGrace,
+                'note' => trim((string) Request::input('new_note', '')) ?: null,
+            ];
+        }
+
+        \App\Libraries\TomYumPkmsVersions::save($entries);
+        $this->staffLog('site.pkms_versions', null, 'pkms version registry: '.count($entries).' entries.');
+
+        return $this->backToIndex('success', count($entries) === 0 ? 'pkms version registry cleared.' : 'Saved '.count($entries).' pkms versions.');
+    }
+
+    /**
+     * pkms handle-requester allowlist: which external processes (tosu, overlay, gosumemory, …) can
+     * hold a PROCESS_VM_READ handle to osu! while pkms is attached. Server exposes it to pkms via
+     * /anticheat/approved-requesters; pkms refreshes every few minutes. No pkms rebuild on changes.
+     */
+    public function handleRequesters()
+    {
+        $basenames = Request::input('basename', []);
+        $sha256s = Request::input('sha256', []);
+        $notes = Request::input('note', []);
+        $delete = (array) Request::input('delete', []);
+
+        if (!is_array($basenames)) $basenames = [];
+        if (!is_array($sha256s)) $sha256s = [];
+        if (!is_array($notes)) $notes = [];
+
+        $entries = [];
+        foreach ($basenames as $i => $basename) {
+            if (isset($delete[$i])) continue;
+            $basename = trim((string) $basename);
+            $sha256 = strtolower(trim((string) ($sha256s[$i] ?? '')));
+            if ($basename === '' && $sha256 === '') continue;
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($basename)) {
+                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$basename}'.");
+            }
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($sha256)) {
+                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$sha256}'.");
+            }
+            $entries[] = [
+                'basename' => $basename,
+                'sha256' => $sha256,
+                'note' => trim((string) ($notes[$i] ?? '')) ?: null,
+            ];
+        }
+
+        $newBasename = trim((string) Request::input('new_basename', ''));
+        $newSha256 = strtolower(trim((string) Request::input('new_sha256', '')));
+        if ($newBasename !== '' || $newSha256 !== '') {
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($newBasename)) {
+                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$newBasename}'.");
+            }
+            if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($newSha256)) {
+                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$newSha256}'.");
+            }
+            $entries[] = [
+                'basename' => $newBasename,
+                'sha256' => $newSha256,
+                'note' => trim((string) Request::input('new_note', '')) ?: null,
+            ];
+        }
+
+        \App\Libraries\TomYumHandleRequesterAllowlist::save($entries);
+        $this->staffLog('site.handle_requesters', null, 'pkms handle-requester allowlist: '.count($entries).' entries.');
+
+        return $this->backToIndex('success', count($entries) === 0 ? 'pkms handle-requester allowlist cleared.' : 'Saved '.count($entries).' pkms handle requesters.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */
@@ -91,6 +265,36 @@ class AdminController extends Controller
         $this->staffLog('site.development_banner', null, ($enabled ? 'Development banner on' : 'Development banner off').($message === '' ? '.' : ": {$message}"));
 
         return $this->backToIndex('success', $enabled ? 'The development banner is on.' : 'The development banner is off.');
+    }
+
+    /** The notice osu! (stable) shows at login: on or off, and its text ({username} is the player's name). */
+    public function banchoWelcome()
+    {
+        $enabled = Request::boolean('enabled');
+        $message = trim(Request::input('message') ?? '');
+        \App\Libraries\TomYumSiteSettings::set('bancho_welcome_enabled', $enabled ? '1' : '0');
+        \App\Libraries\TomYumSiteSettings::set('bancho_welcome_message', $message === '' ? null : mb_substr($message, 0, 500));
+        $this->staffLog('site.bancho_welcome', null, ($enabled ? 'In-game welcome on' : 'In-game welcome off').($message === '' ? '.' : ": {$message}"));
+
+        return $this->backToIndex('success', ($enabled ? 'The in-game welcome is on.' : 'The in-game welcome is off.').' Logins use it within a minute.');
+    }
+
+    /**
+     * Operator kill switch for the client-side anti-cheat. OFF accepts scores from clients without
+     * pkms (plain osu! on -devserver blueskychan.dev); ON requires the Somtum Patcher. Written to a
+     * shared Redis key the game server reads on each request.
+     */
+    public function anticheatKillSwitch()
+    {
+        $required = \Request::boolean('client_required');
+        \App\Libraries\TomYumAnticheatKillSwitch::set($required);
+        $this->staffLog(
+            'site.anticheat_killswitch',
+            null,
+            $required ? 'Anti-cheat kill switch OFF (pkms required).' : 'Anti-cheat kill switch ON (pkms NOT required).',
+        );
+
+        return $this->backToIndex('success', $required ? 'Client anti-cheat is required.' : 'Client anti-cheat is OFF — anyone can submit scores.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
@@ -145,6 +349,7 @@ class AdminController extends Controller
         '' => 'Everything',
         'user.' => 'Players (moderation)',
         'score.' => 'Scores',
+        'score.pkms_' => 'Scores (pkms flags)',
         'admin.' => 'Accounts',
         'report.' => 'Reports',
         'beatmapset.' => 'Beatmaps',
@@ -154,6 +359,7 @@ class AdminController extends Controller
         'news.' => 'News',
         'site.' => 'Site settings',
         'menu_banner.' => 'Menu banners',
+        'medal.' => 'Custom medals',
     ];
 
     /** The whole staff log: by kind, about a player, by a staff member, 50 at a time (older with "before"). */

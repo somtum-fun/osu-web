@@ -12,6 +12,7 @@ type CurrentUserDefaultIncludes =
   | 'unread_pm_count'
   | 'user_preferences';
 
-type CurrentUserJson = UserExtendedJson & Required<Pick<UserExtendedJson, CurrentUserDefaultIncludes>>;
+// TomYum: osu_direct is osu!direct for supporters and voters with time left (CurrentUserTransformer).
+type CurrentUserJson = UserExtendedJson & Required<Pick<UserExtendedJson, CurrentUserDefaultIncludes>> & { osu_direct?: boolean };
 
 export default CurrentUserJson;

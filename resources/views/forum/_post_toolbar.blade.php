@@ -124,7 +124,7 @@
 
     <a
         class="post-box-toolbar__help"
-        href="{{ wiki_url('BBCode') }}"
+        href="{{ ppy_wiki_url('BBCode') }}"
         target="_blank"
     >
         {{ osu_trans('bbcode.help') }}

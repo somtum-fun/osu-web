@@ -20,12 +20,13 @@ class TomYumChangelog
 {
     /** name => [id, name on the page]. */
     public const STREAMS = [
-        'lazer' => [6, 'osu!tumthai'],
+        'lazer' => [6, 'TumThai'],
         'stable40' => [5, 'Stable'],
         'legacy' => [13, 'Legacy clients'],
         'server' => [10, 'Server'],
         'web' => [1, 'Web / Wiki'],
         'discord' => [11, 'Discord'],
+        'launcher' => [14, 'Somtum Launcher'],
     ];
 
     /** Makes the streams that aren't there yet (names given on the panel are kept). */

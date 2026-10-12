@@ -6,7 +6,7 @@ import { route } from 'laroute';
 import * as React from 'react';
 import { classWithModifiers, Modifiers } from 'utils/css';
 import { trans } from 'utils/lang';
-import { wikiUrl } from 'utils/url';
+import { ppyWikiUrl } from 'utils/url';
 
 interface Props {
   beatmapset: BeatmapsetJson;
@@ -29,7 +29,7 @@ export default function BeatmapsetBadge(props: Props) {
     case 'spotlight':
       if (!props.beatmapset.spotlight) return null;
 
-      url = wikiUrl('Beatmap_Spotlights');
+      url = ppyWikiUrl('Beatmap_Spotlights');
       break;
   }
   const label = trans(`beatmapsets.${props.type}_badge.label`);

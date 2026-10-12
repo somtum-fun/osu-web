@@ -57,6 +57,9 @@ return [
 
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
+    // Players with no score in a ruleset for this many days are off its rankings (0: off; the game
+    // server's TOMYUM_RANKING__INACTIVEDAYS must say the same).
+    'ranking_inactive_days' => get_int(env('TOMYUM_RANKING_INACTIVE_DAYS')) ?? 0,
 
     // Store payments (TrueMoney, Stripe) through payments-service (Store\TomYumCheckoutController):
     // where it's reached from here; empty, paying fails with "not available".
@@ -106,14 +109,14 @@ return [
     // account can send as; if it refuses this one, the mail goes from MAIL_ADDRESS instead.
     'store_mail' => [
         'address' => presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
-        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'osu!somtum store',
+        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'somtum.fun store',
     ],
 
     // This server's name, logo, favicons and contact addresses (App\Libraries\TomYumBranding). These are
-    // the defaults; staff change them in Admin panel > Branding. They're osu!somtum's, the server this
+    // the defaults; staff change them in Admin panel > Branding. They're somtum.fun's, the server this
     // branding was first written for, so its site looks the same without any settings.
     'branding' => [
-        'name' => presence(env('BRAND_NAME')) ?? 'osu!somtum',
+        'name' => presence(env('BRAND_NAME')) ?? 'somtum.fun',
         // support@, dmca@, store@… on this domain; the tickets' (TICKETS_DOMAIN) if unset.
         'email_domain' => presence(env('BRAND_EMAIL_DOMAIN')),
         // somtum (the somtum.fun wordmark), osu (osu!'s logo) or an image's address.

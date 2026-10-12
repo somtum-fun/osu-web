@@ -6,7 +6,7 @@
 @php
     use App\Libraries\TomYumRegistrationGuard;
 
-    $sourceNames = ['lazer' => 'osu!tumthai', 'stable' => 'stable', 'web' => 'website'];
+    $sourceNames = ['lazer' => 'TumThai', 'stable' => 'stable', 'web' => 'website'];
 @endphp
 @extends('master', ['titlePrepend' => 'Sign-ups'])
 
@@ -19,7 +19,7 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-user-plus"></i>Sign-up rules</h2>
             <p class="tomyum-panel__hint">
-                Accounts are made in the game only (osu!tumthai and stable). Every sign-up is checked in this order:
+                Accounts are made in the game only (TumThai and stable). Every sign-up is checked in this order:
                 banned addresses; then the allowlist below skips the rest; one account per network (an IPv4
                 address, or an IPv6 /64) in 24 hours; Tor and hosting networks ({{ i18n_number_format($hostingCount) }}
                 hosting networks and {{ i18n_number_format($torCount) }} Tor exits on the lists, updated daily);

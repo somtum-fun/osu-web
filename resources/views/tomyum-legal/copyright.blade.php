@@ -18,6 +18,16 @@
     before it goes up, so we rely on reports.
 </p>
 
+{{-- TomYum: ppy's own way in, ahead of the formal notice below. --}}
+<h2>ppy Pty Ltd and the osu! team</h2>
+<p>
+    {{ App\Libraries\TomYumBranding::name() }} is a fan-run private server for the osu! game. It is not affiliated with, endorsed by or
+    connected to ppy Pty Ltd or the osu! team, and osu! is a trademark of ppy Pty Ltd. If you're from ppy or the
+    osu! team and something here uses your name, logo, artwork or other work in a way you're not happy with, just
+    email <a href="mailto:{{ App\Libraries\TomYumTickets::address('dmca') }}">{{ App\Libraries\TomYumTickets::address('dmca') }}</a>.
+    No formal notice is needed: tell us what to change or remove and we'll take it down.
+</p>
+
 <h2>Sending a takedown notice</h2>
 <p>
     Email <a href="mailto:{{ App\Libraries\TomYumTickets::address('dmca') }}">{{ App\Libraries\TomYumTickets::address('dmca') }}</a> with:
