@@ -157,7 +157,7 @@
                          away (set up by hand it may not work as expected). Windows and Linux only. --}}
                     @if ($showStable && ($lazerPlatform === 'windows_x64' || str_starts_with($lazerPlatform, 'linux_')))
                         <details class="download-page__manual">
-                            <summary class="download-page__manual-title">
+                            <summary class="download-page__text download-page__manual-title">
                                 Patching osu!(stable) by hand?
                                 <span class="fas fa-chevron-down download-page__manual-chevron"></span>
                             </summary>
