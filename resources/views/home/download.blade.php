@@ -153,6 +153,17 @@
                         </div>
                     @endif
                     @endif
+                    {{-- TomYum: the launcher patches osu!(stable) itself, so the Somtum Patcher on its own is folded
+                         away (set up by hand it may not work as expected). Windows and Linux only. --}}
+                    @if ($showStable && ($lazerPlatform === 'windows_x64' || str_starts_with($lazerPlatform, 'linux_')))
+                        <details class="download-page__manual">
+                            <summary class="download-page__manual-title">
+                                Patching osu!(stable) by hand?
+                                <span class="fas fa-chevron-down download-page__manual-chevron"></span>
+                            </summary>
+                            @include('home._download_patcher')
+                        </details>
+                    @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
                         <div class="download-page__other-platforms">
                             @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])
@@ -162,36 +173,12 @@
                 @endif
             </div>
             {{-- TomYum: this server's patcher for today's osu!(stable), in place of ppy's installer. --}}
-            {{-- TomYum: the launcher patches osu!(stable) itself, so the Somtum Patcher on its own is folded
-                 away (it may not work as expected by hand). It's Windows and Linux only. --}}
-            @if ($showStable && ($lazerPlatform === 'windows_x64' || str_starts_with($lazerPlatform, 'linux_')))
+            {{-- TomYum: with the main card hidden (Admin panel > Branding), the patcher stands on its own. --}}
+            @if ($showStable && !$showLazer)
             <div class="download-page__banner-tail">
-                <details class="download-page__banner-content download-page__banner-content--tail download-page__manual">
-                    <summary class="download-page__manual-title">
-                        Patch osu!(stable) by hand instead
-                    </summary>
-                    <div class="download-page__text download-page__text--download-stable">
-                        {{ $launcher !== null || $launcherLinux !== null ? 'The Somtum Launcher already does this for you.' : '' }}
-                        To play today's osu!(stable) on {{ App\Libraries\TomYumBranding::name() }} without the launcher, start it
-                        through the {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }}. Setting it up by hand may not
-                        work as expected, so use the launcher if you can.
-                    </div>
-                    <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
-                        <div class="btn-osu-big__content">
-                            <div class="btn-osu-big__left">
-                                <div>
-                                    <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }}
-                                    </div>
-                                    Windows and Linux (no macOS)
-                                </div>
-                            </div>
-                            <span class="btn-osu-big__icon">
-                                <span class="svg-icon svg-icon--download"></span>
-                            </span>
-                        </div>
-                    </a>
-                </details>
+                <div class="download-page__banner-content download-page__banner-content--tail">
+                    @include('home._download_patcher')
+                </div>
             </div>
             @endif
         </div>

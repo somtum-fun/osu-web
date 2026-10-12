@@ -225,57 +225,102 @@
   // TomYum: legacy clients (2008-2015).
   &__legacy {
     .default-box-shadow();
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: block;
     background: hsl(var(--hsl-b4));
     border-radius: @border-radius--extra;
     margin: 0 @gutter-v2;
     padding: @border-radius--extra;
   }
 
-  &__legacy-title {
+  &__legacy-head {
     cursor: pointer;
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 5px 15px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
     list-style: none;
 
     &::-webkit-details-marker {
       display: none;
     }
+
+    &:hover .download-page__legacy-toggle {
+      color: hsl(var(--hsl-c1));
+    }
   }
 
-  &__legacy-hint {
+  &__legacy-toggle {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 10000px;
+    background: hsl(var(--hsl-b5));
     color: hsl(var(--hsl-c2));
-    font-size: @font-size--normal;
+    font-weight: 600;
+  }
 
-    &::after {
-      content: " ▾";
-    }
+  &__legacy-toggle-hide,
+  &__legacy[open] &__legacy-toggle-show {
+    display: none;
+  }
+
+  &__legacy[open] &__legacy-toggle-hide {
+    display: inline;
+  }
+
+  &__legacy-chevron {
+    font-size: 11px;
+    transition: transform 120ms;
 
     .download-page__legacy[open] & {
-      display: none;
+      transform: rotate(180deg);
     }
   }
 
-  // TomYum: the Somtum Patcher by hand, folded under the banner.
-  &__manual {
+  &__legacy-body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 15px;
+  }
+
+  // TomYum: the Somtum Patcher by hand, a folded line in the main card.
+  &__manual {
+    align-self: stretch;
+    margin-top: 10px;
+    text-align: center;
+
+    &[open] {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
   }
 
   &__manual-title {
     cursor: pointer;
-    color: hsl(var(--hsl-c1));
-    font-size: @font-size--normal;
-    text-align: right;
+    list-style: none;
+    color: hsl(var(--hsl-l1));
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__manual-chevron {
+    margin-left: 4px;
+    font-size: 10px;
+    transition: transform 120ms;
 
     .download-page__manual[open] & {
-      text-align: left;
-      margin-bottom: 10px;
+      transform: rotate(180deg);
     }
   }
 

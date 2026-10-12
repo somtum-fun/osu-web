@@ -5,10 +5,20 @@
 {{-- TomYum: osu!(stable) from 2008 to 2015, patched for this server (dl.blueskychan.dev/legacy). --}}
 {{-- Folded away: the Somtum Launcher installs and updates these, so most players never need this list. --}}
 <details class="download-page__legacy" id="legacy">
-    <summary class="download-page__legacy-title">
-        <span class="download-page__text download-page__text--title">Legacy osu! clients (2008-2015)</span>
-        <span class="download-page__legacy-hint">The Somtum Launcher installs these for you. Show the downloads</span>
+    <summary class="download-page__legacy-head">
+        <div>
+            <div class="download-page__text download-page__text--title">Legacy osu! clients (2008-2015)</div>
+            <div class="download-page__text download-page__text--description">
+                The Somtum Launcher installs and updates these for you. Download one yourself here.
+            </div>
+        </div>
+        <span class="download-page__legacy-toggle">
+            <span class="download-page__legacy-toggle-show">Show</span>
+            <span class="download-page__legacy-toggle-hide">Hide</span>
+            <span class="fas fa-chevron-down download-page__legacy-chevron"></span>
+        </span>
     </summary>
+    <div class="download-page__legacy-body">
     <div class="download-page__text download-page__text--description">
         Old osu!(stable) builds, rebuilt to play on {{ App\Libraries\TomYumBranding::name() }}: today's beatmaps load, Relax and
         Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe.
@@ -62,6 +72,7 @@
         The original builds come from <a href="https://osu.titanic.sh/download/">Titanic</a>, as do most of the notes.
         osu! is a registered trademark of ppy Pty Ltd. These clients are unofficial and unsupported by ppy, and are offered as is.
         To have something taken down, email <a href="mailto:{{ App\Libraries\TomYumBranding::email('dmca') }}">{{ App\Libraries\TomYumBranding::email('dmca') }}</a>.
+    </div>
     </div>
 </details>
 <script>
