@@ -95,6 +95,12 @@ class HomeController extends Controller
         $lazer = $manifest['lazer'][$platform] ?? null;
         // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
         $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
+        // TomYum: a lazer link of the staff's own (Admin panel > Branding) isn't the file host's build: none
+        // of its sizes or files.
+        if (TomYumBranding::downloadsLazerUrl() !== null) {
+            $lazer = null;
+            $lazerPortable = null;
+        }
         // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
         // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
         // Its installer when the list has one (the plain exe before that), and its portable zip.
