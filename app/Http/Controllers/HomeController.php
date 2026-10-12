@@ -68,10 +68,13 @@ class HomeController extends Controller
 
     public function getDownload()
     {
-        // TomYum: TumThai (lazer) is built for Windows, Linux and Android.
+        // TomYum: TumThai (lazer) is built for Windows, Linux, macOS and Android.
         $lazerPlatformNames = [
             'windows_x64' => 'Windows (x64)',
+            'macos_arm64' => 'macOS (Apple Silicon)',
+            'macos_x64' => 'macOS (Intel)',
             'linux_x64' => 'Linux (x64)',
+            'linux_arm64' => 'Linux (ARM64)',
             'android' => 'Android',
         ];
 
@@ -82,6 +85,8 @@ class HomeController extends Controller
             $platform = match ($deviceDetector->getOs('family')) {
                 'GNU/Linux' => 'linux_x64',
                 'Android' => 'android',
+                // TomYum: browsers on Apple Silicon still say "Intel", so Macs get the Apple Silicon build; Intel is in the list.
+                'Mac' => 'macos_arm64',
                 default => 'windows_x64',
             };
         }
@@ -121,6 +126,7 @@ class HomeController extends Controller
             'launcherLinux' => $launcherLinux,
             'lazer' => $lazer,
             'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
+            'lazerPlatform' => $platform,
             'lazerPlatformName' => $lazerPlatformNames[$platform],
             'lazerPortable' => $lazerPortable,
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),

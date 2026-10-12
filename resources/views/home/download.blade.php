@@ -105,6 +105,14 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         </div>
                     @endif
+                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null && str_starts_with($lazerPlatform, 'macos_'))
+                        {{-- TomYum: the Mac app isn't signed with an Apple developer key, so macOS asks once before opening it. --}}
+                        <div class="download-page__text download-page__text--download-portable">
+                            Unzip it and move TumThai to Applications. The first time, right-click TumThai and choose Open
+                            (or System Settings → Privacy &amp; Security → Open Anyway). It doesn't update itself yet:
+                            download the new version from here when there is one.
+                        </div>
+                    @endif
                     @if ($launcherLinux !== null && isset($launcherLinux['url']))
                         {{-- TomYum: the Linux launcher (TumThai, osu!(stable) through osu-winello, the old clients). --}}
                         <div class="download-page__text download-page__text--download-launcher">
