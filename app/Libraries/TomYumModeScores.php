@@ -296,11 +296,15 @@ class TomYumModeScores
             'max_combo' => $score['maxCombo'],
             // Objects, not arrays, even when empty: lazer reads them as dictionaries.
             'maximum_statistics' => (object) ($objects > 0 ? ['great' => $objects] : []),
-            // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
-            'mods' => array_map(
-                fn ($acronym) => ['acronym' => $acronym],
-                [...app('mods')->bitsetToIds($score['mods']), ...(($score['stable'] ?? true) ? ['CL'] : [])],
-            ),
+            // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't. A lazer play's
+            // own mods have their settings (a DT's speed, DA's stats), which the mod bits don't.
+            'mods' => !$stable && isset($score['lazerMods'])
+                // As objects, so an empty settings stays {} (lazer reads it as a dictionary).
+                ? json_decode($score['lazerMods'])
+                : array_map(
+                    fn ($acronym) => ['acronym' => $acronym],
+                    [...app('mods')->bitsetToIds($score['mods']), ...($stable ? ['CL'] : [])],
+                ),
             'passed' => $score['passed'],
             'pp' => $score['pp'],
             'preserve' => true,
