@@ -16,6 +16,8 @@ interface WatchJson {
 }
 
 interface Props {
+  // The map's cover, shown until the video plays.
+  cover?: string;
   scoreId: number;
 }
 
@@ -60,7 +62,7 @@ export default function RenderPlayer(props: Props) {
         </div>
 
         {watch.fileUrl != null ? (
-          <video className='score-render__video' controls preload='metadata' src={watch.fileUrl} />
+          <video className='score-render__video' controls poster={props.cover} preload='metadata' src={watch.fileUrl} />
         ) : (
           <div className='score-render__footer'>
             The video couldn&apos;t be loaded here; open it on o!rdr.
