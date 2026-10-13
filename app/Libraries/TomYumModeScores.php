@@ -263,10 +263,14 @@ class TomYumModeScores
         // matches the downloaded replay to it. Stable plays (and any without one) use ID_OFFSET.
         $stable = $score['stable'] ?? true;
         // Standardised and classic, as lazer and the website show them (lazer works out classic from
-        // standardised and the map's objects). A stable play has its classic score, a lazer one standardised.
+        // standardised and the map's objects). A lazer play has its standardised score; a stable one only
+        // stable's, which with Relax/Autopilot is the hits alone (no combo), so its standardised is told
+        // from its combo and accuracy, as lazer scores. Its stable score stays the legacy one.
         $objects = static::basicJudgements($rulesetId, $score);
-        $standardised = $stable ? static::standardised($rulesetId, $score['score'], $objects) : $score['score'];
-        $classic = $stable ? $score['score'] : ScoringMode::convertToClassic(Ruleset::from($rulesetId), $standardised, $objects);
+        $standardised = $stable
+            ? static::standardised($score['maxCombo'], $beatmap->maxCombo(), $score['accuracy'])
+            : $score['score'];
+        $classic = ScoringMode::convertToClassic(Ruleset::from($rulesetId), $standardised, $objects);
 
         $id = !$stable && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
@@ -340,21 +344,12 @@ class TomYumModeScores
         };
     }
 
-    /** A stable play's classic score as standardised: ScoringMode::convertToClassic the other way round. */
-    private static function standardised(int $rulesetId, int $classic, int $objects): int
+    /** A stable play's standardised score, as lazer splits it: 70% for combo (here against the map's max) and 30% for accuracy. */
+    private static function standardised(int $combo, ?int $maxCombo, float $accuracy): int
     {
-        $max = 1_000_000;
-        $standardised = match ($rulesetId) {
-            0 => $classic * $max / ($objects ** 2 * 32.57 + 100000),
-            1 => $classic * $max / ($objects * 1109 + 100000),
-            // classic = (s / max * objects)² * 21.62 + s / 10, solved for s.
-            2 => ($a = ($objects / $max) ** 2 * 21.62) > 0
-                ? (-0.1 + sqrt(0.01 + 4 * $a * $classic)) / (2 * $a)
-                : $classic * 10,
-            default => $classic,
-        };
+        $comboPart = $maxCombo > 0 ? min(1, $combo / $maxCombo) : 1;
 
-        return (int) round($standardised);
+        return (int) round(700_000 * $comboPart + 300_000 * $accuracy ** 5);
     }
 
     /** A profile section (the first page, and whether there's more), as getExtraSection gives it. */
