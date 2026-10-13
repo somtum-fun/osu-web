@@ -23,8 +23,12 @@
                         @endif
                         <p>
                             The skin your replays are rendered with (Render replay on a score's page, or the Discord bot's 🎬 Render and /render).
-                            Renders are made by <a href="https://ordr.issou.best/skins" rel="nofollow noopener" target="_blank">o!rdr</a>, with its skins.
+                            Renders are made by <a href="https://ordr.issou.best/skins" rel="nofollow noopener" target="_blank">o!rdr</a>: pick one of its skins,
+                            or upload your own on o!rdr's site and put its ID (or link) here.
                         </p>
+                        @if (str_starts_with($renderSkin['current']['skin'] ?? '', 'custom:'))
+                            <p>Now: <strong>{{ $renderSkin['current']['name'] }}</strong></p>
+                        @endif
                         <form method="POST" action="{{ route('account.render-skin.update') }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; max-width: 560px">
                             @csrf
                             @method('PUT')
@@ -40,6 +44,14 @@
                                 @endforeach
                             </select>
                             </div>
+                            <input
+                                class="account-edit-entry__input"
+                                name="custom_skin"
+                                placeholder="or your own: custom skin ID or link"
+                                style="flex: 1; min-width: 220px"
+                                type="text"
+                                value="{{ str_starts_with($renderSkin['current']['skin'] ?? '', 'custom:') ? substr($renderSkin['current']['skin'], 7) : '' }}"
+                            >
                             <button class="btn-osu-big btn-osu-big--account-edit" type="submit">
                                 <span class="btn-osu-big__content">
                                     <span class="btn-osu-big__left">Save</span>
@@ -58,6 +70,10 @@
                                     preview.src = url;
                                 };
                                 select.addEventListener('change', show);
+                                // Picking one of o!rdr's skins replaces a custom one.
+                                select.addEventListener('change', function () {
+                                    select.form.elements.custom_skin.value = '';
+                                });
                                 show();
                             })();
                         </script>

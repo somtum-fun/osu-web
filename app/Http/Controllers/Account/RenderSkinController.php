@@ -40,7 +40,8 @@ class RenderSkinController extends Controller
 
     public function update()
     {
-        $skin = presence(get_string(request('skin')));
+        // Their own skin (uploaded on o!rdr's site, by its ID or link) over one of o!rdr's.
+        $skin = presence(get_string(request('custom_skin'))) ?? presence(get_string(request('skin')));
         $response = (new TomYumAdmin(\Auth::user()))->put('/users/'.\Auth::id().'/render-skin', ['skin' => $skin]);
 
         return redirect(route('account.edit').'#render-skin')->with('render_skin_status', $response->successful()
