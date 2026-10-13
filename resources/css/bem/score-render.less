@@ -61,8 +61,8 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     background-color: #000;
-    // The map's cover fills the frame until it plays (the video's 16:9 like the frame: nothing of it is cut).
-    object-fit: cover;
+    // The map's cover whole until it plays (not zoomed to fill the frame); the video's 16:9 like the frame.
+    object-fit: contain;
   }
 
   &__footer {
