@@ -18,7 +18,7 @@ class TomYumRendersController extends Controller
     {
         parent::__construct();
 
-        $this->middleware('auth');
+        $this->middleware('auth', ['except' => ['watch']]);
     }
 
     /** POST /scores/{score}/render: a website score, or a Relax/Autopilot play (numbered from TomYumModeScores::ID_OFFSET). */
@@ -31,6 +31,19 @@ class TomYumRendersController extends Controller
             'requestedBy' => \Auth::id(),
         ]);
         abort_unless($response->successful(), 503, 'The game server is unavailable.');
+
+        return $response->json();
+    }
+
+    /** GET /scores/{score}/render: the play's rendered video, for the player under the score (anyone may watch). */
+    public function watch($scoreId)
+    {
+        $id = get_int($scoreId) ?? abort(404);
+        $tomyumId = TomYumModeScores::tomyumId($id);
+        $response = (new TomYumAdmin(\Auth::user()))->get('/renders/watch', [
+            'scoreKey' => $tomyumId === null ? "web:{$id}" : "mode:{$tomyumId}",
+        ]);
+        abort_unless($response->successful(), 404);
 
         return $response->json();
     }

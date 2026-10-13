@@ -400,6 +400,7 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('rx/{score}', 'TomYumScoresController@show')->name('tomyum');
         // TomYum: replay renders (o!rdr) from score pages.
         Route::post('{score}/render', 'TomYumRendersController@store')->name('render');
+        Route::get('{score}/render', 'TomYumRendersController@watch')->name('render.watch');
         Route::get('{score}/download', 'ScoresController@download')->name('download');
         Route::get('{ruleset}/{score}/download', 'ScoresController@download')->name('download-legacy');
 

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import * as React from 'react';
+import { renderDoneEvent } from './render-player';
 
 // TomYum: Render replay (o!rdr, through the game server): asks for a render with the player's skin
 // (account settings), then follows it until the video's there.
@@ -32,6 +33,10 @@ export default function RenderButton(props: Props) {
 
   const follow = (render: RenderJson) => {
     setState({ kind: 'render', render });
+    if (render.status === 'done') {
+      // The player under the score shows it.
+      window.dispatchEvent(new Event(renderDoneEvent));
+    }
     if (render.status === 'queued' || render.status === 'rendering') {
       timer.current = window.setTimeout(() => {
         void $.ajax(`/renders/${render.id}`, { method: 'GET' })
