@@ -86,6 +86,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('builds/{build}/entries/{entry}/remove', 'ChangelogController@destroyEntry')->name('builds.entries.destroy');
         });
 
+        // TomYum: blacklisted usernames (admins and developers).
+        Route::get('usernames', 'UsernamesController@index')->name('usernames.index');
+        Route::post('usernames', 'UsernamesController@store')->name('usernames.store');
+        Route::post('usernames/{name}/remove', 'UsernamesController@destroy')->name('usernames.destroy');
+
         // TomYum: osu!dan courses: admins and the NAT (the game server's tomyum.dan plugin reads them).
         Route::get('dan', 'DanController@index')->name('dan.index');
         Route::post('dan', 'DanController@store')->name('dan.store');
