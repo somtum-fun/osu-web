@@ -21,8 +21,27 @@ interface Props {
   scoreId: number;
 }
 
+// The map's whole background (fullsize, next to its cover: 16:9 like the video), else its cover.
+function usePoster(cover: string | undefined) {
+  const [poster, setPoster] = React.useState<string | undefined>();
+
+  React.useEffect(() => {
+    if (cover == null) {
+      return;
+    }
+    const fullsize = cover.replace('/covers/cover.jpg', '/covers/fullsize.jpg');
+    const image = new Image();
+    image.onload = () => setPoster(fullsize);
+    image.onerror = () => setPoster(cover);
+    image.src = fullsize;
+  }, [cover]);
+
+  return poster;
+}
+
 export default function RenderPlayer(props: Props) {
   const [watch, setWatch] = React.useState<WatchJson | null>(null);
+  const poster = usePoster(props.cover);
 
   React.useEffect(() => {
     const load = () => {
@@ -62,7 +81,7 @@ export default function RenderPlayer(props: Props) {
         </div>
 
         {watch.fileUrl != null ? (
-          <video className='score-render__video' controls poster={props.cover} preload='metadata' src={watch.fileUrl} />
+          <video className='score-render__video' controls poster={poster} preload='metadata' src={watch.fileUrl} />
         ) : (
           <div className='score-render__footer'>
             The video couldn&apos;t be loaded here; open it on o!rdr.
