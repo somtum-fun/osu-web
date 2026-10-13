@@ -3,12 +3,19 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 <div class="supporter-perk-list-image{{isset($group['variant']) ? " supporter-perk-list-image--{$group['variant']}" : ''}}">
-    <div class="supporter-perk-list-image__image">
-        <img
-            src="/images/layout/supporter/{{$group['name']}}.jpg"
-            srcSet="/images/layout/supporter/{{$group['name']}}.jpg 1x, /images/layout/supporter/{{retinaify($group['name'].'.jpg')}} 2x"
-        />
-    </div>
+    {{-- TomYum: our own screenshot ($group['image']), shown whole whatever its shape. --}}
+    @if (isset($group['image']))
+        <div class="supporter-perk-list-image__image supporter-perk-list-image__image--own">
+            <img src="/images/layout/supporter/{{ $group['image'] }}" alt="" loading="lazy" />
+        </div>
+    @else
+        <div class="supporter-perk-list-image__image">
+            <img
+                src="/images/layout/supporter/{{$group['name']}}.jpg"
+                srcSet="/images/layout/supporter/{{$group['name']}}.jpg 1x, /images/layout/supporter/{{retinaify($group['name'].'.jpg')}} 2x"
+            />
+        </div>
+    @endif
     <div class="supporter-perk-list-image__meta">
         <div class="supporter-perk-list-image__icon">
             <span class="fa-stack">

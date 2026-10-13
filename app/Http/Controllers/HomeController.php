@@ -473,34 +473,47 @@ class HomeController extends Controller
                         ],
                     ],
                 ],
+                // TomYum: pictures are our own screenshots (images/layout/supporter/somtum); perks
+                // we have none for are text only, and osu!'s Speedy Downloads and Skinnables aren't ours.
                 [
                     'type' => 'image',
                     'name' => 'osu_direct',
+                    'image' => 'somtum/osu_direct.webp',
                     'icons' => ['fas fa-search'],
-                ],
-                [
-                    'type' => 'image_group',
-                    'items' => [
-                        'friend_ranking' => [
-                            'icons' => ['fas fa-list-alt'],
-                        ],
-                        'country_ranking' => [
-                            'icons' => ['fas fa-globe-asia'],
-                        ],
-                        'mod_filtering' => [
-                            'icons' => ['fas fa-tasks'],
-                        ],
-                    ],
                 ],
                 [
                     'type' => 'image',
                     'variant' => 'flipped',
-                    'name' => 'beatmap_filters',
-                    'icons' => ['fas fa-filter'],
+                    'name' => 'friend_ranking',
+                    'image' => 'somtum/friend_ranking.webp',
+                    'icons' => ['fas fa-list-alt'],
+                ],
+                [
+                    'type' => 'image',
+                    'name' => 'mod_filtering',
+                    'image' => 'somtum/mod_filtering.webp',
+                    'icons' => ['fas fa-tasks'],
                 ],
                 [
                     'type' => 'group',
                     'items' => [
+                        'country_ranking' => [
+                            'icons' => ['fas fa-globe-asia'],
+                        ],
+                        'beatmap_filters' => [
+                            'icons' => ['fas fa-filter'],
+                        ],
+                        'customisation' => [
+                            'icons' => ['fas fa-image'],
+                        ],
+                    ],
+                ],
+                [
+                    'type' => 'group',
+                    'items' => [
+                        'yellow_fellow' => [
+                            'icons' => ['fas fa-fire'],
+                        ],
                         'auto_downloads' => [
                             'icons' => ['fas fa-download'],
                         ],
@@ -517,11 +530,6 @@ class HomeController extends Controller
                         ],
                         // TomYum: no early access (osu!'s TestFlight) here.
                     ],
-                ],
-                [
-                    'type' => 'hero',
-                    'name' => 'customisation',
-                    'icons' => ['fas fa-image'],
                 ],
                 [
                     'type' => 'group',
@@ -542,20 +550,6 @@ class HomeController extends Controller
                         ],
                         'friend_filtering' => [
                             'icons' => ['fas fa-medal'],
-                        ],
-                    ],
-                ],
-                [
-                    'type' => 'image_group',
-                    'items' => [
-                        'yellow_fellow' => [
-                            'icons' => ['fas fa-fire'],
-                        ],
-                        'speedy_downloads' => [
-                            'icons' => ['fas fa-tachometer-alt'],
-                        ],
-                        'skinnables' => [
-                            'icons' => ['fas fa-paint-brush'],
                         ],
                     ],
                 ],
