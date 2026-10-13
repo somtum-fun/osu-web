@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace App\Libraries;
 
+use App\Enums\Ruleset;
+use App\Libraries\Score\ScoringMode;
 use App\Models\Beatmap;
 use App\Models\User;
 use App\Transformers\BeatmapCompactTransformer;
@@ -259,7 +261,14 @@ class TomYumModeScores
 
         // TomYum: a lazer play keeps the website's own score id, which its replay carries, so lazer
         // matches the downloaded replay to it. Stable plays (and any without one) use ID_OFFSET.
-        $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
+        $stable = $score['stable'] ?? true;
+        // Standardised and classic, as lazer and the website show them (lazer works out classic from
+        // standardised and the map's objects). A stable play has its classic score, a lazer one standardised.
+        $objects = static::basicJudgements($rulesetId, $score);
+        $standardised = $stable ? static::standardised($rulesetId, $score['score'], $objects) : $score['score'];
+        $classic = $stable ? $score['score'] : ScoringMode::convertToClassic(Ruleset::from($rulesetId), $standardised, $objects);
+
+        $id = !$stable && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
             : static::ID_OFFSET + $score['id'];
 
@@ -275,7 +284,7 @@ class TomYumModeScores
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
             'best_id' => $id,
             'build_id' => null,
-            'classic_total_score' => $score['score'],
+            'classic_total_score' => $classic,
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
             'has_replay' => $score['hasReplay'] ?? false,
@@ -283,10 +292,10 @@ class TomYumModeScores
             'legacy_perfect' => $score['perfect'],
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
-            'legacy_total_score' => $score['score'],
+            'legacy_total_score' => $stable ? $score['score'] : 0,
             'max_combo' => $score['maxCombo'],
             // Objects, not arrays, even when empty: lazer reads them as dictionaries.
-            'maximum_statistics' => new \stdClass(),
+            'maximum_statistics' => (object) ($objects > 0 ? ['great' => $objects] : []),
             // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
             'mods' => array_map(
                 fn ($acronym) => ['acronym' => $acronym],
@@ -309,11 +318,39 @@ class TomYumModeScores
                 'perfect' => $score['countGeki'] ?: null,
                 'good' => $score['countKatu'] ?: null,
             ], fn ($value) => $value !== null),
-            'total_score' => $score['score'],
+            'total_score' => $standardised,
             'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
             'tomyum_url' => route('scores.tomyum', ['score' => $score['id']]),
             'tomyum_replay_url' => ($score['hasReplay'] ?? false) ? route('scores.tomyum.download', ['score' => $score['id']]) : null,
         ];
+    }
+
+    /** The play's basic judgements (its objects, without ticks or bonus), which classic score is worked out from. */
+    private static function basicJudgements(int $rulesetId, array $score): int
+    {
+        return match ($rulesetId) {
+            0 => $score['count300'] + $score['count100'] + $score['count50'] + $score['countMiss'],
+            1 => $score['count300'] + $score['count100'] + $score['countMiss'],
+            2 => $score['count300'] + $score['countMiss'],
+            default => 0,
+        };
+    }
+
+    /** A stable play's classic score as standardised: ScoringMode::convertToClassic the other way round. */
+    private static function standardised(int $rulesetId, int $classic, int $objects): int
+    {
+        $max = 1_000_000;
+        $standardised = match ($rulesetId) {
+            0 => $classic * $max / ($objects ** 2 * 32.57 + 100000),
+            1 => $classic * $max / ($objects * 1109 + 100000),
+            // classic = (s / max * objects)² * 21.62 + s / 10, solved for s.
+            2 => ($a = ($objects / $max) ** 2 * 21.62) > 0
+                ? (-0.1 + sqrt(0.01 + 4 * $a * $classic)) / (2 * $a)
+                : $classic * 10,
+            default => $classic,
+        };
+
+        return (int) round($standardised);
     }
 
     /** A profile section (the first page, and whether there's more), as getExtraSection gives it. */

@@ -60,7 +60,8 @@ interface ScoreJsonAttributesSolo {
   preserve: boolean;
   processed: boolean;
   ranked: boolean;
-  type: 'solo_score';
+  // TomYum: tomyum_score is a Relax/Autopilot play (TomYum's), shaped like the website's.
+  type: 'solo_score' | 'tomyum_score';
 }
 
 interface ScoreJsonAttributesMultiplayer extends ScoreJsonAttributesSolo {
