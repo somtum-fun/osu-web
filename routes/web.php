@@ -398,12 +398,16 @@ Route::group(['middleware' => ['web']], function () {
         // TomYum: Relax/Autopilot plays (TomYum's), with the website's score page.
         Route::get('rx/{score}/download', 'TomYumScoresController@download')->name('tomyum.download');
         Route::get('rx/{score}', 'TomYumScoresController@show')->name('tomyum');
+        // TomYum: replay renders (o!rdr) from score pages.
+        Route::post('{score}/render', 'TomYumRendersController@store')->name('render');
         Route::get('{score}/download', 'ScoresController@download')->name('download');
         Route::get('{ruleset}/{score}/download', 'ScoresController@download')->name('download-legacy');
 
         Route::get('{ruleset}/{score}', 'ScoresController@show')->name('show-legacy');
         Route::get('{score}', 'ScoresController@show')->name('show');
     });
+
+    Route::get('renders/{render}', 'TomYumRendersController@show')->name('renders.show');
 
     Route::group(['prefix' => 'score-pins/{score}', 'as' => 'score-pins.'], function () {
         Route::post('reorder', 'ScorePinsController@reorder')->name('reorder');
@@ -559,6 +563,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('connections/{kind}/profile', 'Account\ConnectionsController@profile')->name('connections.profile');
 
             // TomYum: Last.fm scrobbling.
+            Route::put('render-skin', 'Account\RenderSkinController@update')->name('render-skin.update');
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
             Route::get('lastfm/callback', 'Account\LastFmController@callback')->name('lastfm.callback');
             Route::get('lastfm/recent', 'Account\LastFmController@recent')->name('lastfm.recent');

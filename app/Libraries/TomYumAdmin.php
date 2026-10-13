@@ -61,6 +61,11 @@ class TomYumAdmin
         return $this->send('POST', $path, $query, $body);
     }
 
+    public function put(string $path, ?array $body = null, array $query = []): Response
+    {
+        return $this->send('PUT', $path, $query, $body);
+    }
+
     public function delete(string $path, array $query = []): Response
     {
         return $this->send('DELETE', $path, $query);

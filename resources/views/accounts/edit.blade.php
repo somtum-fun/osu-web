@@ -186,6 +186,8 @@
         @include('accounts._edit_connections')
 
         @include('accounts._edit_lastfm')
+
+        @include('accounts._edit_render_skin')
     </div>
 @endsection
 
