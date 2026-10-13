@@ -11,6 +11,7 @@ export const renderDoneEvent = 'tomyum:render-done';
 interface WatchJson {
   fileUrl: string | null;
   skin: string;
+  skinName: string | null;
   videoUrl: string;
 }
 
@@ -37,24 +38,45 @@ export default function RenderPlayer(props: Props) {
     return null;
   }
 
-  const skin = watch.skin.startsWith('custom:') ? 'a custom skin' : watch.skin;
+  const custom = watch.skin.startsWith('custom:');
+  const skin = watch.skinName ?? (custom ? 'a custom skin' : watch.skin);
 
   return (
-    <div style={{ marginTop: 20 }}>
-      {watch.fileUrl != null ? (
-        <video
-          controls
-          preload='metadata'
-          src={watch.fileUrl}
-          style={{ aspectRatio: '16 / 9', background: '#000', borderRadius: 6, display: 'block', width: '100%' }}
-        />
-      ) : (
-        <a className='btn-osu-big btn-osu-big--rounded' href={watch.videoUrl} rel='noopener noreferrer' target='_blank'>
-          <i className='fas fa-play' /> Watch the replay render
-        </a>
-      )}
-      <div style={{ fontSize: 12, marginTop: 6, opacity: 0.7 }}>
-        Replay rendered by <a href={watch.videoUrl} rel='noopener noreferrer' target='_blank'>o!rdr</a> with {skin}.
+    <div className='score-render'>
+      <div className='score-render__panel'>
+        <div className='score-render__header'>
+          <div className='score-render__title'>
+            <i className='fas fa-film score-render__icon' />
+            Replay render
+          </div>
+          {watch.fileUrl != null && (
+            <a className='score-render__action' download href={watch.fileUrl} rel='noopener noreferrer' target='_blank'>
+              <i className='fas fa-download' /> Download
+            </a>
+          )}
+          <a className='score-render__action' href={watch.videoUrl} rel='noopener noreferrer' target='_blank'>
+            <i className='fas fa-external-link-alt' /> Open on o!rdr
+          </a>
+        </div>
+
+        {watch.fileUrl != null ? (
+          <video className='score-render__video' controls preload='metadata' src={watch.fileUrl} />
+        ) : (
+          <div className='score-render__footer'>
+            The video couldn&apos;t be loaded here; open it on o!rdr.
+          </div>
+        )}
+
+        <div className='score-render__footer'>
+          <span className='score-render__footer-item'>
+            <i className='fas fa-paint-brush' />
+            Skin <span className='score-render__value'>{skin}</span>
+          </span>
+          <span className='score-render__footer-item'>
+            <i className='fas fa-video' />
+            Rendered by <a className='score-render__value' href='https://ordr.issou.best' rel='noopener noreferrer' target='_blank'>o!rdr</a>
+          </span>
+        </div>
       </div>
     </div>
   );

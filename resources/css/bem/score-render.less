@@ -1,0 +1,85 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: a play's replay render (o!rdr) under the score.
+.score-render {
+  @_top: score-render;
+
+  .default-gutter-v2();
+  padding-top: 10px;
+  padding-bottom: 25px;
+
+  &__panel {
+    background-color: hsl(var(--hsl-b4));
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px hsla(var(--hsl-b6), 0.6);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background-color: hsl(var(--hsl-b3));
+  }
+
+  &__title {
+    font-size: @font-size--title-small;
+    font-weight: 600;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__icon {
+    color: hsl(var(--hsl-pink-1));
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 10000px;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    color: hsl(var(--hsl-c1));
+    background-color: hsl(var(--hsl-b5));
+    transition: background-color 120ms ease-in-out;
+
+    .link-hover({
+      color: hsl(var(--hsl-c1));
+      background-color: hsl(var(--hsl-b6));
+    });
+  }
+
+  &__video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+  }
+
+  &__footer {
+    display: flex;
+    gap: 6px 16px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    font-size: @font-size--normal;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__footer-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__value {
+    color: hsl(var(--hsl-c1));
+    font-weight: 600;
+  }
+}
