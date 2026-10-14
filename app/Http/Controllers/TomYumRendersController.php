@@ -40,9 +40,11 @@ class TomYumRendersController extends Controller
     {
         $id = get_int($scoreId) ?? abort(404);
         $tomyumId = TomYumModeScores::tomyumId($id);
-        $response = (new TomYumAdmin(\Auth::user()))->get('/renders/watch', [
+        $response = (new TomYumAdmin(\Auth::user()))->get('/renders/watch', array_filter([
             'scoreKey' => $tomyumId === null ? "web:{$id}" : "mode:{$tomyumId}",
-        ]);
+            // The viewer's own skin's render first, and whether it is theirs (their Render button goes then).
+            'viewerId' => \Auth::id(),
+        ], fn ($value) => $value !== null));
         abort_unless($response->successful(), 404);
 
         return $response->json();

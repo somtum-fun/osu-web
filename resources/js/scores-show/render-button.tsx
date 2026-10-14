@@ -27,9 +27,17 @@ type State =
 
 export default function RenderButton(props: Props) {
   const [state, setState] = React.useState<State>({ kind: 'idle' });
+  // What's rendered already: null while unknown, 'none', 'theirs' (another skin) or 'mine' (the viewer's skin: no button).
+  const [existing, setExisting] = React.useState<'none' | 'theirs' | 'mine' | null>(null);
   const timer = React.useRef<number>();
 
   React.useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  React.useEffect(() => {
+    void $.ajax(`/scores/${props.scoreId}/render`, { method: 'GET' })
+      .done((json: { viewerSkin?: boolean }) => setExisting(json.viewerSkin === true ? 'mine' : 'theirs'))
+      .fail(() => setExisting('none'));
+  }, [props.scoreId]);
 
   const follow = (render: RenderJson) => {
     setState({ kind: 'render', render });
@@ -67,6 +75,11 @@ export default function RenderButton(props: Props) {
     );
   }
 
+  // Already rendered in the viewer's skin: the video's under the score, nothing to ask for.
+  if (state.kind === 'idle' && existing === 'mine') {
+    return null;
+  }
+
   const busy = state.kind === 'asking' || (state.kind === 'render' && state.render.status !== 'failed');
   const note = state.kind === 'error'
     ? state.message
@@ -82,7 +95,9 @@ export default function RenderButton(props: Props) {
         onClick={ask}
         type='button'
       >
-        {busy ? <><i className='fas fa-spinner fa-spin' /> Rendering...</> : <><i className='fas fa-video' /> Render replay</>}
+        {busy
+          ? <><i className='fas fa-spinner fa-spin' /> Rendering...</>
+          : <><i className='fas fa-video' /> {existing === 'theirs' ? 'Render with my skin' : 'Render replay'}</>}
       </button>
       {note != null && <span style={{ fontSize: 12, opacity: 0.8 }}>{note}</span>}
     </span>
