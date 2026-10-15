@@ -23,7 +23,8 @@ export type ScoreboardVariant = 'vn' | 'rx' | 'ap';
 // TomYum: a board ordered by pp or by score. Relax/Autopilot start by pp, Vanilla by score.
 export type ScoreboardSort = 'pp' | 'score';
 
-export const defaultSort = (variant: ScoreboardVariant): ScoreboardSort => variant === 'vn' ? 'score' : 'pp';
+// Every board ranks by score first, Relax/Autopilot too (pp is still a choice there).
+export const defaultSort = (_variant: ScoreboardVariant): ScoreboardSort => 'score';
 
 export const variantsByRuleset: Partial<Record<string, ScoreboardVariant[]>> = {
   fruits: ['vn', 'rx'],
