@@ -62,6 +62,18 @@ export default function Stats(props: Props) {
               </div>
             </div>
           )}
+
+          {/* TomYum: a map without pp: what the play would be worth if it were ranked, greyed out. */}
+          {!shouldShowPp(props.beatmap) && props.score.tomyum_pp_if_ranked != null && (
+            <div className='score-stats__stat' title='What this play would be worth if the map were ranked. It is not counted.'>
+              <div className='score-stats__stat-row score-stats__stat-row--label'>
+                pp if ranked
+              </div>
+              <div className='score-stats__stat-row score-stats__stat-row--if-ranked'>
+                ~{formatNumber(Math.round(props.score.tomyum_pp_if_ranked))}
+              </div>
+            </div>
+          )}
         </div>
         <div className='score-stats__group-row'>
           {basicStats

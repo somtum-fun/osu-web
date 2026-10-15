@@ -10,6 +10,7 @@ namespace App\Libraries;
 use App\Enums\Ruleset;
 use App\Libraries\Score\ScoringMode;
 use App\Models\Beatmap;
+use App\Models\Beatmapset;
 use App\Models\User;
 use App\Transformers\BeatmapCompactTransformer;
 use App\Transformers\BeatmapTransformer;
@@ -117,6 +118,26 @@ class TomYumModeScores
         }
 
         return ['items' => $items, 'total' => (int) ($response->json('total') ?? 0)];
+    }
+
+    /**
+     * What a pass on a map without pp (loved, qualified, pending, graveyard) would be worth if it were ranked
+     * (TomYum works it out: $query is ['website' => score id] or ['mode' => Relax/Autopilot id]); null on a ranked
+     * map, for a fail, or when it can't be worked out. Shown greyed out on the score's page, never counted.
+     */
+    public static function ppIfRanked(array $query, bool $passed, ?Beatmap $beatmap): ?float
+    {
+        if (!$passed || $beatmap === null || in_array($beatmap->approved, [Beatmapset::STATES['ranked'], Beatmapset::STATES['approved']], true)) {
+            return null;
+        }
+
+        try {
+            $pp = (new TomYumAdmin())->get('/pp-if-ranked', $query)->json('pp');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_numeric($pp) ? (float) $pp : null;
     }
 
     /** One play for its page: [score json, player, map], or null when TomYum doesn't have it. */
