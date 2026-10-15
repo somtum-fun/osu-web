@@ -68,6 +68,29 @@ export default class BeatmapListItem extends React.PureComponent<Props> {
       return null;
     }
 
+    // TomYum: an imported map's mappers have no accounts here (they came out as deleted users): who made it
+    // on osu! instead (the import), as the beatmap page shows them, linked to their osu! profiles.
+    const deletedName = trans('users.deleted');
+    if (owners.every((owner) => owner.username === deletedName)) {
+      const mappers = this.props.beatmapset.tomyum_mappers;
+      const onOsu = mappers?.beatmaps[this.props.beatmap.id] ?? (mappers?.creator != null ? [mappers.creator] : []);
+      const names: React.ReactNode[] = onOsu.length > 0
+        ? onOsu.map((user, i) => (
+          <React.Fragment key={user.id}>
+            {i > 0 && ', '}
+            <a href={`https://osu.ppy.sh/users/${user.id}`} rel='nofollow noreferrer' target='_blank'>{user.username}</a>
+          </React.Fragment>
+        ))
+        : [this.props.beatmapset.creator];
+
+      return (
+        <StringWithComponent
+          mappings={{ mapper: <>{names}</> }}
+          pattern={trans('beatmapsets.show.details.mapped_by')}
+        />
+      );
+    }
+
     const userId = this.props.beatmapset.user_id;
     const visibleOwners = this.props.showNonGuestOwner
       ? owners

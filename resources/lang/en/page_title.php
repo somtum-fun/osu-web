@@ -126,7 +126,7 @@ return [
         'scores_controller' => [
             '_' => 'performance',
         ],
-        'tomyum_scores_controller' => [
+        'tom_yum_scores_controller' => [
             '_' => 'performance',
         ],
         // TomYum: the appeal form (/home/appeal).

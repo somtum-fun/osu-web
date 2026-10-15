@@ -158,6 +158,8 @@ class TomYumModeScores
         $rulesetId = Beatmap::MODES[$variant[0]];
         $json = static::item($data['score'], $user, $beatmap, $rulesetId, null);
         $json['beatmap'] = json_item($beatmap, new BeatmapTransformer(), ['max_combo', 'owners', 'user']);
+        // Who made an imported map on osu! (its mappers have no accounts here), as the website's score page has it.
+        $json['beatmapset'] = json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer(), ['tomyum_mappers']);
         $json['user'] = json_item($user, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES);
         $json['rank_global'] = $data['position'];
         $json['has_replay'] = $json['replay'] = (bool) $data['hasReplay'];
@@ -293,6 +295,14 @@ class TomYumModeScores
             : $score['score'];
         $classic = ScoringMode::convertToClassic(Ruleset::from($rulesetId), $standardised, $objects);
 
+        // A lazer play's own judgements (slider ticks and ends, spinner bonus) and the most it could have had, as
+        // lazer shows them; a stable play has its 300/100/50s only. Its combo is perfect, as lazer has it, when it
+        // reached the map's max combo (not just no misses: a dropped slider end breaks it).
+        $lazerStatistics = !$stable && isset($score['lazerStatistics']) ? json_decode($score['lazerStatistics'], true) : null;
+        $perfect = $lazerStatistics !== null
+            ? ($beatmap->maxCombo() !== null && $score['maxCombo'] >= $beatmap->maxCombo())
+            : $score['perfect'];
+
         $id = !$stable && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
             : static::ID_OFFSET + $score['id'];
@@ -313,14 +323,14 @@ class TomYumModeScores
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
             'has_replay' => $score['hasReplay'] ?? false,
-            'is_perfect_combo' => $score['perfect'],
-            'legacy_perfect' => $score['perfect'],
+            'is_perfect_combo' => $perfect,
+            'legacy_perfect' => $perfect,
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
             'legacy_total_score' => $stable ? $score['score'] : 0,
             'max_combo' => $score['maxCombo'],
             // Objects, not arrays, even when empty: lazer reads them as dictionaries.
-            'maximum_statistics' => (object) ($objects > 0 ? ['great' => $objects] : []),
+            'maximum_statistics' => (object) ($lazerStatistics['maximum_statistics'] ?? ($objects > 0 ? ['great' => $objects] : [])),
             // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't. A lazer play's
             // own mods have their settings (a DT's speed, DA's stats), which the mod bits don't.
             'mods' => !$stable && isset($score['lazerMods'])
@@ -339,7 +349,7 @@ class TomYumModeScores
             'replay' => $score['hasReplay'] ?? false,
             'ruleset_id' => $rulesetId,
             'started_at' => null,
-            'statistics' => (object) array_filter([
+            'statistics' => $lazerStatistics !== null ? (object) ($lazerStatistics['statistics'] ?? []) : (object) array_filter([
                 'great' => $score['count300'],
                 'ok' => $score['count100'],
                 'meh' => $score['count50'],

@@ -244,6 +244,8 @@ class ScoresController extends Controller
             'beatmap.owners',
             'beatmap.user',
             'beatmapset',
+            // TomYum: who made an imported map on osu! (its mappers have no accounts here).
+            'beatmapset.tomyum_mappers',
             'rank_global',
             'replay_views',
             'room_summary',
