@@ -98,7 +98,8 @@ RUN rm -f /var/log/nginx/access.log /var/log/nginx/error.log && \
 FROM buildenv as builds
 
 COPY . .
-RUN php artisan ziggy:generate resources/builds/ziggy.js --types && \
+RUN mkdir -p bootstrap/cache storage/logs storage/framework/cache storage/framework/views storage/framework/sessions resources/builds && \
+    php artisan ziggy:generate resources/builds/ziggy.js --types && \
     node -e "require('./resources/js/cli/generate-localizations')(); require('./resources/js/cli/mod-names-generator')()"
 
 # Then webpack, with only what it reads: reused while none of it changes.
