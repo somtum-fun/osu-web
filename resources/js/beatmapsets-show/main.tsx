@@ -194,7 +194,7 @@ export default class Main extends React.Component<Props> {
 
             {/* TomYum: the pp calculator, for osu! maps. */}
             {this.controller.currentBeatmap.mode === 'osu' && (
-              <div className='page-extra page-extra--compact'>
+              <div className='page-extra'>
                 <PpCalculator key={this.controller.currentBeatmap.id} beatmap={this.controller.currentBeatmap} />
               </div>
             )}
