@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 .supporter-eyecatch {
-  .at2x("~@images/layout/supporter/banner-bg.jpg");
-  background-size: cover;
+  // TomYum: plain colours, not osu!'s artwork (its background and character).
+  background: linear-gradient(135deg, hsl(var(--hsl-b3)), hsl(var(--hsl-b5)));
   width: auto;
   height: 480px;
   background-position: center;
@@ -20,14 +20,6 @@
     );
   }
 
-  &::after {
-    content: "";
-    .full-size();
-    .at2x("~@images/layout/supporter/banner-fg.png");
-    background-size: cover;
-    background-position: center;
-    pointer-events: none;
-  }
 
   &__box {
     background: @osu-colour-b4;
@@ -35,7 +27,7 @@
     padding: 50px;
     text-align: center;
     height: 100%;
-    margin: 10px 0;
+    margin: 10px auto; // TomYum: centred, with no artwork beside it
     border-radius: 15px;
     position: relative;
 

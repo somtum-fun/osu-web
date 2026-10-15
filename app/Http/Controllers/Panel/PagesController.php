@@ -33,6 +33,7 @@ class PagesController extends Controller
                 'kudosu' => KudosuController::canAdjustKudosu($user),
                 'packs' => PacksController::canUsePacks($user),
                 'changelog' => ChangelogController::canUseChangelog($user),
+                'usernames' => UsernamesController::canUseUsernames($user), // TomYum: blacklisted usernames
                 'dan' => DanController::canManageDan($user), // TomYum: osu!dan courses
                 'tickets' => TicketsController::canUseTickets($user),
                 'medals' => CustomMedalsController::canUseMedals($user), // TomYum: custom medals

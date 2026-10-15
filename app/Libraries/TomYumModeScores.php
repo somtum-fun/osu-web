@@ -130,6 +130,10 @@ class TomYumModeScores
         if ($user === null || $beatmap === null || $beatmap->beatmapset === null) {
             return null;
         }
+        // Like osu!'s own score pages (Score::visibleUsers): a restricted player's scores are only for admins.
+        if (auth()->user()?->isAdmin() !== true && ((int) $user->user_warnings !== 0 || (int) $user->user_type !== 0)) {
+            return null;
+        }
 
         $variant = collect(static::MODES)->first(fn ($mode) => $mode[1] === $data['mode']) ?? ['osu', $data['mode']];
         $rulesetId = Beatmap::MODES[$variant[0]];
@@ -150,7 +154,8 @@ class TomYumModeScores
      * a ruleset without that variant (mania, or AP outside osu!) has no scores. $mods (acronyms, "NM"
      * for none) keeps plays with exactly those mods, as the in-game "Selected Mods" board does. $type
      * is the website's: global, or only the viewer's country, friends (and themselves) or team. $sort
-     * is "pp" or "score" (each player's best play, ordered by score). $stableOnly is the website's
+     * is ignored: these boards are by pp only (stable's and lazer's scores come from two scoring systems
+     * that can't be compared). $stableOnly is the website's
      * stable mode (not lazer's), as on the vanilla board: each player's best stable play, no lazer
      * plays (stable has no custom DT speed, for one).
      */
@@ -177,7 +182,7 @@ class TomYumModeScores
             'limit' => 50,
             'viewerId' => $viewer?->getKey(),
             'mods' => $mods === [] ? null : app('mods')->idsToBitset(array_diff($mods, ['NM'])),
-            'sort' => $sort,
+            'sort' => 'pp',
             'stableOnly' => $stableOnly ? 'true' : null,
         ];
         $path = "/beatmaps/{$beatmap->getKey()}/mode-scores/{$mode[1]}";
@@ -262,6 +267,11 @@ class TomYumModeScores
         $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
             : static::ID_OFFSET + $score['id'];
+        // TomYum: a lazer play is shown as it was played: its mods (Classic and their settings), score and
+        // hits, from the website's own score. TomYum's copy only keeps stable's mod bits and no maximum
+        // hits, so lazer showed it without CL and worked out a wrong classic score.
+        $lazer = !($score['stable'] ?? true) && isset($score['osuWebScoreId']) ? \App\Models\Solo\Score::find($id) : null;
+        $lazerData = $lazer === null ? null : json_decode((string) $lazer->getRawOriginal('data'), true);
 
         return [
             'id' => $id,
@@ -275,7 +285,7 @@ class TomYumModeScores
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
             'best_id' => $id,
             'build_id' => null,
-            'classic_total_score' => $score['score'],
+            'classic_total_score' => $lazer?->getClassicTotalScore() ?? $score['score'],
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
             'has_replay' => $score['hasReplay'] ?? false,
@@ -283,12 +293,12 @@ class TomYumModeScores
             'legacy_perfect' => $score['perfect'],
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
-            'legacy_total_score' => $score['score'],
+            'legacy_total_score' => $lazer === null ? $score['score'] : $lazer->legacy_total_score,
             'max_combo' => $score['maxCombo'],
             // Objects, not arrays, even when empty: lazer reads them as dictionaries.
-            'maximum_statistics' => new \stdClass(),
+            'maximum_statistics' => (object) ($lazerData['maximum_statistics'] ?? []),
             // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
-            'mods' => array_map(
+            'mods' => $lazerData['mods'] ?? array_map(
                 fn ($acronym) => ['acronym' => $acronym],
                 [...app('mods')->bitsetToIds($score['mods']), ...(($score['stable'] ?? true) ? ['CL'] : [])],
             ),
@@ -301,7 +311,7 @@ class TomYumModeScores
             'replay' => $score['hasReplay'] ?? false,
             'ruleset_id' => $rulesetId,
             'started_at' => null,
-            'statistics' => (object) array_filter([
+            'statistics' => isset($lazerData['statistics']) ? (object) $lazerData['statistics'] : (object) array_filter([
                 'great' => $score['count300'],
                 'ok' => $score['count100'],
                 'meh' => $score['count50'],
@@ -309,7 +319,7 @@ class TomYumModeScores
                 'perfect' => $score['countGeki'] ?: null,
                 'good' => $score['countKatu'] ?: null,
             ], fn ($value) => $value !== null),
-            'total_score' => $score['score'],
+            'total_score' => $lazer?->total_score ?? $score['score'],
             'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
             'tomyum_url' => route('scores.tomyum', ['score' => $score['id']]),
             'tomyum_replay_url' => ($score['hasReplay'] ?? false) ? route('scores.tomyum.download', ['score' => $score['id']]) : null,

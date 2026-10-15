@@ -86,6 +86,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('builds/{build}/entries/{entry}/remove', 'ChangelogController@destroyEntry')->name('builds.entries.destroy');
         });
 
+        // TomYum: blacklisted usernames (admins and developers).
+        Route::get('usernames', 'UsernamesController@index')->name('usernames.index');
+        Route::post('usernames', 'UsernamesController@store')->name('usernames.store');
+        Route::post('usernames/{name}/remove', 'UsernamesController@destroy')->name('usernames.destroy');
+
         // TomYum: osu!dan courses: admins and the NAT (the game server's tomyum.dan plugin reads them).
         Route::get('dan', 'DanController@index')->name('dan.index');
         Route::post('dan', 'DanController@store')->name('dan.store');
@@ -136,6 +141,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
             Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
+            // TomYum: restoring a removed score from a backup row (admins only, admin-API-side).
+            Route::get('scores/restore', 'GmtController@restoreScoreForm')->name('scores.restore.form');
+            Route::post('scores/restore', 'GmtController@restoreScore')->name('scores.restore');
             // TomYum: sign-ups (made and refused), the sign-up rules and their allowlist; appeal cooldowns.
             Route::get('registrations', 'RegistrationsController@index')->name('registrations.index');
             Route::post('registrations/settings', 'RegistrationsController@settings')->name('registrations.settings');
@@ -560,7 +568,7 @@ Route::group(['middleware' => ['web']], function () {
 
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
-            Route::get('lastfm/callback', 'Account\LastFmController@callback')->name('lastfm.callback');
+            Route::get('lastfm/callback/{state?}', 'Account\LastFmController@callback')->name('lastfm.callback');
             Route::get('lastfm/recent', 'Account\LastFmController@recent')->name('lastfm.recent');
             Route::delete('lastfm', 'Account\LastFmController@destroy')->name('lastfm.destroy');
         });
@@ -1104,6 +1112,10 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
+// TomYum: what search engines read (TomYumSeo).
+Route::get('robots.txt', 'TomYumSeoController@robots')->name('tomyum.robots');
+Route::get('sitemap.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap');
+Route::get('indexnow.txt', 'TomYumSeoController@indexNowKey')->name('tomyum.indexnow-key');
 // TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is somtum.fun's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
