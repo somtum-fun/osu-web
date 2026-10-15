@@ -91,14 +91,41 @@ RUN rm -f /var/log/nginx/access.log /var/log/nginx/error.log && \
     ln -s /dev/stderr /var/log/nginx/error.log
 
 
+# TomYum: the website's assets in steps of their own, so a deploy that changes no front-end file reuses them
+# (webpack took minutes on every deploy, a PHP-only change included). First the files they're built from that
+# PHP makes (routes for ziggy, translations, mod names): this step runs on every change, but takes seconds, and
+# its result only differs when routes, translations or mods do.
+FROM buildenv as builds
+
+COPY . .
+RUN php artisan ziggy:generate resources/builds/ziggy.js --types && \
+    node -e "require('./resources/js/cli/generate-localizations')(); require('./resources/js/cli/mod-names-generator')()"
+
+# Then webpack, with only what it reads: reused while none of it changes.
+FROM buildenv as assets
+
+COPY package.json tsconfig.json webpack.config.js ./
+COPY database/mods.json database/
+COPY public/images public/images
+COPY resources/css resources/css
+COPY resources/fonts resources/fonts
+COPY resources/images resources/images
+COPY resources/js resources/js
+COPY --from=builds /app/resources/builds resources/builds
+
+ARG APP_URL
+ARG DOCS_URL
+ENV WEBPACK_PREBUILT=1
+RUN yarn production
+
+
 FROM buildenv as build
 
 COPY . .
 RUN mkdir -p bootstrap/cache storage/logs storage/framework/cache storage/framework/views storage/framework/sessions public/uploads public/uploads-avatar public/uploads-replay
 
-ARG APP_URL
-ARG DOCS_URL
-RUN yarn production
+COPY --from=assets /app/public/assets public/assets
+COPY --from=assets /app/resources/builds resources/builds
 
 RUN php artisan ip2asn:update
 RUN php artisan scribe:generate
