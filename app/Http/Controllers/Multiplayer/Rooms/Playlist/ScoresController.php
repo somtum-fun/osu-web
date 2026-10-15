@@ -184,6 +184,8 @@ class ScoresController extends BaseController
         if ($user->isBot()) {
             abort(403, 'bot accounts can\'t submit scores');
         }
+        // TomYum: osu!dan is osu!(stable) only for now (a dan map in a room or playlist too).
+        \App\Libraries\TomYumDan::refuseLazer($playlistItem->beatmap_id);
         $request = \Request::instance();
 
         $scoreToken = $room->startPlay($user, $playlistItem, [

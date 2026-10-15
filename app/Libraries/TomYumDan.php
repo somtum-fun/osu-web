@@ -51,6 +51,13 @@ class TomYumDan
         'accuracy' => 'Accuracy too low',
     ];
 
+    /**
+     * Why osu!lazer (TumThai) won't submit a play of a dan map: the score token is refused with it
+     * (422), and the game shows it under "Score will not be submitted", as it does when the client
+     * isn't an official build. The game server only watches osu!(stable) plays for dan rules.
+     */
+    const LAZER_REFUSED = 'This beatmap is part of osu!dan, which is only for osu!(stable) for now. Stay tuned!';
+
     /** A plugin table in TomYum's database (`tomyum`, like tomyum.plugin_votes and tomyum.discord_links). */
     public static function table(string $name): string
     {
@@ -66,6 +73,28 @@ class TomYumDan
             return true;
         } catch (QueryException) {
             return false;
+        }
+    }
+
+    /** Whether the beatmap is in an active dan course (false when the plugin has no tables yet). */
+    public static function isCourseMap(int $beatmapId): bool
+    {
+        try {
+            return DB::table(static::table('course_maps').' AS m')
+                ->join(static::table('courses').' AS c', 'c.id', '=', 'm.course_id')
+                ->where('m.beatmap_id', $beatmapId)
+                ->where('c.active', 1)
+                ->exists();
+        } catch (QueryException) {
+            return false;
+        }
+    }
+
+    /** Refuses an osu!lazer score token (or score) for a dan map, with LAZER_REFUSED. */
+    public static function refuseLazer(int $beatmapId): void
+    {
+        if (static::isCourseMap($beatmapId)) {
+            abort(422, static::LAZER_REFUSED);
         }
     }
 

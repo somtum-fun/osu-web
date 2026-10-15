@@ -36,14 +36,14 @@
                 <div>
                     <h3 class="tomyum-dan__subtitle">The rules</h3>
                     <ul class="tomyum-dan__rules">
-                        <li>Play in <strong>osu!stable</strong>: one of our patched clients from the <a href="{{ route('download') }}">download page</a>, or today's osu!. osu!lazer plays are saved as normal scores but can't be dan clears.</li>
+                        <li>Play in <strong>osu!stable</strong>: one of our patched clients from the <a href="{{ route('download') }}">download page</a>, or today's osu!. osu!dan is osu!stable only for now: osu!lazer doesn't submit scores on dan maps (stay tuned).</li>
                         <li>Play in <strong>osu!mania</strong>. When you start a course map, BanchoBot spectates you to check the play.</li>
                         <li><strong>Don't pause.</strong> A pause ends the attempt; press Retry to start a new one.</li>
                         <li>Reach the course's <strong>accuracy</strong>: usually 96%, or 95% for intro courses.</li>
                         <li>Use only the course's <strong>mods</strong>: usually Mirror, Hidden, Fade In, Flashlight, Hard Rock, Double Time and Nightcore. No Fail, Easy and Half Time don't count.</li>
                     </ul>
                     <p class="tomyum-dan__hint">
-                        A play that breaks a rule is still saved as a normal score; it just isn't a clear.
+                        In osu!stable, a play that breaks a rule is still saved as a normal score; it just isn't a clear.
                         In osu!stable, type <code>!dan</code> to BanchoBot to see your dans.
                     </p>
                 </div>
