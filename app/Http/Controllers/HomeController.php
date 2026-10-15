@@ -229,7 +229,11 @@ class HomeController extends Controller
             $livestream = new LivestreamCollection();
             $featuredStream = $livestream->featured();
 
+            // TomYum: friends' best plays of the last week.
+            $friendsFeed = \App\Libraries\TomYumFriendsFeed::forUser(Auth::user());
+
             return ext_view('home.user', compact(
+                'friendsFeed',
                 'menuImages',
                 'newBeatmapsets',
                 'news',

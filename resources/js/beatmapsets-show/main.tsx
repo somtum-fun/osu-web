@@ -19,6 +19,7 @@ import Header from './header';
 import headerLinks from './header-links';
 import Info from './info';
 import NsfwWarning from './nsfw-warning';
+import PpCalculator from './pp-calculator';
 import ScoreboardMain from './scoreboard/main';
 
 interface Props {
@@ -188,6 +189,13 @@ export default class Main extends React.Component<Props> {
             {this.controller.currentBeatmap.lazer_only && (
               <div className='page-extra page-extra--compact'>
                 {this.renderLazerOnlyMessage()}
+              </div>
+            )}
+
+            {/* TomYum: the pp calculator, for osu! maps. */}
+            {this.controller.currentBeatmap.mode === 'osu' && (
+              <div className='page-extra page-extra--compact'>
+                <PpCalculator key={this.controller.currentBeatmap.id} beatmap={this.controller.currentBeatmap} />
               </div>
             )}
 

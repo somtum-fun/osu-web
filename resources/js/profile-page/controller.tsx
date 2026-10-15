@@ -101,6 +101,14 @@ export default class Controller {
   readonly achievements: Map<number, AchievementJson>;
   readonly currentMode: Ruleset;
   readonly variant: string | null;
+
+  // TomYum: the mode shown as TomYum numbers it (0-3 the rulesets, 4-6 Relax, 8 Autopilot), for its pp history.
+  get tomyumMode() {
+    const variants: Partial<Record<string, number>> = { fruitsrx: 6, osuap: 8, osurx: 4, taikorx: 5 };
+    const rulesets: Record<string, number> = { fruits: 2, mania: 3, osu: 0, taiko: 1 };
+
+    return (this.variant == null ? null : variants[this.variant]) ?? rulesets[this.currentMode] ?? 0;
+  }
   @observable currentPage: Page = 'main';
   readonly debouncedSetDisplayCoverUrl = debounce((url: string | null) => this.setDisplayCoverUrl(url), 300);
   @observable displayCoverUrl: string | null;

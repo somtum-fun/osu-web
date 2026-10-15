@@ -324,6 +324,8 @@ Route::group(['middleware' => ['web']], function () {
         Route::group(['as' => 'beatmaps.', 'prefix' => '{beatmap}'], function () {
             Route::get('scores', 'BeatmapsController@scores')->name('scores');
             Route::get('solo-scores', 'BeatmapsController@soloScores')->name('solo-scores');
+            // TomYum: the beatmap page's pp calculator.
+            Route::get('tomyum-pp', 'BeatmapsController@tomyumPp')->name('tomyum-pp');
             Route::post('update-owner', 'BeatmapsController@updateOwner')->name('update-owner');
         });
         Route::resource('tags', 'TagsController', ['only' => ['index']]);
@@ -701,6 +703,8 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('recent_activity', 'UsersController@recentActivity')->name('recent-activity');
         // TomYum: what they're listening to on Last.fm (the profile asks again every 30 seconds).
         Route::get('listening', 'UsersController@tomyumListeningJson')->name('tomyum-listening');
+        // TomYum: their total pp per day in a mode (0-3 the rulesets, 4-6 Relax, 8 Autopilot), for the profile's pp graph.
+        Route::get('pp-history/{mode}', 'UsersController@tomyumPpHistory')->name('tomyum-pp-history');
         Route::get('score-replay-stats', 'UsersController@scoreReplayStats')->name('score-replay-stats');
         Route::get('scores/{type}', 'UsersController@scores')->name('scores');
         Route::get('beatmapsets/{type}', 'UsersController@beatmapsets')->name('beatmapsets');
@@ -947,6 +951,8 @@ Route::group(['as' => 'api.', 'prefix' => 'api', 'middleware' => ['api', Throttl
             Route::get('{ruleset}/{score}/download', 'ScoresController@download')->middleware(ThrottleRequests::getApiThrottle('scores_download'))->name('download-legacy');
 
             Route::get('{ruleset}/{score}', 'ScoresController@show')->name('show-legacy');
+            // TomYum: a play's pp as Reprise counts it (or would, on a map without pp), for Reprise Lazer's results screen.
+            Route::get('{score}/tomyum-pp', 'ScoresController@tomyumPp')->name('tomyum-pp');
             Route::get('{score}', 'ScoresController@show')->name('show');
 
             Route::get('/', 'ScoresController@index');

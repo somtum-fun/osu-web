@@ -758,6 +758,23 @@ class UsersController extends Controller
     }
 
     /** TomYum: the profile asks again every so often ({listening: {artist, title, url} or null}). */
+    /** TomYum: the player's total pp per day in a mode (TomYum's daily record), oldest first: [{day, pp}]. */
+    public function tomyumPpHistory($userId, $mode)
+    {
+        $user = User::find(get_int($userId));
+        abort_if($user === null || ($user->isRestricted() && \Auth::id() !== $user->getKey()), 404);
+        $mode = get_int($mode);
+        abort_if($mode === null || !in_array($mode, [0, 1, 2, 3, 4, 5, 6, 8], true), 404);
+
+        try {
+            $response = (new \App\Libraries\TomYumAdmin())->get("/users/{$user->getKey()}/pp-history/{$mode}", ['days' => 90]);
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return $response->successful() ? $response->json() : [];
+    }
+
     public function tomyumListeningJson($userId)
     {
         $user = User::find(get_int($userId));

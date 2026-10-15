@@ -1,0 +1,80 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the beatmap page's pp calculator.
+.beatmapset-pp-calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__title {
+    margin: 0;
+    font-size: @font-size--title-small;
+  }
+
+  &__mods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  &__mod-row {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+  }
+
+  &__setting {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-weight: normal;
+    color: hsl(var(--hsl-c1));
+  }
+
+  &__input {
+    width: 70px;
+    padding: 2px 6px;
+    border: none;
+    border-radius: 4px;
+    background-color: hsl(var(--hsl-b4));
+    color: hsl(var(--hsl-c1));
+  }
+
+  &__results {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    transition: opacity 120ms;
+
+    &--loading {
+      opacity: 0.5;
+    }
+  }
+
+  &__result {
+    min-width: 90px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background-color: hsl(var(--hsl-b4));
+    text-align: center;
+  }
+
+  &__accuracy {
+    font-size: @font-size--small;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__pp {
+    font-size: @font-size--large;
+    font-weight: bold;
+    color: hsl(var(--hsl-h1));
+  }
+}
