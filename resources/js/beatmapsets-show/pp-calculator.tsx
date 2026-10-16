@@ -70,6 +70,14 @@ export default class PpCalculator extends React.Component<Props> {
       || (this.misses !== '' && this.misses !== '0') || this.speed !== '';
   }
 
+  // The most accuracy the misses leave (when they leave less than 100%).
+  @computed
+  private get maxAccuracy() {
+    const misses = Number(this.misses);
+    const objects = this.response?.objects ?? 0;
+    return objects > 0 && misses > 0 ? (objects - Math.min(misses, objects)) / objects : null;
+  }
+
   @computed
   private get rateMod() {
     return ['DT', 'NC', 'HT'].find((acronym) => this.enabled.has(acronym)) ?? null;
@@ -131,6 +139,7 @@ export default class PpCalculator extends React.Component<Props> {
             {this.enabled.size > 0 ? [...this.enabled].join(' ') : 'No mods'}
             {' · '}
             {formatNumber(maxCombo)}x max combo
+            {this.maxAccuracy != null && ` · at most ${formatNumber(this.maxAccuracy * 100, 2)}% with ${this.misses} misses`}
           </span>
           {this.changed && (
             <button className='beatmapset-pp-calculator__reset' onClick={this.reset} type='button'>
@@ -217,6 +226,7 @@ export default class PpCalculator extends React.Component<Props> {
           </div>
 
           <div className={classWithModifiers('beatmapset-pp-calculator__results', { loading: this.loading })}>
+            {/* (Each accuracy once: the server drops ones the misses make the same.) */}
             {results.map((result) => (
               <div
                 key={result.accuracy}
