@@ -156,6 +156,14 @@ class AdminController extends Controller
         if (!is_array($graces)) $graces = [];
         if (!is_array($notes)) $notes = [];
 
+        // TomYum: the form has no field for a build's published pkms.dll hash (it is written by the
+        // release tooling), so carry each build's existing one over. Without this, the first save from
+        // the panel would silently drop every hash and TomYum's dll check would stop without a word.
+        $dllHashes = [];
+        foreach (\App\Libraries\TomYumPkmsVersions::all() as $existing) {
+            if ($existing['dll_sha256'] !== null) $dllHashes[$existing['build_id']] = $existing['dll_sha256'];
+        }
+
         $entries = [];
         foreach ($buildIds as $i => $buildId) {
             if (isset($delete[$i])) continue;
@@ -172,6 +180,7 @@ class AdminController extends Controller
                 'status' => $status,
                 'grace_until' => $graceUntil === '' ? null : $graceUntil,
                 'note' => trim((string) ($notes[$i] ?? '')) ?: null,
+                'dll_sha256' => $dllHashes[$buildId] ?? null,
             ];
         }
 

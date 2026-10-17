@@ -50,10 +50,25 @@ class TomYumPkmsVersions
                 'status' => $status,
                 'grace_until' => is_string($entry['grace_until'] ?? null) ? $entry['grace_until'] : null,
                 'note' => is_string($entry['note'] ?? null) ? $entry['note'] : null,
+                // TomYum: the published pkms.dll's SHA-256 (pkms 0.7.0+), checked by TomYum against what
+                // the running pkms reports. Kept only when it looks like one or more hex digests, so a
+                // hand-edited typo is dropped instead of making every player's hash "mismatch".
+                'dll_sha256' => static::validDllSha256($entry['dll_sha256'] ?? null),
             ];
         }
 
         return $out;
+    }
+
+    /** TomYum: one or more space-separated lower-case SHA-256 hex digests, or null. */
+    public static function validDllSha256(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+        $value = strtolower(trim($value));
+
+        return preg_match('/^[0-9a-f]{64}( [0-9a-f]{64})*$/', $value) === 1 ? $value : null;
     }
 
     /** @param array<int, array{build_id: string, status: string, grace_until: ?string, note: ?string}> $entries */
@@ -64,6 +79,11 @@ class TomYumPkmsVersions
 
             return;
         }
-        TomYumSiteSettings::set('pkms_versions_json', json_encode($entries, JSON_UNESCAPED_SLASHES));
+        // TomYum: leave dll_sha256 out when there isn't one, so entries without a hash stay as they were.
+        $entries = array_map(
+            fn (array $e) => ($e['dll_sha256'] ?? null) === null ? array_diff_key($e, ['dll_sha256' => true]) : $e,
+            $entries,
+        );
+        TomYumSiteSettings::set('pkms_versions_json', json_encode(array_values($entries), JSON_UNESCAPED_SLASHES));
     }
 }
