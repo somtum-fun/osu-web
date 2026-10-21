@@ -319,6 +319,61 @@
             </form>
         </div>
 
+        {{-- TomYum: what each pkms finding does (AdminController@pkmsFindingPolicy); TomYum's score submission applies it. --}}
+        <div class="tomyum-panel__card" id="pkms-finding-policy">
+            <h2>
+                <i class="fas fa-gavel"></i>pkms finding actions
+                @if (App\Libraries\TomYumPkmsFindingPolicy::isDefault($pkmsFindingPolicy))
+                    <span class="tomyum-panel__badge">DEFAULT</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--warn">CUSTOM</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                What the client anti-cheat's findings do when a modern-stable or legacy score is submitted, for ordinary players and for players on the anti-cheat whitelist.
+                <strong>log</strong> only writes the staff log; <strong>refuse</strong> refuses the score and tells the player why (no restriction);
+                <strong>restrict</strong> restricts the player and keeps the score in the restricted pool for review. When a score has several findings, the strongest action wins.
+                Staff accounts and already-restricted players are never restricted automatically. Changes apply within a minute.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pkms-finding-policy') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px">bit</th>
+                            <th>finding</th>
+                            <th style="width: 130px">players</th>
+                            <th style="width: 130px">whitelisted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (App\Libraries\TomYumPkmsFindingPolicy::FINDINGS as $key => [$bit, $name, $about])
+                            <tr>
+                                <td><code>{{ $bit === 0 ? 'other' : sprintf('0x%X', $bit) }}</code></td>
+                                <td><strong>{{ $name }}</strong><br><span class="tomyum-panel__hint" style="margin: 0">{{ $about }}</span></td>
+                                @foreach (App\Libraries\TomYumPkmsFindingPolicy::SIDES as $side)
+                                    <td>
+                                        <select class="input-text" name="{{ $side }}[{{ $key }}]">
+                                            @foreach (App\Libraries\TomYumPkmsFindingPolicy::ACTIONS as $action)
+                                                <option value="{{ $action }}" @if ($pkmsFindingPolicy[$side][$key] === $action) selected @endif>
+                                                    {{ $action }}{{ App\Libraries\TomYumPkmsFindingPolicy::DEFAULTS[$side][$key] === $action ? ' (default)' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit" name="reset" value="1" onclick="return confirm('Put every finding back to its default action?')"><i class="fas fa-undo"></i>Reset to defaults</button>
+                    <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.log', ['kind' => 'score.pkms_']) }}"><i class="fas fa-flag"></i>Flagged scores</a>
+                </div>
+            </form>
+        </div>
+
         {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
         <div class="tomyum-panel__card" id="handle-requesters">
             <h2>

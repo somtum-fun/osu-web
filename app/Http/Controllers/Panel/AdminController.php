@@ -76,6 +76,7 @@ class AdminController extends Controller
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'tumthai' => static::tumthaiSettings(),
             'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
+            'pkmsFindingPolicy' => \App\Libraries\TomYumPkmsFindingPolicy::all(),
             'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
@@ -286,6 +287,27 @@ class AdminController extends Controller
         $this->staffLog('site.bancho_welcome', null, ($enabled ? 'In-game welcome on' : 'In-game welcome off').($message === '' ? '.' : ": {$message}"));
 
         return $this->backToIndex('success', ($enabled ? 'The in-game welcome is on.' : 'The in-game welcome is off.').' Logins use it within a minute.');
+    }
+
+    /**
+     * TomYum: what each pkms finding does to a score (log, refuse, restrict), for ordinary and for
+     * anti-cheat-whitelisted players. TomYum picks a change up within a minute.
+     */
+    public function pkmsFindingPolicy()
+    {
+        $before = \App\Libraries\TomYumPkmsFindingPolicy::all();
+        $after = Request::boolean('reset')
+            ? \App\Libraries\TomYumPkmsFindingPolicy::save([])
+            : \App\Libraries\TomYumPkmsFindingPolicy::save([
+                'normal' => (array) Request::input('normal', []),
+                'whitelisted' => (array) Request::input('whitelisted', []),
+            ]);
+        $changes = \App\Libraries\TomYumPkmsFindingPolicy::describeChanges($before, $after);
+        $this->staffLog('site.pkms_finding_policy', null, 'pkms finding actions: '.$changes.'.');
+
+        return $this->backToIndex('success', \App\Libraries\TomYumPkmsFindingPolicy::isDefault($after)
+            ? 'pkms finding actions are the defaults.'
+            : 'Saved pkms finding actions ('.$changes.').');
     }
 
     /**
