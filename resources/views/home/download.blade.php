@@ -2,7 +2,10 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-@extends('master')
+@extends('master', [
+    'canonicalUrl' => route('download'),
+    'pageDescription' => 'Download Somtum Launcher, the '.App\Libraries\TomYumBranding::text('downloads_client_name').' client (lazer), '.App\Libraries\TomYumBranding::text('downloads_patcher_name').' for osu!(stable), and patched 2008–2015 legacy clients for '.App\Libraries\TomYumBranding::name().'!',
+])
 
 @section('content')
 @component('layout._page_header_v4')
@@ -52,7 +55,7 @@
                         </div>
                     </a>
                     <div class="download-page__text download-page__text--download-launcher">
-                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.
+                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, TumThai!Next, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.
                         @if (isset($launcher['portable']['url']))
                             No install wanted? <a href="{{ $launcher['portable']['url'] }}">Get the portable version</a>
                             ({{ App\Libraries\TomYumDownloads::size($launcher['portable']['size'] ?? null) }}).
@@ -69,6 +72,19 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         @endif
                     </div>
+                    @if ($lazerNextUrl !== null)
+                        <div class="download-page__text download-page__text--download-portable">
+                            Want <strong>TumThai!Next</strong> (500–8000 Hz polling, display Hz selector, Vulkan &amp; latency counter)?
+                            <a href="{{ $lazerNextUrl }}">Download the installer</a>
+                            @if (isset($lazerNext['size']))
+                                ({{ App\Libraries\TomYumDownloads::size($lazerNext['size']) }})
+                            @endif
+                            @if ($lazerNextPortable !== null)
+                                or <a href="{{ $lazerNextPortable['url'] }}">the portable zip</a>
+                                ({{ App\Libraries\TomYumDownloads::size($lazerNextPortable['size'] ?? null) }})
+                            @endif
+                        </div>
+                    @endif
                     @elseif ($launcherLinux !== null && isset($launcherLinux['url']))
                     {{-- TomYum: the Linux launcher first on Linux too (TumThai, osu!(stable) through osu-winello, the old clients). --}}
                     <a
@@ -97,7 +113,7 @@
                         </div>
                     </a>
                     <div class="download-page__text download-page__text--download-launcher">
-                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) (through
+                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, TumThai!Next, osu!(stable) (through
                         <a href="https://github.com/NelloKudo/osu-winello">osu-winello</a>) and the 2008-2015 clients.
                         Download it, then run <code>python3 somtum-linux-{{ $launcherLinux['version'] ?? '' }} install</code>.
                     </div>
@@ -108,6 +124,15 @@
                             ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
                         @endif
                     </div>
+                    @if ($lazerNextUrl !== null)
+                        <div class="download-page__text download-page__text--download-portable">
+                            Want <strong>TumThai!Next</strong> (500–8000 Hz polling, display Hz selector, Vulkan &amp; latency counter)?
+                            <a href="{{ $lazerNextUrl }}">Download the AppImage</a>
+                            @if (isset($lazerNext['size']))
+                                ({{ App\Libraries\TomYumDownloads::size($lazerNext['size']) }})
+                            @endif
+                        </div>
+                    @endif
                     @else
                     <a
                         class="btn-osu-big btn-osu-big--download"
@@ -142,6 +167,48 @@
                             No install needed?
                             <a href="{{ $lazerPortable['url'] }}">Download the portable zip</a>
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
+                        </div>
+                    @endif
+                    @if ($lazerNextUrl !== null)
+                        <div style="margin-top: 12px;">
+                            <a
+                                class="btn-osu-big btn-osu-big--download"
+                                href="{{ $lazerNextUrl }}"
+                            >
+                                <div class="btn-osu-big__content">
+                                    <div class="btn-osu-big__left">
+                                        {{ osu_trans('home.download.download') }}
+                                        <div>
+                                            <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
+                                                TumThai!Next
+                                            </div>
+                                            {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
+                                        </div>
+                                        <div class="btn-osu-big__text-bottom btn-osu-big__text-bottom--download-version">
+                                            {{ $lazerNextVersion }}
+                                            @if (isset($lazerNext['size']))
+                                                ({{ App\Libraries\TomYumDownloads::size($lazerNext['size']) }})
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <span class="btn-osu-big__icon">
+                                        <span class="svg-icon svg-icon--download"></span>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="download-page__text download-page__text--download-portable">
+                            @if ($lazerPlatform === 'android')
+                                <strong>TumThai!Next</strong> is our heavily modified performance edition on <code>tumthai-framework</code>: selectable 60–240 Hz display refresh rate, 500–8000 Hz input/audio rate, native Android AAudio low-latency output, and a real-time latency counter.
+                            @else
+                                <strong>TumThai!Next</strong> is our heavily modified performance edition on <code>tumthai-framework</code>: selectable 500–8000 Hz input/audio/update rate, display refresh rate control, Vulkan rendering, and a real-time latency counter.
+                            @endif
+                            @if ($lazerNextPortable !== null)
+                                <br>
+                                No install needed?
+                                <a href="{{ $lazerNextPortable['url'] }}">Download the portable zip</a>
+                                ({{ App\Libraries\TomYumDownloads::size($lazerNextPortable['size'] ?? null) }})
+                            @endif
                         </div>
                     @endif
                     @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null && str_starts_with($lazerPlatform, 'macos_'))

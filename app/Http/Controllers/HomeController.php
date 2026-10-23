@@ -94,6 +94,10 @@ class HomeController extends Controller
         $lazer = $manifest['lazer'][$platform] ?? null;
         // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
         $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
+        // TomYum: TumThai!Next (lazer_next), our performance-modified edition on tumthai-framework.
+        $lazerNext = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next'][$platform] ?? null) : null;
+        $lazerNextPortable = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next']["{$platform}_portable"] ?? null) : null;
+        $lazerNextVersion = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next']['version'] ?? null) : null;
         // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
         // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
         // Its installer when the list has one (the plain exe before that), and its portable zip.
@@ -128,6 +132,10 @@ class HomeController extends Controller
             'lazerPlatform' => $platform,
             'lazerPlatformName' => $lazerPlatformNames[$platform],
             'lazerPortable' => $lazerPortable,
+            'lazerNext' => $lazerNext,
+            'lazerNextUrl' => $lazerNext['url'] ?? null,
+            'lazerNextPortable' => $lazerNextPortable,
+            'lazerNextVersion' => $lazerNextVersion,
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),
             'patcherUrl' => TomYumBranding::downloadsPatcherUrl() ?? $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             // TomYum: what the page shows (Admin panel > Branding).
