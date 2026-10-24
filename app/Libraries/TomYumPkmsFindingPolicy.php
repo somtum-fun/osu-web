@@ -43,6 +43,7 @@ class TomYumPkmsFindingPolicy
         'unverified_ink_file' => [0x800, 'Unverified Ink file', 'A file in Windows\' Ink folder not signed by a known signer.'],
         'injected_clicks' => [0x1000, 'Injected mouse clicks', 'Clicks sent by software. Tablet drivers do it too; dropped when OpenTabletDriver is running.'],
         'cheat_sig' => [0x2000, 'Cheat signature', 'A known cheat\'s strings found in osu!\'s memory (freedom and its forks).'],
+        'module_stomp' => [0x10000, 'Module stomp', 'A loaded module\'s .text was rewritten after settle. Overlays (Discord, OBS, Steam, Nvidia, …) do this and are suppressed client-side; this bit catches ones pkms doesn\'t know.'],
         'other' => [0, 'Any other finding', 'A finding bit newer than this list (a future pkms).'],
     ];
 
@@ -63,6 +64,7 @@ class TomYumPkmsFindingPolicy
             'unverified_ink_file' => 'log',
             'injected_clicks' => 'log',
             'cheat_sig' => 'restrict',
+            'module_stomp' => 'log',
             'other' => 'restrict',
         ],
         'whitelisted' => [
@@ -80,6 +82,7 @@ class TomYumPkmsFindingPolicy
             'unverified_ink_file' => 'log',
             'injected_clicks' => 'log',
             'cheat_sig' => 'log',
+            'module_stomp' => 'log',
             'other' => 'log',
         ],
     ];
