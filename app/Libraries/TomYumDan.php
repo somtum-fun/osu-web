@@ -58,6 +58,12 @@ class TomYumDan
      */
     const LAZER_REFUSED = 'This beatmap is part of osu!dan, which is only for osu!(stable) for now. Stay tuned!';
 
+    /** TomYum: a TumThai play of a dan map without Classic (it judges hold notes close to osu!(stable)). */
+    const LAZER_NEEDS_CLASSIC = 'This beatmap is part of osu!dan: on TumThai, turn on the Classic (CL) mod to submit your play.';
+
+    /** TomYum: a TumThai from before it sent its mods with the score token can't tell us whether Classic is on. */
+    const LAZER_UPDATE = 'This beatmap is part of osu!dan: update TumThai to submit your play here.';
+
     /** A plugin table in TomYum's database (`tomyum`, like tomyum.plugin_votes and tomyum.discord_links). */
     public static function table(string $name): string
     {
@@ -90,11 +96,36 @@ class TomYumDan
         }
     }
 
-    /** Refuses an osu!lazer score token (or score) for a dan map, with LAZER_REFUSED. */
+    /** Refuses an osu!lazer score token (or score) for a dan map, with LAZER_REFUSED (multiplayer: not for dan yet). */
     public static function refuseLazer(int $beatmapId): void
     {
         if (static::isCourseMap($beatmapId)) {
             abort(422, static::LAZER_REFUSED);
+        }
+    }
+
+    /**
+     * TomYum: a solo TumThai play of a dan map is submitted only with the Classic mod. $mods is what the
+     * client sent: acronyms ("CL,HD" or a list) or lazer's mods ([{acronym: "CL"}, ...]); null when it
+     * sent none (TumThai before 2026.1024.4 doesn't send them with the score token).
+     */
+    public static function refuseLazerWithoutClassic(int $beatmapId, mixed $mods): void
+    {
+        if (!static::isCourseMap($beatmapId)) {
+            return;
+        }
+        if ($mods === null) {
+            abort(422, static::LAZER_UPDATE);
+        }
+
+        $acronyms = is_string($mods) ? explode(',', $mods) : [];
+        if (is_array($mods)) {
+            foreach ($mods as $mod) {
+                $acronyms[] = is_array($mod) ? ($mod['acronym'] ?? '') : (is_string($mod) ? $mod : '');
+            }
+        }
+        if (!in_array('CL', array_map(fn ($a) => strtoupper(trim($a)), $acronyms), true)) {
+            abort(422, static::LAZER_NEEDS_CLASSIC);
         }
     }
 

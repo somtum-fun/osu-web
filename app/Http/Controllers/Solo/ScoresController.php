@@ -30,8 +30,9 @@ class ScoresController extends BaseController
                 'user_id' => $user->getKey(),
             ])->lockForUpdate()->findOrFail($tokenId);
 
-            // TomYum: a token from before its map joined an osu!dan course (stable only for now).
-            \App\Libraries\TomYumDan::refuseLazer($scoreToken->beatmap_id);
+            // TomYum: an osu!dan map's play must have finished with the Classic mod too (and a token from
+            // before its map joined a course has to meet the same rule).
+            \App\Libraries\TomYumDan::refuseLazerWithoutClassic($scoreToken->beatmap_id, $request->input('mods') ?? []);
 
             $beatmapsetApprovedAt = $scoreToken->beatmap?->beatmapset?->approved_date;
             if ($beatmapsetApprovedAt !== null && $scoreToken->created_at->isBefore($beatmapsetApprovedAt)) {

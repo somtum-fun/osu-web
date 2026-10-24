@@ -32,9 +32,10 @@ class ScoreTokensController extends BaseController
         if ($user->isBot()) {
             abort(403, 'bot accounts can\'t submit scores');
         }
-        // TomYum: osu!dan is osu!(stable) only for now: lazer gets "Score will not be submitted" with why.
-        \App\Libraries\TomYumDan::refuseLazer($beatmap->getKey());
         $request = \Request::instance();
+        // TomYum: a TumThai play of an osu!dan map needs the Classic mod (TumThai sends its mods here):
+        // without it the game shows "Score will not be submitted" with why.
+        \App\Libraries\TomYumDan::refuseLazerWithoutClassic($beatmap->getKey(), $request->input('mods'));
 
         $scoreToken = new ScoreToken([
             'beatmap_id' => $beatmap->getKey(),
