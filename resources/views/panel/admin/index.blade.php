@@ -422,6 +422,59 @@
             </form>
         </div>
 
+        {{-- TomYum: OpenTabletDriver filter masterlist (TabletPluginPolicy in TomYum.Server). --}}
+        <div class="tomyum-panel__card" id="otd-filters">
+            <h2>
+                <i class="fas fa-pen-nib"></i>OpenTabletDriver filter masterlist
+                <span class="tomyum-panel__badge tomyum-panel__badge--success">AKATSUKI POLICY</span>
+            </h2>
+            <p class="tomyum-panel__hint">
+                pkms queries OpenTabletDriver's live daemon over IPC (<code>GetSettings</code> / <code>GetTablets</code>) — falling back to <code>settings.json</code> and the Plugins folder only when OTD is running but its IPC can't be reached (pkms 0.8.0+, marked "from settings.json").
+                Disabled blacklisted filters are logged like any other plugin and are not treated as banned. Each player's full filter breakdown is shown on their account page under <strong>Client &amp; OTD</strong> instead of cluttering <code>!client</code> in chat.
+            </p>
+            <table class="tomyum-panel__table">
+                <thead>
+                    <tr>
+                        <th style="width: 190px">Category</th>
+                        <th>Filters / plugins &amp; parameter limits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="tomyum-panel__badge tomyum-panel__badge--error">Banned</span></td>
+                        <td>
+                            <code>Chatter Generator</code>, <code>sin(cursor)</code>, <code>SpringInterpolator</code>, <code>MeL (entire suite)</code>, <code>Windows Ink</code>, <code>Saturn (Position &amp; Velocity Interpolation)</code>, <code>Stroke Snapping</code>, <code>BezierInterpolator</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="tomyum-panel__badge tomyum-panel__badge--warn">Allowed with exceptions</span></td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 4px">
+                                <div><strong>Temporal Resampler:</strong> Prediction Ratio &gt; 0 banned; Frame Time Shift &gt; 0 banned; Reverse EMA &lt; 0.6 banned; Reverse EMA with another filter's EMA banned.</div>
+                                <div><strong>Reconstructor:</strong> EMA Weight &lt; 0.6 banned; use with another filter's EMA banned.</div>
+                                <div><strong>jaaakb's ScuffedInter/Extrapolator:</strong> Interpolation &lt; 1 banned.</div>
+                                <div><strong>Devocub Antichatter (<code>DevocubFilters</code> / <code>Antichatter</code>):</strong> Any use of Prediction (<code>PredictionEnabled=true</code>) is banned.</div>
+                                <div><strong>Saturn (Non-Interpolated):</strong> Reverse EMA &lt; 0.6 banned; Stock EMA weight &lt; 1 banned; Reverse EMA with another filter's EMA banned.</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="tomyum-panel__badge tomyum-panel__badge--warn">Use at own risk</span></td>
+                        <td><code>MouseUtils</code>, <code>ScriptRunner</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tomyum-panel__badge tomyum-panel__badge--success">100% Legal</span></td>
+                        <td>
+                            <code>Chatter Exterminator</code>, <code>Radial Follow Smoothing</code>, <code>Wireless Kit Addon</code>, <code>Touch Gestures Installer</code>, <code>Tablet Debounce</code>, <code>Scroll Bindings</code>, <code>Hand Speed Viewer</code>, <code>Monitor Toggle</code>, <code>MabletMapping</code>, <code>LED Sandbox</code>, <code>Hover Distance Limiter</code>, <code>Flip Axes</code>, <code>BetterCalibrator</code>, <code>OpenKneeboard OTD-IPC</code>, <code>Precision Control</code>, <code>PSSA</code>, <code>Relative Mode Area</code>, <code>Tablet Calibration</code>, <code>Tilt Calibration</code>, <code>HawkuFilters</code>, <code>DevocubSmoothing</code>, <code>Tablet Area Randomizer</code>, <code>TouchEmu</code>, <code>Circular Area</code>, <code>SlimyScylla</code>, <code>Cycle Keybind</code>, <code>DragThreshold</code>, <code>Additional Keys</code>, <code>DualActionBinds</code>, <code>Enhanced Output modes</code>, <code>Erase button</code>, <code>Ux remote</code>, <code>VMultiMode</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="tomyum-panel__row" style="margin-top: 10px">
+                <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.log', ['kind' => 'score.tablet_plugins']) }}"><i class="fas fa-flag"></i>Flagged OTD scores</a>
+            </div>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

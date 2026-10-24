@@ -8,6 +8,7 @@
     $sections = [
         'standing' => ['fas fa-balance-scale', 'Standing'],
         'access' => ['fas fa-lock', 'Lock'],
+        'client' => ['fas fa-pen-nib', 'Client & OTD'],
         'devices' => ['fas fa-desktop', 'Devices'],
         'logins' => ['fas fa-sign-in-alt', 'Logins'],
         'connections' => ['fas fa-link', 'Links'],

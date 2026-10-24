@@ -191,6 +191,8 @@
 @include('panel.admin._connections')
 </div>
 
+@include('panel._client_session')
+
 <div class="tomyum-panel__card" id="devices">
     <h2><i class="fas fa-desktop"></i>Devices (hardware fingerprint)</h2>
     <p class="tomyum-panel__hint">

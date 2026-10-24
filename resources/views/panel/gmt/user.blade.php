@@ -182,6 +182,8 @@
             </div>
         @endif
 
+        @include('panel._client_session')
+
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-list"></i>Scores</h2>
             <p class="tomyum-panel__row" style="gap: 16px; margin: 0 0 10px">

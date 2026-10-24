@@ -381,6 +381,7 @@ class AdminController extends Controller
         'user.' => 'Players (moderation)',
         'score.' => 'Scores',
         'score.pkms_' => 'Scores (pkms flags)',
+        'score.tablet_plugins' => 'Scores (OTD filters)',
         'admin.' => 'Accounts',
         'report.' => 'Reports',
         'beatmapset.' => 'Beatmaps',
@@ -463,6 +464,7 @@ class AdminController extends Controller
         ));
 
         $devices = $this->tomyum()->get("/users/{$target->getKey()}/devices");
+        $clientSession = $this->tomyum()->get("/users/{$target->getKey()}/client");
         $links = $this->tomyum()->get("/users/{$target->getKey()}/links");
         $anticheat = $this->tomyum()->get('/log', ['targetId' => $target->getKey(), 'limit' => 200]);
 
@@ -479,6 +481,7 @@ class AdminController extends Controller
             'modes' => GmtController::MODES,
             'history' => $target->accountHistories()->with('actor')->orderByDesc('timestamp')->orderByDesc('ban_id')->limit(50)->get(),
             'devices' => $devices->successful() ? $devices->json() : null,
+            'clientSession' => $clientSession->successful() ? $clientSession->json() : null,
             'verifiedDevices' => DB::table('osu_user_security')->where('user_id', $target->getKey())->get()
                 ->mapWithKeys(fn ($row) => [bin2hex($row->unique_md5) => (bool) $row->verified])->all(),
             'links' => $links->successful() ? $links->json() : null,

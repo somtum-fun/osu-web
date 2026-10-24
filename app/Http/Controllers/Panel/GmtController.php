@@ -116,6 +116,7 @@ class GmtController extends Controller
         $best = Request::input('scores') === 'best';
 
         $scores = $this->tomyum()->get("/users/{$target->getKey()}/scores", ['best' => $best ? 'true' : 'false', 'limit' => 50]);
+        $clientSession = $this->tomyum()->get("/users/{$target->getKey()}/client");
         $online = $this->tomyum()->get('/online');
         $log = $this->tomyum()->get('/log', ['targetId' => $target->getKey(), 'limit' => 100]);
         // The log is keyed by target id alone: keep the entries about users/scores, not beatmap sets.
@@ -138,6 +139,7 @@ class GmtController extends Controller
             'best' => $best,
             'scores' => $scores->successful() ? $scores->json() : [],
             'scoresError' => $scores->successful() ? null : "Couldn't load scores from the game server (HTTP {$scores->status()}).",
+            'clientSession' => $clientSession->successful() ? $clientSession->json() : null,
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
         ]);
