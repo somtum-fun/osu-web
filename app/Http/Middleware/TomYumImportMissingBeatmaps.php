@@ -48,9 +48,6 @@ class TomYumImportMissingBeatmaps
     /** Visitors who aren't signed in: only by opening a beatmap's or a set's page, and fewer an hour. */
     private const ANONYMOUS_IMPORTS_PER_HOUR = 30;
 
-    /** Visitors who aren't signed in: only by opening a beatmap's or a set's page, and fewer an hour. */
-    private const ANONYMOUS_IMPORTS_PER_HOUR = 30;
-
     public function handle(Request $request, Closure $next)
     {
         // Signed-in clients (lazer always sends a token; site visitors have a session) for anything that
