@@ -3,7 +3,10 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 {{-- TomYum: vote for the server on server lists (config tomyum.votes). --}}
-@extends('master')
+@extends('master', [
+    'canonicalUrl' => route('vote'),
+    'pageDescription' => 'Vote for '.App\Libraries\TomYumBranding::name().'! on osu! private server lists and earn free osu!direct.',
+])
 
 @section('content')
 @component('layout._page_header_v4')

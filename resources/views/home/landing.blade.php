@@ -9,6 +9,7 @@
 
 @extends('master', [
     'titleOverride' => osu_trans('home.landing.title'),
+    'canonicalUrl' => route('home'),
     'blank' => 'true',
     'bodyAdditionalClasses' => 'osu-layout--body-landing'
 ])
@@ -171,5 +172,21 @@
         {!! json_encode($news) !!}
     </script>
 
-    {{-- TomYum: no schema.org VideoGame block (that described ppy's osu!). --}}
+    {{-- TomYum: WebSite schema for this server (no VideoGame block claiming ppy's osu!). --}}
+    @php
+        $brandName = App\Libraries\TomYumBranding::name();
+        $alternateNames = array_values(array_unique(array_filter([
+            "{$brandName}!",
+            $brandName === 'somtum.fun' ? 'somtum' : null,
+        ])));
+        $webSiteSchema = json_encode([
+            chr(64).'context' => 'https://schema.org',
+            chr(64).'type' => 'WebSite',
+            'name' => $brandName,
+            'alternateName' => $alternateNames,
+            'url' => route('home'),
+            'description' => App\Libraries\TomYumBranding::text('description'),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $webSiteSchema !!}</script>
 @endsection

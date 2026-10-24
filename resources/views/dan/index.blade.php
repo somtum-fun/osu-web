@@ -9,7 +9,10 @@
 @php
     use App\Libraries\TomYumDan;
 @endphp
-@extends('master')
+@extends('master', [
+    'canonicalUrl' => route('dan.index'),
+    'pageDescription' => 'osu!dan (osu dan / DanReform) osu!mania courses, rules and clears on '.App\Libraries\TomYumBranding::name().'!',
+])
 
 @section('content')
     @component('layout._page_header_v4', ['params' => [

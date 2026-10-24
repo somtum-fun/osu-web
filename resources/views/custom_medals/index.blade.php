@@ -9,7 +9,11 @@
     $statusPills = ['pending' => 'warn', 'approved' => 'good', 'rejected' => 'bad', 'disabled' => 'bad'];
     $oldRule = old('rule');
 @endphp
-@extends('master', ['titlePrepend' => 'Community medals'])
+@extends('master', [
+    'titlePrepend' => 'Community medals',
+    'canonicalUrl' => route('custom-medals.index'),
+    'pageDescription' => 'Community custom medals on '.App\Libraries\TomYumBranding::name().'!: player-created medals earned on osu!(stable) and the '.App\Libraries\TomYumBranding::text('downloads_client_name').' client.',
+])
 
 @section('content')
     @component('layout._page_header_v4')

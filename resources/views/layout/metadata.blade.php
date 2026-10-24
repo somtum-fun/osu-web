@@ -8,7 +8,9 @@
     $fallbackLocale = $GLOBALS['cfg']['app']['fallback_locale'];
     $opengraph = Request::instance()->attributes->get('opengraph');
 
-    $opengraph['description'] ??= $pageDescription ?? null;
+    $opengraph['description'] = presence($opengraph['description'] ?? null)
+        ?? presence($pageDescription ?? null)
+        ?? App\Libraries\TomYumBranding::text('description');
 @endphp
 {{-- TomYum: this server's favicons and logo (Admin panel > Branding). --}}
 <link rel="apple-touch-icon" sizes="180x180" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('apple-touch-icon.png') }}">
@@ -21,7 +23,7 @@
 <meta name="theme-color" content="{{ hsl_to_hex($currentHue, 0.1, 0.4) }}"> {{-- @osu-colour-b1 --}}
 
 <meta charset="utf-8">
-<meta name="description" content="{{ $opengraph['description'] ?? App\Libraries\TomYumBranding::text('description') }}">
+<meta name="description" content="{{ $opengraph['description'] }}">
 {{-- TomYum: this server's keywords and name. --}}
 <meta name="keywords" content="{{ App\Libraries\TomYumBranding::text('keywords') }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,8 +52,8 @@
     @endif
 @endforeach
 
-{{-- TomYum: osu.ppy.sh's own beatmaps are its pages: kept out of search results here. --}}
-@if (($noindex ?? false) || App\Libraries\TomYumSeo::mirrorsOsu())
+{{-- TomYum: osu.ppy.sh's own beatmaps and development servers are kept out of search results. --}}
+@if (($noindex ?? false) || App\Libraries\TomYumSeo::mirrorsOsu() || App\Libraries\TomYumSiteSettings::developmentBannerEnabled())
     <meta name="robots" content="noindex">
 @endif
 

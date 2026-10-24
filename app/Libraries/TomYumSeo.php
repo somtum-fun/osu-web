@@ -32,7 +32,7 @@ class TomYumSeo
     /** Players in the sitemap, most active first. */
     private const MAX_USERS = 20_000;
 
-    /** Whether this request is a page of one of osu.ppy.sh's beatmaps (kept out of search results). */
+    /** Whether this request is a page of one of osu.ppy.sh's beatmaps or Featured Artists (kept out of search results). */
     public static function mirrorsOsu(): bool
     {
         $route = Route::current();
@@ -41,6 +41,9 @@ class TomYumSeo
         }
 
         $name = $route->getName() ?? '';
+        if (str_starts_with($name, 'artists.')) {
+            return true;
+        }
         if (str_starts_with($name, 'beatmapsets.')) {
             $id = $route->parameter('beatmapset');
         } elseif (str_starts_with($name, 'beatmaps.')) {
@@ -78,8 +81,10 @@ class TomYumSeo
         foreach ($disallow as $path) {
             $lines[] = "Disallow: {$path}";
         }
-        $lines[] = '';
-        $lines[] = 'Sitemap: '.route('tomyum.sitemap');
+        if (!TomYumSiteSettings::developmentBannerEnabled()) {
+            $lines[] = '';
+            $lines[] = 'Sitemap: '.route('tomyum.sitemap');
+        }
 
         return implode("\n", $lines)."\n";
     }
@@ -116,6 +121,10 @@ class TomYumSeo
     /** [url, lastmod (W3C date) or null] for each page. */
     private static function urls(): array
     {
+        if (TomYumSiteSettings::developmentBannerEnabled()) {
+            return [];
+        }
+
         $urls = [];
         $add = function (string $url, $lastmod = null) use (&$urls) {
             $urls[$url] = [$url, $lastmod === null ? null : json_time($lastmod)];
@@ -124,9 +133,9 @@ class TomYumSeo
         foreach ([
             ['home'],
             ['download'],
+            ['support-the-game'],
             ['news.index'],
             ['changelog.index'],
-            ['beatmapsets.index'],
             ['dan.index'],
             ['custom-medals.index'],
             ['tournaments.index'],
@@ -138,7 +147,27 @@ class TomYumSeo
         }
         if (Route::has('rankings')) {
             foreach (['osu', 'taiko', 'fruits', 'mania'] as $mode) {
-                $add(route('rankings', ['mode' => $mode, 'type' => 'performance']));
+                $add(route('rankings', ['mode' => $mode, 'type' => 'global']));
+                foreach (array_keys(\App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$mode] ?? []) as $variant) {
+                    $add(route('rankings', ['mode' => $mode, 'type' => 'global', 'variant' => $variant]));
+                }
+            }
+        }
+        if (Route::has('rankings.top-plays')) {
+            foreach (['osu', 'taiko', 'fruits', 'mania'] as $mode) {
+                $add(route('rankings.top-plays', ['mode' => $mode]));
+                foreach (array_keys(\App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$mode] ?? []) as $variant) {
+                    $add(route('rankings.top-plays', ['mode' => $mode, 'variant' => $variant]));
+                }
+            }
+        }
+        if (Route::has('dan.show')) {
+            try {
+                foreach (TomYumDan::courses() as $course) {
+                    $add(route('dan.show', ['course' => $course->id]));
+                }
+            } catch (\Throwable) {
+                // dan plugin table not created yet
             }
         }
 

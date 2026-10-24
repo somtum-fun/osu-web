@@ -62,12 +62,12 @@ class TomYumBranding
         'support_signature' => 'Phapoom "blueskychan_" Saksri, :brand',
         'invoice_seller' => 'Phaphum Saksri',
         'invoice_contact' => 'mind@mindhas403.dev / +66 61 556 6467',
-        'keywords' => ':brand, somtum, private server, :country, rhythm game, relax, autopilot',
+        'keywords' => ':brand, :brand!, somtum, osu private server, tumthai, tumthai client, shared leaderboard, relax, autopilot, dan, osu dan, osu!dan, custom medals, :country, rhythm game',
         // Who runs the server and where (:operator and :country in the texts and the legal pages).
         'operator' => 'Phapoom Saksri',
         'country' => 'Thailand',
         // The page description search engines and link previews show.
-        'description' => ':brand, a fan-run private server for the osu! game from :country: stable and lazer clients, Relax and Autopilot leaderboards, custom beatmaps and more. Not affiliated with ppy Pty Ltd.',
+        'description' => ':brand! (somtum) is a fan-run osu! private server from :country with a shared leaderboard across stable, the TumThai lazer client and 2008–2015 legacy clients, Relax and Autopilot rankings, osu!dan courses, custom beatmaps and medals. Not affiliated with ppy Pty Ltd.',
         // The Privacy Policy's parts that depend on how the server is run (markdown lists).
         'privacy_payments' => "- TrueMoney Privacy Policy (for players in Thailand): <https://www.truemoney.com/privacy-notice>\n"
             .'- Stripe Privacy Policy (for players outside Thailand): <https://stripe.com/th/privacy>',

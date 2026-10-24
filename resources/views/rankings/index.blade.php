@@ -27,9 +27,18 @@
     $hasMode ??= true;
     $hasPager ??= true;
     $hasScores ??= true;
+
+    $variantName = isset($params['mode'], $params['variant']) && $params['variant'] !== null
+        ? osu_trans("beatmaps.variant.{$params['mode']}.{$params['variant']}")
+        : null;
+    $baseTitlePrepend = $titlePrepend ?? osu_trans("rankings.type.{$params['type']}");
+    $rankingTitlePrepend = $variantName !== null ? "{$baseTitlePrepend} ({$variantName})" : $baseTitlePrepend;
 @endphp
 
-@extends('master', ['titlePrepend' => $titlePrepend ?? osu_trans("rankings.type.{$params['type']}")])
+@extends('master', [
+    'titlePrepend' => $rankingTitlePrepend,
+    'pageDescription' => $pageDescription ?? (App\Libraries\TomYumBranding::name().'! shared leaderboard and rankings'.($variantName !== null ? " ({$variantName})" : '').' across osu!(stable), the '.App\Libraries\TomYumBranding::text('downloads_client_name').' client and legacy clients.'),
+])
 
 @if ($hasMode)
     @section('rulesetSelector')

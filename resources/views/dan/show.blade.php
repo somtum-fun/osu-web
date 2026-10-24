@@ -6,7 +6,11 @@
 @php
     use App\Libraries\TomYumDan;
 @endphp
-@extends('master', ['titlePrepend' => "{$course->name} ({$course->keys}K)"])
+@extends('master', [
+    'titlePrepend' => "{$course->name} ({$course->keys}K)",
+    'canonicalUrl' => route('dan.show', ['course' => $course->id]),
+    'pageDescription' => "{$course->name} ({$course->keys}K) osu!dan course maps, accuracy rules and clears on ".App\Libraries\TomYumBranding::name().'!',
+])
 
 @section('content')
     @component('layout._page_header_v4', ['params' => [

@@ -9,11 +9,11 @@ return [
         'online' => '<strong>:players</strong> currently online in <strong>:games</strong> games',
         'peak' => 'Peak, :count online users',
         'players' => '<strong>:count</strong> registered players',
-        'title' => 'welcome',
+        'title' => ':brand! — osu! private server (TumThai, Relax, Dan)', // TomYum
         'see_more_news' => 'see more news',
 
         'slogan' => [
-            'main' => 'Yet another osu!private server', // TomYum
+            'main' => 'Yet another osu! private server', // TomYum
             'sub' => 'rhythm is just a click away',
         ],
     ],
