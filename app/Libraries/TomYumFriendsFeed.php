@@ -25,7 +25,7 @@ class TomYumFriendsFeed
     /** @return array<int, array{score: Score, first: bool, variant: string|null, mods: string[]}> */
     public static function forUser(User $user): array
     {
-        $friendIds = $user->friends()->pluck('phpbb_users.user_id')->all();
+        $friendIds = $user->friends()->pluck('zebra_id')->all(); // TomYum: friends() is the friendship rows (ppy, 2026-10)
         if ($friendIds === []) {
             return [];
         }
