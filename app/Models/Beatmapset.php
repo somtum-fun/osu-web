@@ -423,10 +423,15 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
 
     public function scopeToBeRanked(Builder $query, Ruleset $ruleset)
     {
+        $before = now()->subDays($GLOBALS['cfg']['osu']['beatmapset']['minimum_days_for_rank']);
+
         return $query->qualified()
             ->withoutTrashed()
             ->withModesForRanking($ruleset->value)
-            ->where('queued_at', '<', now()->subDays($GLOBALS['cfg']['osu']['beatmapset']['minimum_days_for_rank']))
+            // TomYum: a set imported already qualified on osu! (or qualified by staff) has no queue date here: its
+            // time counts from when it was qualified (osu!'s date for an import), so it's ranked as ours are.
+            ->where(fn ($q) => $q->where('queued_at', '<', $before)
+                ->orWhere(fn ($q) => $q->whereNull('queued_at')->where('approved_date', '<', $before)))
             ->whereDoesntHave('beatmapDiscussions', fn ($q) => $q->openIssues());
     }
 

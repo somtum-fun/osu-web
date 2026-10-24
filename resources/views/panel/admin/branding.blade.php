@@ -155,6 +155,11 @@
                         <input class="input-text" type="text" name="downloads_lazer_url" value="{{ $saved['downloads_lazer_url'] }}" placeholder="https://github.com/ppy/osu/releases/latest">
                     </label>
                 </div>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">lazer: downloads per platform (a line each: platform | link; the page offers these platforms)</span>
+                    <textarea class="input-text" name="downloads_lazer_files" rows="5" placeholder="windows_x64 | https://github.com/you/client/releases/latest/download/Setup.exe&#10;windows_x64_portable | https://…/portable.zip&#10;macos_arm64 | https://…&#10;macos_x64 | https://…&#10;linux_x64 | https://…">{{ $saved['downloads_lazer_files'] }}</textarea>
+                </label>
+                <p class="tomyum-panel__hint">Platforms: {{ implode(', ', App\Libraries\TomYumBranding::LAZER_PLATFORMS) }}. Set, they're used instead of the link above and the file host's build.</p>
                 <div class="tomyum-panel__row">
                     <label class="input-container tomyum-panel__field">
                         <span class="input-container__label">stable: patcher name</span>

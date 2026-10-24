@@ -1,111 +1,42 @@
-# osu-web (somtum.fun)
+# osu!web
 
-The website of [somtum.fun](https://osu.blueskychan.dev): player profiles, rankings, beatmaps, the
-store, the staff panels and more. It's a fork of ppy's [osu-web](https://github.com/ppy/osu-web),
-changed to run next to [TomYum](https://github.com/somtum-fun/TomYum-OSS), our osu!stable and
-osu!lazer server, on one account system.
+[![Tests](https://github.com/ppy/osu-web/actions/workflows/tests.yml/badge.svg)](https://github.com/ppy/osu-web/actions/workflows/tests.yml)
+[![Lint](https://github.com/ppy/osu-web/actions/workflows/lint.yml/badge.svg)](https://github.com/ppy/osu-web/actions/workflows/lint.yml)
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/osu-web/localized.svg)](https://crowdin.com/project/osu-web)
+[![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-> somtum.fun is not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.
+The browser-facing portion of [osu!](https://osu.ppy.sh/home).
 
-## Technologies
+## Getting Started
 
-- PHP 8 / Laravel, TypeScript, React and Less
-- MySQL 8.4
-- Redis (cache, sessions and queues, shared with TomYum)
-- Elasticsearch (beatmap, user, forum and wiki search)
-- Docker Compose, with Caddy in front
-
-## Core features
-
-Everything osu-web has (profiles, rankings, beatmap pages and search, forums, the wiki, news, chat,
-comments, the store, multiplayer and daily challenge history), plus:
-
-* One account with TomYum: sign-up and login work for osu!stable, osu!lazer and the website
-* Relax and Autopilot: their own leaderboards, rankings and top plays, for stable and lazer
-* Beatmap leaderboards sorted by pp or by score, with Vanilla, Relax and Autopilot boards
-* Custom beatmaps uploaded to the server, next to osu!'s, with a filter for them
-* Ranked mods set by staff: a lazer play with an unranked mod gets no pp
-* Project Loved without rounds: requests, reviews, the team's decisions and a blacklist
-* Featured artists: imported from osu! or added in the artist editor, with tracks for uploaded sets
-* The download page: TumThai (our lazer client), the Somtum Patcher for osu!stable and the
-  patched legacy clients (2008 to 2015), read from the file host's `manifest.json`
-* Store payments by TrueMoney and Stripe (through
-  [payments-service](https://github.com/somtum-fun/payments-service-tomyum))
-* Discord and osu! account links on the account settings page
-* Favourite game modes on the profile, and second titles under a player's name
-
-## Staff panels
-
-* **Admin panel:** players (restrict, silence, notes, devices, connected profiles), the staff log,
-  reports, tickets from an IMAP mailbox, badges, titles, groups, seasonal backgrounds, menu banners,
-  tournament banners, the assets host, ranked mods, Ranked Play pools, the daily challenge, pp
-  reworks, which TumThai builds may submit scores, and site settings
-* **Branding:** the server's name, logo, favicons, videos, download links, vote page and legal pages,
-  all set in the admin panel, so another server can run this site under its own name
-* **BN panel:** nominating and ranking uploaded sets, with history and featured artist tracks
-* **GMT, TC and Project Loved panels:** moderation, tournaments and Loved for their teams
-
-## Additional features
-
-* Charts on the admin overview: players in game, scores and sign-ups per day
-* A changelog made from the repositories' history (with Web and Wiki streams)
-* Sign-up checks: proxies, Tor exits and hosting networks (proxycheck.io)
-* Maintenance mode and a development banner, switched from the admin panel
-* Easter eggs
-
-## Running it
-
-The website runs as part of the TomYum stack: TomYum's `deploy/production` Docker Compose file builds
-this repository (`docker compose --profile build build osu-web-build`) and runs it on the same MySQL
-and Redis as the game server. TomYum's docs explain the whole stack, and the database they share.
-
-For working on the website alone, ppy's [setup guide](SETUP.md) still applies: clone this repository
-instead of ppy's, copy `.env.example` to `.env`, and set at least `APP_*` and `DB_*`.
-
-### Settings
-
-The fork's settings are in [`config/tomyum.php`](config/tomyum.php), each with its environment
-variable, for example:
-
-| Variable | What it does |
-|---|---|
-| `TOMYUM_SERVER_NAME`, `BRAND_NAME` | The server's name (the admin panel's Branding page can change it later) |
-| `TOMYUM_ADMIN_URL` | TomYum's admin API, used by the staff panels |
-| `TOMYUM_ASSETS_URL` | The assets host (avatars, badges, banners) |
-| `TOMYUM_PAYMENTS_URL`, `TOMYUM_STORE_ENABLED` | The payments service and the store |
-| `TICKETS_*` | The support mailbox read into tickets |
-| `MAIL_*` | Outgoing email (SMTP) |
-| `DISCORD_OAUTH_*`, `OSU_LINK_*` | Discord and osu! account links |
-| `PROXYCHECK_*` | Sign-up proxy checks |
-
-Never commit a filled-in `.env`: it holds secrets.
+See the [setup guide](SETUP.md) for a rundown on how to get a development environment up.
 
 ## Contributing
 
-- **Fork** the project
-- Create your **feature branch**: `git checkout -b feature/AmazingFeature`
-- Commit your **changes**: `git commit -m 'Add some AmazingFeature'`
-- Push **to the branch**: `git push origin feature/AmazingFeature`
-- Open a **pull request**
+We welcome all contributions, but keep in mind that we already have the full site designed (mock-ups). If you wish to work on a new section, please open a ticket and we will give you what you need from a design perspective to proceed. If you want to make *changes* to the design, we recommend you open an issue with your intentions before spending too much time, to ensure no effort is wasted.
 
-Changes of ours in ppy's files are marked with a `TomYum:` comment, so merging ppy's updates stays
-easy. Please do the same.
+If you wish to help with localisation efforts, head over to [crowdin](https://crowdin.com/project/osu-web). If you're unsure of what you can help with, check out the [list of open issues](https://github.com/ppy/osu-web/issues). (especially those with the ["good first issue"](https://github.com/ppy/osu-web/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22) label).
 
-Our team believes in using AI as an assistant, always under human review. Low-effort AI-generated
-("slop") pull requests or comments may be closed without notice.
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about the code standards we expect from pull requests.
 
-## License
+While we have standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing, *please* bring it up. We welcome all feedback so we can make contributing to this project as pain-free as possible.
 
-osu-web is licensed under the [GNU Affero General Public License v3.0](LICENCE), and so is this fork.
-If you run a changed copy as a public website, the AGPL asks you to offer its source to your
-players too.
+Our team believes in **human contributions**. Any contribution – be it an issue report or a pull request – which is created by, documented by, or aided by AI/LLM usage will typically be **closed and locked without further discussion**.
 
-The osu! name, logo and artwork belong to ppy Pty Ltd and aren't covered by the licence. Replace them
-with your own (Admin panel > Branding) when you run this for your own server.
+## Seeking Help
 
-## Acknowledgments
+If you need help with anything, you have two options:
 
-- [ppy](https://github.com/ppy) for [osu-web](https://github.com/ppy/osu-web) and
-  [osu!](https://github.com/ppy/osu)
-- [sundeiii](https://github.com/sundeiii) and blueskychan-dev for the fork
-- [catboy.best](https://catboy.best) for beatmap mirrors and audio previews
+### Create an Issue
+
+If you have something you want to discuss in detail, or have hit an issue which you believe others will also have in deployment or development of the system, [opening an issue](https://github.com/ppy/osu-web/issues) is the best way to get help. It creates a permanent resource for others wishing to contribute to conversation. Please **make sure to search first** in case someone else has already addressed the same issue!
+
+### Discord
+
+Alternatively, you can join the [development discord](https://discord.gg/ppy) for assistance.
+
+## Licence
+
+osu!web is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
+
+Please note that this *does not cover* the usage of the "osu!" or "ppy" branding in any software, resources, advertising or promotion, as this is protected by trademark law.

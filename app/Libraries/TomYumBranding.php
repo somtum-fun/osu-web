@@ -80,7 +80,7 @@ class TomYumBranding
         'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in :country. Nobody here gets paid.',
         // The download page: the lazer build's name, and the stable patcher's.
         'downloads_client_name' => 'TumThai',
-        'downloads_patcher_name' => 'Somtum Patcher',
+        'downloads_patcher_name' => ':brand patcher',
     ];
 
     /** The legal pages (LegalController): their key, path and title. */
@@ -99,7 +99,7 @@ class TomYumBranding
         'support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'keywords', 'footer',
         'support_team', 'downloads_client_name', 'downloads_patcher_name',
         'operator', 'country', 'description', 'privacy_payments', 'privacy_hosting', 'privacy_laws',
-        'downloads_host', 'downloads_lazer_url', 'downloads_patcher_url',
+        'downloads_host', 'downloads_lazer_url', 'downloads_lazer_files', 'downloads_patcher_url',
         'downloads_show_lazer', 'downloads_show_stable', 'downloads_show_legacy',
         'vote_enabled', 'vote_sites',
         'legal_rules', 'legal_restrictions', 'legal_terms', 'legal_privacy', 'legal_copyright',
@@ -298,6 +298,29 @@ class TomYumBranding
     public static function downloadsLazerUrl(): ?string
     {
         return static::setting('downloads_lazer_url');
+    }
+
+    /** The platforms a lazer download can be for (the download page's choices), and their portable builds. */
+    public const LAZER_PLATFORMS = ['windows_x64', 'windows_x64_portable', 'macos_arm64', 'macos_x64', 'linux_x64', 'linux_arm64', 'android'];
+
+    /**
+     * The lazer client's own downloads, one per platform (Admin panel > Branding: "windows_x64 | https://..."
+     * a line), for a client of the server's own (GitHub releases, say): the download page offers these platforms
+     * and their files instead of the file host's build. Empty when not set.
+     *
+     * @return array<string, string> platform => link
+     */
+    public static function lazerFiles(): array
+    {
+        $files = [];
+        foreach (preg_split('/\R/', static::setting('downloads_lazer_files') ?? '') as $line) {
+            [$platform, $url] = array_map('trim', explode('|', $line, 2) + [1 => '']);
+            if (in_array($platform, static::LAZER_PLATFORMS, true) && preg_match('#^https?://#', $url) === 1) {
+                $files[$platform] = $url;
+            }
+        }
+
+        return $files;
     }
 
     /** Where the stable patcher button goes when it isn't the file host's (null: the file host's). */

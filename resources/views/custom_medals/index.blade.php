@@ -23,7 +23,7 @@
             <h2><i class="fas fa-award"></i>Community medals</h2>
             <p class="tomyum-panel__hint">
                 Medals made by players. Anyone can ask for one: you pick its name, icon and what a play has to do to earn it,
-                and the Medal Team checks it before it's out. It's earned by new plays (osu!stable or TumThai) that meet its rule,
+                and the Medal Team checks it before it's out. It's earned by new plays (osu!stable or {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}) that meet its rule,
                 and shows on profiles under "{{ \App\Libraries\TomYumCustomMedals::GROUPING }}".
             </p>
             @if ($approved->isEmpty())

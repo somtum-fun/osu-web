@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Libraries;
 
 use App\Models\Beatmap;
+use App\Models\Beatmapset;
 use App\Models\User;
 use App\Transformers\BeatmapCompactTransformer;
 use App\Transformers\BeatmapTransformer;
@@ -117,6 +118,26 @@ class TomYumModeScores
         return ['items' => $items, 'total' => (int) ($response->json('total') ?? 0)];
     }
 
+    /**
+     * What a pass on a map without pp (loved, qualified, pending, graveyard) would be worth if it were ranked
+     * (TomYum works it out: $query is ['website' => score id] or ['mode' => Relax/Autopilot id]); null on a ranked
+     * map, for a fail, or when it can't be worked out. Shown greyed out on the score's page, never counted.
+     */
+    public static function ppIfRanked(array $query, bool $passed, ?Beatmap $beatmap): ?float
+    {
+        if (!$passed || $beatmap === null || in_array($beatmap->approved, [Beatmapset::STATES['ranked'], Beatmapset::STATES['approved']], true)) {
+            return null;
+        }
+
+        try {
+            $pp = (new TomYumAdmin())->get('/pp-if-ranked', $query)->json('pp');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_numeric($pp) ? (float) $pp : null;
+    }
+
     /** One play for its page: [score json, player, map], or null when TomYum doesn't have it. */
     public static function one(int $scoreId): ?array
     {
@@ -139,6 +160,8 @@ class TomYumModeScores
         $rulesetId = Beatmap::MODES[$variant[0]];
         $json = static::item($data['score'], $user, $beatmap, $rulesetId, null);
         $json['beatmap'] = json_item($beatmap, new BeatmapTransformer(), ['max_combo', 'owners', 'user']);
+        // Who made an imported map on osu! (its mappers have no accounts here), as the website's score page has it.
+        $json['beatmapset'] = json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer(), ['tomyum_mappers']);
         $json['user'] = json_item($user, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES);
         $json['rank_global'] = $data['position'];
         $json['has_replay'] = $json['replay'] = (bool) $data['hasReplay'];
@@ -159,7 +182,7 @@ class TomYumModeScores
      * stable mode (not lazer's), as on the vanilla board: each player's best stable play, no lazer
      * plays (stable has no custom DT speed, for one).
      */
-    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'pp', bool $stableOnly = false): array
+    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'score', bool $stableOnly = false): array
     {
         $ruleset ??= Beatmap::modeStr($beatmap->playmode);
         $mode = static::variant($ruleset.$variant);
@@ -264,7 +287,16 @@ class TomYumModeScores
 
         // TomYum: a lazer play keeps the website's own score id, which its replay carries, so lazer
         // matches the downloaded replay to it. Stable plays (and any without one) use ID_OFFSET.
-        $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
+        $stable = $score['stable'] ?? true;
+        // A lazer play's own judgements (slider ticks and ends, spinner bonus) and the most it could have had, as
+        // lazer shows them; a stable play has its 300/100/50s only. Its combo is perfect, as lazer has it, when it
+        // reached the map's max combo (not just no misses: a dropped slider end breaks it).
+        $lazerStatistics = !$stable && isset($score['lazerStatistics']) ? json_decode($score['lazerStatistics'], true) : null;
+        $perfect = $lazerStatistics !== null
+            ? ($beatmap->maxCombo() !== null && $score['maxCombo'] >= $beatmap->maxCombo())
+            : $score['perfect'];
+
+        $id = !$stable && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
             : static::ID_OFFSET + $score['id'];
         // TomYum: a lazer play is shown as it was played: its mods (Classic and their settings), score and
@@ -289,8 +321,8 @@ class TomYumModeScores
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
             'has_replay' => $score['hasReplay'] ?? false,
-            'is_perfect_combo' => $score['perfect'],
-            'legacy_perfect' => $score['perfect'],
+            'is_perfect_combo' => $perfect,
+            'legacy_perfect' => $perfect,
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
             'legacy_total_score' => $lazer === null ? $score['score'] : $lazer->legacy_total_score,

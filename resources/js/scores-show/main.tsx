@@ -7,6 +7,7 @@ import * as React from 'react';
 import { trans } from 'utils/lang';
 import BeatmapInfo from './beatmap-info';
 import Info from './info';
+import RenderPlayer from './render-player';
 import Stats from './stats';
 
 interface Props {
@@ -27,6 +28,8 @@ export default function Main({ score }: Props) {
 
         <Stats beatmap={beatmap} score={score} />
 
+        {/* TomYum: its replay render, when there is one (o!rdr renders osu! only). */}
+        {score.ruleset_id === 0 && <RenderPlayer cover={beatmapset.covers.cover} scoreId={score.id} />}
         {score.type === 'solo_score' && !score.preserve && (
           <div className='wiki-notice wiki-notice--score'>
             <span className='fas fa-info-circle' />

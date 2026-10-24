@@ -72,6 +72,12 @@
       color: hsl(@beatmap-score--hsl-perfect);
     }
 
+    // TomYum: pp a play would have on a ranked map: not counted, so greyed out.
+    &--if-ranked {
+      opacity: 0.55;
+      font-style: italic;
+    }
+
     .hit-stat-colours({
       color: hsl(@value);
     });

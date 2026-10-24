@@ -1,0 +1,82 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the home page's friends activity.
+.friends-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: hsl(var(--hsl-b4));
+    color: hsl(var(--hsl-c1));
+
+    .link-hover({
+      background-color: hsl(var(--hsl-b3));
+      color: hsl(var(--hsl-c1));
+    });
+  }
+
+  &__avatar {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__map {
+    font-size: @font-size--small;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__tag {
+    padding: 0 6px;
+    border-radius: 10000px;
+    background-color: hsl(var(--hsl-b2));
+    font-size: @font-size--small;
+
+    &--first {
+      background-color: hsl(var(--hsl-h1));
+      color: hsl(var(--hsl-b6));
+      font-weight: bold;
+    }
+  }
+
+  &__numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: none;
+  }
+
+  &__pp {
+    font-weight: bold;
+    color: hsl(var(--hsl-h1));
+  }
+
+  &__time {
+    font-size: @font-size--small;
+    color: hsl(var(--hsl-c2));
+  }
+}

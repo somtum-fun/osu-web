@@ -1,0 +1,34 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the profile's rank chart, with a switch to pp over time.
+.profile-rank-chart {
+  position: relative;
+
+  &__views {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    gap: 2px;
+  }
+
+  &__view {
+    padding: 0 8px;
+    border: none;
+    border-radius: 10000px;
+    background: none;
+    font-size: @font-size--small;
+    color: hsl(var(--hsl-c2));
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+    }
+
+    &--active {
+      background-color: hsl(var(--hsl-b4));
+      color: hsl(var(--hsl-c1));
+    }
+  }
+}

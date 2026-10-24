@@ -60,7 +60,10 @@ interface ScoreJsonAttributesSolo {
   preserve: boolean;
   processed: boolean;
   ranked: boolean;
-  type: 'solo_score';
+  // TomYum: on a map without pp, what the play would be worth if the map were ranked (its page only; never counted).
+  tomyum_pp_if_ranked?: number | null;
+  // TomYum: tomyum_score is a Relax/Autopilot play (TomYum's), shaped like the website's.
+  type: 'solo_score' | 'tomyum_score';
 }
 
 interface ScoreJsonAttributesMultiplayer extends ScoreJsonAttributesSolo {

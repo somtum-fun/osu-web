@@ -48,6 +48,10 @@
                     </div>
                 @endif
 
+                @if ($friendsFeed !== [])
+                    @include('home._user_friends_feed')
+                @endif
+
                 <div class="user-home__news">
                     <h2 class="user-home__left-title">{{ osu_trans('home.user.news.title') }}</h2>
 

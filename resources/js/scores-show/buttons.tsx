@@ -10,6 +10,7 @@ import core from 'osu-core-singleton';
 import * as React from 'react';
 import { trans } from 'utils/lang';
 import { canBeReported, hasReplay } from 'utils/score-helper';
+import RenderButton from './render-button';
 
 interface Props {
   score: ScoreJsonForShow;
@@ -35,6 +36,11 @@ export default function Buttons(props: Props) {
         >
           {trans('users.show.extra.top_ranks.download_replay')}
         </a>
+      )}
+
+      {/* TomYum: o!rdr renders osu! replays. */}
+      {hasReplay(props.score) && props.score.ruleset_id === 0 && core.currentUser != null && (
+        <RenderButton scoreId={props.score.id} />
       )}
 
       {visibleMenuItems.size > 0 && (

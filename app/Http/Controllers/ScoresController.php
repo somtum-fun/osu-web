@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Ruleset;
 use App\Models\Beatmap;
+use App\Models\Beatmapset;
 use App\Models\ScoreReplayStats;
 use App\Models\Solo\Score;
 use App\Transformers\ScoreTransformer;
@@ -201,6 +202,41 @@ class ScoresController extends Controller
         );
     }
 
+    /**
+     * TomYum: a play's pp as Reprise counts it, for Reprise Lazer's results screen: {pp, ranked}. On a map that gives
+     * pp, the play's (a Relax/Autopilot play's from TomYum); on one that doesn't, what it would be worth if it did
+     * (ranked: false). pp is null while it's still being worked out (the client asks again) or for a fail.
+     */
+    public function tomyumPp($scoreId)
+    {
+        $score = Score::whereKey(static::parseIdOrFail($scoreId))->whereHas('beatmap')->firstOrFail();
+        $beatmap = $score->beatmap;
+        $ranked = in_array($beatmap->approved, [Beatmapset::STATES['ranked'], Beatmapset::STATES['approved']], true);
+        $acronyms = array_column($score->data->mods, 'acronym');
+        $variant = in_array('RX', $acronyms, true) || in_array('AP', $acronyms, true);
+
+        // A Relax/Autopilot play: its pp is TomYum's (Reprise's own rules); null until TomYum has taken it in.
+        $tomyumId = null;
+        $tomyumPp = null;
+        if ($variant) {
+            $admin = new \App\Libraries\TomYumAdmin();
+            $response = $admin->get("/mode-scores/by-website/{$score->getKey()}");
+            if ($response->successful() && ($tomyumId = $response->json('id')) !== null) {
+                $tomyumPp = $admin->get("/mode-scores/{$tomyumId}")->json('score.pp');
+            }
+        }
+
+        if ($ranked) {
+            $pp = $variant ? ($tomyumId === null ? null : (float) $tomyumPp) : $score->pp;
+        } else {
+            $pp = $variant
+                ? ($tomyumId === null ? null : \App\Libraries\TomYumModeScores::ppIfRanked(['mode' => (int) $tomyumId], $score->passed, $beatmap))
+                : \App\Libraries\TomYumModeScores::ppIfRanked(['website' => $score->getKey()], $score->passed, $beatmap);
+        }
+
+        return ['pp' => $pp, 'ranked' => $ranked];
+    }
+
     public function show($rulesetOrSoloId, $legacyId = null)
     {
         // TomYum: a Relax/Autopilot play, on its own page (or as json for lazer's results screen).
@@ -223,6 +259,18 @@ class ScoresController extends Controller
         }
         $score = $scoreQuery->whereHas('beatmap')->firstOrFail();
 
+        // TomYum: a lazer Relax/Autopilot play is its mode's (TomYum's, with its pp and place): its page
+        // is there. lazer's own requests (json) still get the website's score.
+        if (!is_json_request() && !$score->isLegacy()) {
+            $acronyms = array_column($score->data->mods, 'acronym');
+            if (in_array('RX', $acronyms, true) || in_array('AP', $acronyms, true)) {
+                $response = (new \App\Libraries\TomYumAdmin(\Auth::user()))->get("/mode-scores/by-website/{$score->getKey()}");
+                if ($response->successful() && ($tomyumId = $response->json('id')) !== null) {
+                    return ujs_redirect(route('scores.tomyum', ['score' => $tomyumId]));
+                }
+            }
+        }
+
         $userIncludes = array_map(function ($include) {
             return "user.{$include}";
         }, UserCompactTransformer::CARD_INCLUDES);
@@ -232,6 +280,8 @@ class ScoresController extends Controller
             'beatmap.owners',
             'beatmap.user',
             'beatmapset',
+            // TomYum: who made an imported map on osu! (its mappers have no accounts here).
+            'beatmapset.tomyum_mappers',
             'rank_global',
             'replay_views',
             'room_summary',
@@ -240,6 +290,9 @@ class ScoresController extends Controller
         if (is_json_request()) {
             return $scoreJson;
         }
+
+        // TomYum: on a map without pp, what the play would be worth if it were ranked (greyed out on the page).
+        $scoreJson['tomyum_pp_if_ranked'] = \App\Libraries\TomYumModeScores::ppIfRanked(['website' => $score->getKey()], $score->passed, $score->beatmap);
 
         return ext_view('scores.show', compact('score', 'scoreJson'));
     }

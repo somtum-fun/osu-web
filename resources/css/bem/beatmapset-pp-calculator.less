@@ -1,0 +1,201 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the beatmap page's pp calculator: the mods and the play's numbers on the left, what a pass is worth at
+// a few accuracies on the right (side by side on wide screens, one over the other on narrow ones).
+.beatmapset-pp-calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+  }
+
+  // As the page's other section titles (Comments).
+  &__title {
+    margin: 0;
+    font-size: @font-size--title-small-4;
+    font-weight: normal;
+    font-style: normal;
+    color: @osu-colour-l1;
+  }
+
+  &__summary {
+    font-size: @font-size--small-2;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__reset {
+    .reset-input();
+    margin-left: auto;
+    padding: 3px 10px;
+    border-radius: 10000px;
+    background-color: hsl(var(--hsl-b5));
+    font-size: @font-size--small-2;
+    color: hsl(var(--hsl-c1));
+    cursor: pointer;
+
+    &:hover {
+      background-color: hsl(var(--hsl-b3));
+    }
+  }
+
+  &__body {
+    display: grid;
+    gap: 16px;
+
+    @media @desktop {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: hsl(var(--hsl-b5));
+  }
+
+  &__mods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+
+  &__mod-row {
+    display: flex;
+    gap: 2px;
+  }
+
+  &__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    font-weight: normal;
+  }
+
+  &__field-label {
+    font-size: @font-size--small-2;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__input-box {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid hsl(var(--hsl-b3));
+    border-radius: 6px;
+    background-color: hsl(var(--hsl-b6));
+    transition: border-color 120ms;
+
+    &:focus-within {
+      border-color: hsl(var(--hsl-h1));
+    }
+  }
+
+  &__input {
+    .reset-input();
+    flex: 1;
+    min-width: 0;
+    font-size: @font-size--normal-2;
+    color: hsl(var(--hsl-c1));
+    // No number spinners: the box is too small for them.
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &::placeholder {
+      color: hsl(var(--hsl-c2));
+      opacity: 0.6;
+    }
+  }
+
+  &__suffix {
+    margin-left: 4px;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 8px;
+    transition: opacity 120ms;
+
+    &--loading {
+      opacity: 0.5;
+    }
+  }
+
+  &__result {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background-color: hsl(var(--hsl-b5));
+
+    // The accuracy typed in.
+    &--custom {
+      border-color: hsl(var(--hsl-h1));
+    }
+  }
+
+  &__accuracy {
+    font-size: @font-size--small-2;
+    font-weight: 600;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__pp {
+    font-size: 22px;
+    font-weight: bold;
+    color: hsl(var(--hsl-h1));
+    white-space: nowrap;
+  }
+
+  &__pp-unit {
+    margin-left: 2px;
+    font-size: @font-size--normal-2;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  // How much of the most there is (at the highest accuracy shown).
+  &__bar {
+    height: 4px;
+    margin-top: 4px;
+    border-radius: 2px;
+    background-color: hsl(var(--hsl-b3));
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background-color: hsl(var(--hsl-h1));
+    transition: width 200ms;
+  }
+}

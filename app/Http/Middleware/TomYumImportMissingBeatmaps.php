@@ -30,14 +30,23 @@ class TomYumImportMissingBeatmaps
     private const UNKNOWN_TTL = 3600;
 
     /** At most this many imports per request (a batch lookup can list many maps). */
-    private const MAX_IMPORTS = 10;
+    private const MAX_IMPORTS = 25;
 
     /**
      * At most this many imports per client IP per hour: lazer asks about every set a player looks at in
      * song select. TomYum looks maps up on a mirror first and keeps its osu! API use under osu!'s limit
      * for the whole server; this just stops one player from taking all of it.
      */
-    private const IMPORTS_PER_HOUR = 120;
+    private const IMPORTS_PER_HOUR = 600;
+
+    /** Seconds a request waits for an import before going on without it. */
+    private const IMPORT_WAIT = 6;
+
+    /** Seconds a map being imported isn't asked for again (lazer repeats its lookup before the first is done). */
+    private const IN_FLIGHT_TTL = 60;
+
+    /** Visitors who aren't signed in: only by opening a beatmap's or a set's page, and fewer an hour. */
+    private const ANONYMOUS_IMPORTS_PER_HOUR = 30;
 
     /** Visitors who aren't signed in: only by opening a beatmap's or a set's page, and fewer an hour. */
     private const ANONYMOUS_IMPORTS_PER_HOUR = 30;
@@ -156,11 +165,25 @@ class TomYumImportMissingBeatmaps
         if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", $limit)) {
             return;
         }
+
+        // One import of a map at a time: a lookup of a map still being imported doesn't start another.
+        $inFlight = "tomyum:importing-beatmap:{$type}:{$value}";
+        if (!Cache::add($inFlight, true, static::IN_FLIGHT_TTL)) {
+            return;
+        }
+
         RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
         // The import log shows who asked, and from which client.
         $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
-        $response = $send(new TomYumAdmin(auth()->user()), $via);
+        try {
+            // A few seconds, then the request goes on without it (lazer gives up after ten): the game server
+            // finishes the import anyway, and the next lookup finds the map. Meanwhile it isn't asked for again.
+            $response = $send((new TomYumAdmin(auth()->user()))->withTimeout(static::IMPORT_WAIT), $via);
+        } catch (\App\Exceptions\InvariantException) {
+            return;
+        }
+        Cache::forget($inFlight);
         if ($response->status() === 404) {
             Cache::put($key, true, static::UNKNOWN_TTL);
         }

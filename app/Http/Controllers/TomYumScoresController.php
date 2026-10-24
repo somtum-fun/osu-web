@@ -30,6 +30,9 @@ class TomYumScoresController extends Controller
             return $scoreJson;
         }
 
+        // On a map without pp, what the play would be worth if it were ranked (greyed out on the page).
+        $scoreJson['tomyum_pp_if_ranked'] = TomYumModeScores::ppIfRanked(['mode' => (int) $id], (bool) ($scoreJson['passed'] ?? false), $beatmap);
+
         // The page's title and raw data, from a score that's only shown (never saved).
         $score = new Score([
             'beatmap_id' => $beatmap->getKey(),

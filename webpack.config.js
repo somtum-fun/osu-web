@@ -290,7 +290,11 @@ const watches = [
 ];
 
 function configFunction(_env, argv) {
-  watches.forEach((watched) => watched.callback());
+  // TomYum: the deployment image makes these in a step of its own (they need the PHP app, which the assets'
+  // step doesn't have): resources/builds is already there.
+  if (process.env.WEBPACK_PREBUILT !== '1') {
+    watches.forEach((watched) => watched.callback());
+  }
 
   if (argv.watch) {
     const wp = new Watchpack({

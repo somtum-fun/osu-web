@@ -397,6 +397,26 @@ class BeatmapsController extends Controller
      * @queryParam mods An array of matching Mods, or none // TODO.
      * @queryParam type Beatmap score ranking type // TODO.
      */
+    /**
+     * TomYum: the beatmap page's pp calculator (osu! maps): what a pass would be worth with some lazer mods
+     * (settings and all), misses and combo, at a few accuracies. TomYum works it out as it does a submitted play.
+     */
+    public function tomyumPp($id)
+    {
+        $beatmap = Beatmap::findOrFail($id);
+        abort_if($beatmap->playmode !== Beatmap::MODES['osu'], 422, 'osu! maps only');
+
+        $response = (new \App\Libraries\TomYumAdmin())->get('/pp-calc', array_filter([
+            'beatmapId' => $beatmap->getKey(),
+            'mods' => get_string(request('mods')),
+            'acc' => get_string(request('acc')),
+            'misses' => get_int(request('misses')),
+            'combo' => get_int(request('combo')),
+        ], fn ($value) => $value !== null));
+
+        return response()->json($response->json(), $response->successful() ? 200 : 422);
+    }
+
     public function scores($id)
     {
         // TomYum: the Relax/Autopilot leaderboards are the game server's: variant=rx or ap on the
@@ -421,8 +441,8 @@ class BeatmapsController extends Controller
                 $variant,
                 array_values(array_filter(get_arr(request('mods'), 'get_string') ?? [])),
                 $type,
-                // TomYum: by pp (the default here) or by score.
-                get_string(request('sort')) === 'score' ? 'score' : 'pp',
+                // TomYum: by score (the default, as the in-game boards) or by pp.
+                get_string(request('sort')) === 'pp' ? 'pp' : 'score',
                 // TomYum: stable mode (legacy_only, or the "legacy scores only" setting) has no lazer plays, as the vanilla board.
                 ScoreSearchParams::showLegacyForUser(\Auth::user()) === true,
             );

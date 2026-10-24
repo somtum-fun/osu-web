@@ -16,6 +16,8 @@ import RankCount from './rank-count';
 import Stats from './stats';
 
 interface Props {
+  // TomYum: the player's pp history in the mode shown (the chart can show it instead of the rank).
+  ppHistoryUrl?: string;
   user: Controller['state']['user'];
 }
 
@@ -40,7 +42,7 @@ export default class DetailStats extends React.PureComponent<Props> {
 
           <div className='profile-detail-stats__chart'>
             {user.statistics.is_ranked ? (
-              <RankChart rankHistory={user.rank_history} stats={user.statistics} />
+              <RankChart ppHistoryUrl={this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
             ) : (
               <div className='profile-detail-stats__empty-chart'>{trans('users.show.extra.unranked')}</div>
             )}

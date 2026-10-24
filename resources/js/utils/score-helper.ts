@@ -216,7 +216,8 @@ export function totalScore(score: ScoreJson) {
     return score.legacy_total_score;
   }
 
-  if (score.type === 'solo_score' && core.userPreferences.get('scoring_mode') === 'classic') {
+  // TomYum: Relax/Autopilot plays (tomyum_score) have their classic score too.
+  if ((score.type === 'solo_score' || score.type === 'tomyum_score') && core.userPreferences.get('scoring_mode') === 'classic') {
     return score.classic_total_score;
   }
 

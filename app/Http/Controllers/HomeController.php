@@ -77,6 +77,12 @@ class HomeController extends Controller
             'android' => 'Android',
         ];
 
+        // TomYum: the client's own downloads per platform (Admin panel > Branding): only those platforms.
+        $lazerFiles = TomYumBranding::lazerFiles();
+        if ($lazerFiles !== []) {
+            $lazerPlatformNames = array_intersect_key($lazerPlatformNames, $lazerFiles);
+        }
+
         $platform = get_string(request('platform'));
         if (!array_key_exists($platform, $lazerPlatformNames)) {
             $deviceDetector = new DeviceDetector(\Request::header('User-Agent') ?? '');
@@ -94,19 +100,34 @@ class HomeController extends Controller
         $lazer = $manifest['lazer'][$platform] ?? null;
         // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
         $lazerPortable = $manifest['lazer']["{$platform}_portable"] ?? null;
+        // TomYum: a lazer link of the staff's own (Admin panel > Branding) isn't the file host's build: none
+        // of its sizes or files.
+        if (TomYumBranding::downloadsLazerUrl() !== null) {
+            $lazer = null;
+            $lazerPortable = null;
+        }
+        if ($lazerFiles !== []) {
+            // A platform the client isn't built for (a phone, say) gets the first one there is.
+            if (!isset($lazerFiles[$platform])) {
+                $platform = array_key_first($lazerPlatformNames) ?? $platform;
+            }
+            $lazer = isset($lazerFiles[$platform]) ? ['url' => $lazerFiles[$platform]] : null;
+            $lazerPortable = isset($lazerFiles["{$platform}_portable"]) ? ['url' => $lazerFiles["{$platform}_portable"]] : null;
+        }
+        $ownClient = $lazerFiles !== [] || TomYumBranding::downloadsLazerUrl() !== null;
         // TomYum: TumThai!Next (lazer_next), our performance-modified edition on tumthai-framework.
-        $lazerNext = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next'][$platform] ?? null) : null;
-        $lazerNextPortable = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next']["{$platform}_portable"] ?? null) : null;
-        $lazerNextVersion = TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer_next']['version'] ?? null) : null;
+        $lazerNext = !$ownClient ? ($manifest['lazer_next'][$platform] ?? null) : null;
+        $lazerNextPortable = !$ownClient ? ($manifest['lazer_next']["{$platform}_portable"] ?? null) : null;
+        $lazerNextVersion = !$ownClient ? ($manifest['lazer_next']['version'] ?? null) : null;
         // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its
         // own under it. Not when staff link TumThai somewhere of their own (Admin panel > Branding).
         // Its installer when the list has one (the plain exe before that), and its portable zip.
         $launcherSelf = $manifest['self']['windows_x64_setup'] ?? $manifest['self']['windows_x64'] ?? null;
-        $launcher = $platform === 'windows_x64' && TomYumBranding::downloadsLazerUrl() === null && isset($launcherSelf['url'])
+        $launcher = $platform === 'windows_x64' && !$ownClient && isset($launcherSelf['url'])
             ? [...$launcherSelf, 'version' => $manifest['self']['version'] ?? null, 'portable' => $manifest['self']['windows_x64_portable'] ?? null]
             : null;
         // TomYum: the Linux launcher, a line under TumThai's Linux button.
-        $launcherLinux = $platform === 'linux_x64' && TomYumBranding::downloadsLazerUrl() === null
+        $launcherLinux = $platform === 'linux_x64' && !$ownClient
             ? ($manifest['self']['linux_x64'] ?? null)
             : null;
 
@@ -128,7 +149,7 @@ class HomeController extends Controller
             'launcher' => $launcher,
             'launcherLinux' => $launcherLinux,
             'lazer' => $lazer,
-            'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
+            'lazerUrl' => ($lazerFiles !== [] ? $lazer['url'] ?? null : null) ?? TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatform' => $platform,
             'lazerPlatformName' => $lazerPlatformNames[$platform],
             'lazerPortable' => $lazerPortable,
@@ -144,7 +165,10 @@ class HomeController extends Controller
             'showLegacy' => TomYumBranding::enabled('downloads_show_legacy'),
             'selectOptions' => $selectOptions,
             // A link of the staff's own isn't the file host's build: no version to show.
-            'version' => TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer']['version'] ?? null) : null,
+            'version' => !$ownClient ? ($manifest['lazer']['version'] ?? null) : null,
+            // The platform choice, portable zip and notes: the file host's build, or the client's own per platform.
+            'perPlatform' => $lazerFiles !== [] || TomYumBranding::downloadsLazerUrl() === null,
+            'ownClient' => $ownClient,
         ]);
     }
 
@@ -212,7 +236,11 @@ class HomeController extends Controller
             // TomYum: no livestreams (the page is off), so no featured stream either.
             $featuredStream = null;
 
+            // TomYum: friends' best plays of the last week.
+            $friendsFeed = \App\Libraries\TomYumFriendsFeed::forUser(Auth::user());
+
             return ext_view('home.user', compact(
+                'friendsFeed',
                 'menuImages',
                 'newBeatmapsets',
                 'news',

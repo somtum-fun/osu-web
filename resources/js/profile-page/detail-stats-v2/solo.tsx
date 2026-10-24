@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import { route } from 'laroute';
 import { observer } from 'mobx-react';
 import Controller from 'profile-page/controller';
 import MedalsCount from 'profile-page/medals-count';
@@ -49,7 +50,11 @@ export default class Solo extends React.PureComponent<Props> {
           {user.statistics.is_ranked
             ? (
               <div className='profile-detail-stats-card__chart'>
-                <RankChart rankHistory={user.rank_history} stats={user.statistics} />
+                <RankChart
+                  ppHistoryUrl={route('users.tomyum-pp-history', { mode: this.props.controller.tomyumMode, user: user.id })}
+                  rankHistory={user.rank_history}
+                  stats={user.statistics}
+                />
               </div>
             ) : (
               <div className='profile-detail-stats-card__empty-chart'>
