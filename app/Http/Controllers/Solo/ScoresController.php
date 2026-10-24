@@ -33,6 +33,8 @@ class ScoresController extends BaseController
             // TomYum: an osu!dan map's play must have finished with the Classic mod too (and a token from
             // before its map joined a course has to meet the same rule).
             \App\Libraries\TomYumDan::refuseLazerWithoutClassic($scoreToken->beatmap_id, $request->input('mods') ?? []);
+            // TomYum: and without a pause (osu!dan's leaderboards are for dan plays only).
+            \App\Libraries\TomYumDan::refuseLazerPaused($scoreToken->beatmap_id, $request->input('pauses'));
 
             $beatmapsetApprovedAt = $scoreToken->beatmap?->beatmapset?->approved_date;
             if ($beatmapsetApprovedAt !== null && $scoreToken->created_at->isBefore($beatmapsetApprovedAt)) {

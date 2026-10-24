@@ -61,6 +61,9 @@ class TomYumDan
     /** TomYum: a TumThai play of a dan map without Classic (it judges hold notes close to osu!(stable)). */
     const LAZER_NEEDS_CLASSIC = 'This beatmap is part of osu!dan: on TumThai, turn on the Classic (CL) mod to submit your play.';
 
+    /** TomYum: a paused TumThai play of a dan map (osu!dan doesn't allow pausing; the map's leaderboard is for dan plays). */
+    const LAZER_PAUSED = 'osu!dan doesn\'t allow pausing, so this play wasn\'t submitted.';
+
     /** TomYum: a TumThai from before it sent its mods with the score token can't tell us whether Classic is on. */
     const LAZER_UPDATE = 'This beatmap is part of osu!dan: update TumThai to submit your play here.';
 
@@ -101,6 +104,17 @@ class TomYumDan
     {
         if (static::isCourseMap($beatmapId)) {
             abort(422, static::LAZER_REFUSED);
+        }
+    }
+
+    /**
+     * TomYum: a paused lazer play of a dan map isn't stored. $pauses is the score's "pauses" (lazer sends the
+     * game time of each pause); TumThai doesn't send such a play at all.
+     */
+    public static function refuseLazerPaused(int $beatmapId, mixed $pauses): void
+    {
+        if (is_array($pauses) && $pauses !== [] && static::isCourseMap($beatmapId)) {
+            abort(422, static::LAZER_PAUSED);
         }
     }
 
