@@ -216,6 +216,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('handle-requesters', 'AdminController@handleRequesters')->name('handle-requesters');
             // TomYum: operator kill switch for the client-side AC.
             Route::post('anticheat-killswitch', 'AdminController@anticheatKillSwitch')->name('anticheat-killswitch');
+            // TomYum: which staff log actions the Discord plugin posts to the log channels.
+            Route::post('discord-log', 'AdminController@discordLog')->name('discord-log');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');

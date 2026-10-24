@@ -374,6 +374,50 @@
             </form>
         </div>
 
+        {{-- TomYum: which staff log actions go to Discord (AdminController@discordLog); TomYum's Discord plugin reads it. --}}
+        <div class="tomyum-panel__card" id="discord-log">
+            <h2>
+                <i class="fab fa-discord"></i>Discord log
+                @if ($discordLog['muted'] === [])
+                    <span class="tomyum-panel__badge">ALL ON</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--warn">{{ count($discordLog['muted']) }} OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Which staff log actions are posted to Discord's log channels (the server and user logs, and the reports and flagged-scores channels for the actions that go there).
+                Untick an action to stop posting it; the staff log itself keeps every entry. A new kind of action is posted until someone unticks it.
+                Public announcements (ranked and loved maps, new custom medals, maps opened for nominations) don't change. Changes apply within a minute.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.discord-log') }}">
+                @csrf
+                @forelse ($discordLog['actions'] as $group => $actions)
+                    <details @if (count(array_intersect(array_keys($actions), $discordLog['muted'])) > 0) open @endif style="margin-bottom: 6px">
+                        <summary>
+                            <strong>{{ $group }}</strong>
+                            <span class="tomyum-panel__hint" style="margin: 0">
+                                {{ count($actions) }} action(s){{ ($off = count(array_intersect(array_keys($actions), $discordLog['muted']))) > 0 ? ", {$off} off" : '' }}
+                            </span>
+                        </summary>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; padding: 6px 0 6px 16px">
+                            @foreach ($actions as $action => $n)
+                                <label>
+                                    <input type="hidden" name="shown[]" value="{{ $action }}">
+                                    <input type="checkbox" name="posted[]" value="{{ $action }}" @if (!in_array($action, $discordLog['muted'], true)) checked @endif>
+                                    <code>{{ $action }}</code> <span class="tomyum-panel__hint" style="margin: 0">({{ i18n_number_format($n) }})</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </details>
+                @empty
+                    <p class="tomyum-panel__hint">The staff log is empty.</p>
+                @endforelse
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                </div>
+            </form>
+        </div>
+
         {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
         <div class="tomyum-panel__card" id="handle-requesters">
             <h2>

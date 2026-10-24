@@ -89,7 +89,38 @@ class AdminController extends Controller
             'anticheatKillSwitch' => [
                 'clientRequired' => \App\Libraries\TomYumAnticheatKillSwitch::isClientRequired(),
             ],
+            'discordLog' => [
+                'actions' => \App\Libraries\TomYumDiscordLog::actions(),
+                'muted' => \App\Libraries\TomYumDiscordLog::muted(),
+            ],
         ]);
+    }
+
+    /**
+     * TomYum: which staff log actions go to Discord's log channels. The form lists every action it showed
+     * (`shown[]`) and ticks the posted ones (`posted[]`); a shown action left unticked is muted, and muted actions
+     * the form didn't show stay muted.
+     */
+    public function discordLog()
+    {
+        $before = \App\Libraries\TomYumDiscordLog::muted();
+        $shown = array_map('strval', (array) Request::input('shown', []));
+        $posted = array_map('strval', (array) Request::input('posted', []));
+        $muted = array_merge(array_diff($before, $shown), array_diff($shown, $posted));
+        \App\Libraries\TomYumDiscordLog::save($muted);
+        $after = \App\Libraries\TomYumDiscordLog::muted();
+
+        $off = array_values(array_diff($after, $before));
+        $on = array_values(array_diff($before, $after));
+        $changes = implode('; ', array_filter([
+            $off === [] ? null : 'off: '.implode(', ', $off),
+            $on === [] ? null : 'on: '.implode(', ', $on),
+        ]));
+        $this->staffLog('site.discord_log', null, 'Discord log actions: '.($changes === '' ? 'no change' : $changes).'.');
+
+        return $this->backToIndex('success', $after === []
+            ? 'Every staff log action is posted to Discord.'
+            : count($after).' staff log action(s) aren\'t posted to Discord. TomYum picks it up within a minute.');
     }
 
     /** TumThai (lazer) version gating: the current settings. */
