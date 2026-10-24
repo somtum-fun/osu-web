@@ -118,6 +118,72 @@ class TomYumDan
         }
     }
 
+    /** TomYum: lazer mods with an osu!(stable) equivalent, by the legacy bit courses list in allowed_mods. */
+    const LAZER_LEGACY_MODS = [
+        'NF' => 1, 'EZ' => 2, 'HD' => 8, 'HR' => 16, 'SD' => 32, 'DT' => 64, 'HT' => 256, 'NC' => 576,
+        'FL' => 1024, 'PF' => 16416, 'FI' => 1048576, 'RD' => 2097152, 'MR' => 1073741824,
+        '4K' => 32768, '5K' => 65536, '6K' => 131072, '7K' => 262144, '8K' => 524288,
+        '9K' => 16777216, '1K' => 67108864, '2K' => 268435456, '3K' => 134217728,
+    ];
+
+    /**
+     * TomYum: a lazer play of a dan map that breaks the rules of every course the map is in isn't stored (a
+     * dan map's leaderboard is for dan plays only), as on osu!(stable): osu!mania, the course's mods (Classic
+     * on top: TumThai needs it; a lazer-only mod or a mod's own settings, like a custom DT speed, isn't
+     * allowed), and, for a pass, the course's accuracy worked out as osu!(stable) does (PERFECT and GREAT as
+     * 300, GOOD 200, OK 100, MEH 50), to two decimals.
+     */
+    public static function refuseLazerBreakingRules(int $beatmapId, int $rulesetId, bool $passed, array $mods, array $statistics): void
+    {
+        try {
+            $courses = DB::table(static::table('course_maps').' AS m')
+                ->join(static::table('courses').' AS c', 'c.id', '=', 'm.course_id')
+                ->where('m.beatmap_id', $beatmapId)
+                ->where('c.active', 1)
+                ->get(['c.mode', 'c.allowed_mods', 'c.min_accuracy']);
+        } catch (QueryException) {
+            return;
+        }
+        if ($courses->isEmpty()) {
+            return;
+        }
+
+        $legacy = 0;
+        $unknown = false;
+        foreach ($mods as $mod) {
+            $acronym = strtoupper((string) (is_array($mod) ? ($mod['acronym'] ?? '') : $mod));
+            if ($acronym === 'CL') {
+                continue;
+            }
+            if (!isset(static::LAZER_LEGACY_MODS[$acronym]) || (is_array($mod) && !empty($mod['settings']))) {
+                $unknown = true;
+                continue;
+            }
+            $legacy |= static::LAZER_LEGACY_MODS[$acronym];
+        }
+
+        $count = fn (string $k) => max(0, (int) ($statistics[$k] ?? 0));
+        $judged = $count('perfect') + $count('great') + $count('good') + $count('ok') + $count('meh') + $count('miss');
+        $accuracy = $judged === 0 ? 0.0 : round(100 * (300 * ($count('perfect') + $count('great')) + 200 * $count('good')
+            + 100 * $count('ok') + 50 * $count('meh')) / (300 * $judged), 2);
+
+        $why = null;
+        foreach ($courses as $course) {
+            $broken = match (true) {
+                $rulesetId !== (int) $course->mode => 'it has to be played in osu!mania.',
+                $unknown || ($legacy & ~(int) $course->allowed_mods) !== 0 => 'a mod you used isn\'t allowed in this course (or has its own settings).',
+                $passed && $accuracy < (float) $course->min_accuracy => 'it needs '.round((float) $course->min_accuracy, 2)."% accuracy (you had {$accuracy}%, as osu!(stable) counts it).",
+                default => null,
+            };
+            if ($broken === null) {
+                return;
+            }
+            $why ??= $broken;
+        }
+
+        abort(422, "This play wasn't submitted: {$why} osu!dan maps only take plays that follow the course's rules.");
+    }
+
     /**
      * TomYum: a solo TumThai play of a dan map is submitted only with the Classic mod. $mods is what the
      * client sent: acronyms ("CL,HD" or a list) or lazer's mods ([{acronym: "CL"}, ...]); null when it

@@ -35,6 +35,14 @@ class ScoresController extends BaseController
             \App\Libraries\TomYumDan::refuseLazerWithoutClassic($scoreToken->beatmap_id, $request->input('mods') ?? []);
             // TomYum: and without a pause (osu!dan's leaderboards are for dan plays only).
             \App\Libraries\TomYumDan::refuseLazerPaused($scoreToken->beatmap_id, $request->input('pauses'));
+            // TomYum: and following the course's other rules (mode, mods, accuracy).
+            \App\Libraries\TomYumDan::refuseLazerBreakingRules(
+                $scoreToken->beatmap_id,
+                (int) $scoreToken->ruleset_id,
+                (bool) $request->input('passed'),
+                (array) ($request->input('mods') ?? []),
+                (array) ($request->input('statistics') ?? []),
+            );
 
             $beatmapsetApprovedAt = $scoreToken->beatmap?->beatmapset?->approved_date;
             if ($beatmapsetApprovedAt !== null && $scoreToken->created_at->isBefore($beatmapsetApprovedAt)) {
