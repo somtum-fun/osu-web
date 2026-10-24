@@ -17,6 +17,8 @@ class ScoreTokenTransformer extends TransformerAbstract
             'id' => $scoreToken->getKey(),
             'playlist_item_id' => $scoreToken->playlist_item_id,
             'user_id' => $scoreToken->user_id,
+            // TomYum: the map is in an osu!dan course, so TumThai can say a pause stops it counting.
+            'tomyum_dan' => \App\Libraries\TomYumDan::isCourseMap($scoreToken->beatmap_id),
         ];
     }
 }
