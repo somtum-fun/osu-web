@@ -50,7 +50,10 @@ export default class BasicSelectOptions extends React.PureComponent<Props> {
       case 'daily_challenge':
         return route('daily-challenge.show', { daily_challenge: id ?? fail('missing id parameter') });
       case 'download':
-        return route('download', { platform: id });
+        // TomYum: the TumThai stream picked (?stream=next) stays picked on another platform.
+        return new URLSearchParams(window.location.search).get('stream') === 'next'
+          ? route('download', { platform: id, stream: 'next' })
+          : route('download', { platform: id });
       case 'matchmaking':
         return route('rankings.matchmaking', { mode: this.props.ruleset, pool: id });
       case 'multiplayer':
