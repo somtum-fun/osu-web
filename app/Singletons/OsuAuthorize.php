@@ -208,6 +208,10 @@ class OsuAuthorize
             return 'unauthorized';
         }
 
+        if ($discussion->isResetDiscussion()) {
+            return $prefix.'caused_disqualify_or_nomination_reset';
+        }
+
         if ($discussion->message_type === 'hype') {
             return $prefix.'is_hype';
         }
@@ -429,6 +433,10 @@ class OsuAuthorize
             return $prefix.'not_owner';
         }
 
+        if ($post->isFirstPost() && $post->beatmapDiscussion->isResetDiscussion()) {
+            return $prefix.'caused_disqualify_or_nomination_reset';
+        }
+
         if (!$post->canEdit()) {
             return $prefix.'resolved';
         }
@@ -459,6 +467,10 @@ class OsuAuthorize
 
         if ($user->user_id !== $post->user_id) {
             return $prefix.'not_owner';
+        }
+
+        if ($post->isFirstPost() && $post->beatmapDiscussion->isResetDiscussion()) {
+            return $prefix.'caused_disqualify_or_nomination_reset';
         }
 
         if (!$post->canEdit()) {
@@ -996,6 +1008,11 @@ class OsuAuthorize
             $this->ensureHasPlayed($user);
         }
 
+        // a user may always PM themselves (e.g. self-hosted request bots); skip the friend/block checks below
+        if ($user->is($target)) {
+            return 'ok';
+        }
+
         if ($user->pm_friends_only && !$user->hasFriended($target)) {
             return $prefix.'receive_friends_only';
         }
@@ -1355,6 +1372,21 @@ class OsuAuthorize
     {
         // so that admins can show the panel but not vote (ContestJudge is alwaysCheck)
         return $this->checkContestJudge($user, $contest);
+    }
+
+    public function checkContestResultsShow(?User $user, Contest $contest): string
+    {
+        if ($contest->show_votes) {
+            return 'ok';
+        }
+
+        $this->ensureLoggedIn($user);
+
+        if ($contest->isHostUserId($user->getKey())) {
+            return 'ok';
+        }
+
+        return 'unauthorized';
     }
 
     /**
