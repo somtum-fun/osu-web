@@ -39,7 +39,7 @@
                 <div>
                     <h3 class="tomyum-dan__subtitle">The rules</h3>
                     <ul class="tomyum-dan__rules">
-                        <li>Play in <strong>osu!stable</strong>: one of our patched clients from the <a href="{{ route('download') }}">download page</a>, or today's osu!. osu!dan is osu!stable only for now: osu!lazer doesn't submit scores on dan maps (stay tuned).</li>
+                        <li>Play in <strong>osu!stable</strong>: one of our patched clients from the <a href="{{ route('download') }}">download page</a>, or today's osu!. Clears are osu!stable only for now. On TumThai, a dan map's play is submitted with the Classic (CL) mod (it judges hold notes close to osu!stable), as a normal score: it doesn't count as a clear yet (stay tuned).</li>
                         <li>Play in <strong>osu!mania</strong>. When you start a course map, BanchoBot spectates you to check the play.</li>
                         <li><strong>Don't pause.</strong> A pause ends the attempt; press Retry to start a new one.</li>
                         <li>Reach the course's <strong>accuracy</strong>: usually 96%, or 95% for intro courses.</li>
