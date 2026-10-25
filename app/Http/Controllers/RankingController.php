@@ -213,6 +213,25 @@ class RankingController extends Controller
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {
         $rawParams = \Request::instance()->query->all();
+        // TomYum: a custom lazer ruleset's rankings (by ranked score: it has no pp), for TumThai's rankings overlay
+        // (rankings/{slug}/score or /performance); the website has its own page for them.
+        if ($mode !== null && ($customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($mode)) !== null) {
+            if (!is_api_request()) {
+                return ujs_redirect(route('rankings.custom-rulesets', ['slug' => $customRuleset->slug, ...array_intersect_key($rawParams, ['country' => 1, 'variant' => 1])]));
+            }
+            abort_unless(in_array($type, ['score', 'performance', 'global'], true), 404, 'custom rulesets have score rankings only');
+            $country = presence(get_string($rawParams['country'] ?? null));
+            $country = $country !== null && preg_match('/^[A-Za-z]{2}$/', $country) === 1 ? strtoupper($country) : null;
+            $cursor = $rawParams['cursor'] ?? null;
+            $page = max(1, min(200, get_int(is_array($cursor) ? ($cursor['page'] ?? null) : null) ?? get_int($rawParams['page'] ?? null) ?? 1));
+
+            return \App\Libraries\TomYumCustomRulesetScores::apiRankings(
+                $customRuleset,
+                $country,
+                $page,
+                \App\Libraries\TomYumCustomRulesets::variant(get_string($rawParams['variant'] ?? null)),
+            );
+        }
         // TomYum: lazer asks for Relax/Autopilot rankings with its mode (osurx, ...), the website with variant.
         if (($lazerVariant = \App\Libraries\TomYumModeScores::variant($mode)) !== null) {
             $rawParams['variant'] = substr($mode, strlen($lazerVariant[0]));

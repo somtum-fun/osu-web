@@ -93,6 +93,95 @@ class TomYumCustomRulesetScores
     }
 
     /**
+     * A page of a custom ruleset's rankings as the rankings API answers for a ruleset (TumThai's rankings overlay asks
+     * rankings/{slug}/score): each player's statistics in it (ranked score; play count and total score of every play;
+     * accuracy and grades of their best per ranked map) with their user, country, cover and team. No pp or level.
+     */
+    public static function apiRankings(TomYumCustomRuleset $ruleset, ?string $country, int $page, string $variant = 'vanilla'): array
+    {
+        $rankings = static::rankings($ruleset, $country, $page, $variant);
+        $rows = $rankings['rows'];
+        $ids = array_column($rows, 'user_id');
+        $users = User::with(['country', 'team'])->whereIn('user_id', $ids)->get()->keyBy('user_id');
+
+        $plays = [];
+        $best = [];
+        if ($ids !== []) {
+            $in = implode(',', array_map('intval', $ids));
+            $variantSql = TomYumCustomRulesets::variantSql($variant);
+            foreach (DB::select(
+                "SELECT s.user_id, COUNT(*) AS plays, CAST(COALESCE(SUM(s.total_score), 0) AS SIGNED) AS total, COALESCE(MAX(s.max_combo), 0) AS combo
+                FROM scores s WHERE s.ruleset_id = ? AND s.user_id IN ({$in}) AND {$variantSql} GROUP BY s.user_id",
+                [$ruleset->id],
+            ) as $row) {
+                $plays[(int) $row->user_id] = $row;
+            }
+            foreach (DB::select(
+                "SELECT b.user_id, AVG(b.accuracy) AS accuracy,
+                  SUM(b.grade = 'XH') AS ssh, SUM(b.grade = 'X') AS ss, SUM(b.grade = 'SH') AS sh, SUM(b.grade = 'S') AS s, SUM(b.grade = 'A') AS a
+                FROM (
+                  SELECT s.user_id, s.accuracy, s.rank AS grade,
+                    ROW_NUMBER() OVER (PARTITION BY s.user_id, s.beatmap_id ORDER BY s.total_score DESC, s.id) AS place
+                  FROM scores s
+                  WHERE s.ruleset_id = ? AND s.user_id IN ({$in}) AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1 AND {$variantSql}
+                ) b WHERE b.place = 1 GROUP BY b.user_id",
+                [$ruleset->id],
+            ) as $row) {
+                $best[(int) $row->user_id] = $row;
+            }
+        }
+
+        $ranking = [];
+        $first = (max(1, $page) - 1) * static::RANKINGS_PAGE;
+        foreach ($rows as $index => $row) {
+            $user = $users[$row['user_id']] ?? null;
+            if ($user === null) {
+                continue;
+            }
+            $p = $plays[$row['user_id']] ?? null;
+            $b = $best[$row['user_id']] ?? null;
+            $accuracy = (float) ($b->accuracy ?? 0);
+            $ranking[] = [
+                'accuracy' => $accuracy,
+                'count_100' => 0,
+                'count_300' => 0,
+                'count_50' => 0,
+                'count_miss' => 0,
+                'global_rank' => $first + $index + 1,
+                'global_rank_exp' => null,
+                'grade_counts' => [
+                    'a' => (int) ($b->a ?? 0),
+                    's' => (int) ($b->s ?? 0),
+                    'sh' => (int) ($b->sh ?? 0),
+                    'ss' => (int) ($b->ss ?? 0),
+                    'ssh' => (int) ($b->ssh ?? 0),
+                ],
+                'hit_accuracy' => round($accuracy * 100, 2),
+                'is_ranked' => true,
+                'level' => ['current' => 0, 'progress' => 0],
+                'maximum_combo' => (int) ($p->combo ?? 0),
+                'play_count' => (int) ($p->plays ?? 0),
+                'play_time' => 0,
+                'pp' => 0,
+                'pp_exp' => 0,
+                'ranked_score' => $row['ranked_score'],
+                'replays_watched_by_others' => 0,
+                'total_hits' => 0,
+                'total_score' => (int) ($p->total ?? 0),
+                'user' => json_item($user, new \App\Transformers\UserCompactTransformer(), ['country', 'cover', 'team']),
+            ];
+        }
+
+        $hasMore = $first + count($rows) < $rankings['total'];
+
+        return [
+            ...cursor_for_response($hasMore ? ['page' => $page + 1] : null),
+            'ranking' => $ranking,
+            'total' => $rankings['total'],
+        ];
+    }
+
+    /**
      * A player's standing in a custom ruleset (what TumThai shows on their card): global and country rank (null when
      * unranked), ranked score, ranked maps played and their best play.
      */
