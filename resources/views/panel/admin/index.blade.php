@@ -56,6 +56,7 @@
                 ['panel.admin.daily-challenge.index', 'fa-calendar-day', 'lazer', 'Daily challenge', 'Pick and order the maps'],
                 ['panel.admin.matchmaking.index', 'fa-trophy', 'lazer', 'Ranked Play', 'Pools and their maps'],
                 ['panel.admin.mods.index', 'fa-sliders-h', 'lazer', 'Ranked mods', 'Which mods give pp and medals'],
+                ['panel.admin.rulesets.index', 'fa-puzzle-piece', 'lazer', 'Custom rulesets', 'rulesets.info rulesets: turn on and pin'], // TomYum
                 ['panel.admin.badges.index', 'fa-certificate', 'profiles', 'Badges', 'Give and take profile badges'],
                 ['panel.admin.assets.index', 'fa-photo-video', 'assets host', 'Assets', 'Badge, banner and medal images'],
                 ['panel.admin.titles.index', 'fa-id-badge', 'profiles', 'Titles', "The line under a player's name"],
@@ -391,27 +392,41 @@
             </p>
             <form method="POST" action="{{ route('panel.admin.discord-log') }}">
                 @csrf
-                @forelse ($discordLog['actions'] as $group => $actions)
-                    <details @if (count(array_intersect(array_keys($actions), $discordLog['muted'])) > 0) open @endif style="margin-bottom: 6px">
-                        <summary>
-                            <strong>{{ $group }}</strong>
-                            <span class="tomyum-panel__hint" style="margin: 0">
-                                {{ count($actions) }} action(s){{ ($off = count(array_intersect(array_keys($actions), $discordLog['muted']))) > 0 ? ", {$off} off" : '' }}
-                            </span>
-                        </summary>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; padding: 6px 0 6px 16px">
-                            @foreach ($actions as $action => $n)
-                                <label>
-                                    <input type="hidden" name="shown[]" value="{{ $action }}">
-                                    <input type="checkbox" name="posted[]" value="{{ $action }}" @if (!in_array($action, $discordLog['muted'], true)) checked @endif>
-                                    <code>{{ $action }}</code> <span class="tomyum-panel__hint" style="margin: 0">({{ i18n_number_format($n) }})</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </details>
-                @empty
-                    <p class="tomyum-panel__hint">The staff log is empty.</p>
-                @endforelse
+                @if ($discordLog['actions'] === [])
+                    <p class="tomyum-panel__empty">The staff log is empty.</p>
+                @else
+                    <div class="tomyum-panel__scroll" style="max-height: 480px; overflow-y: auto">
+                        @foreach ($discordLog['actions'] as $group => $actions)
+                            @php
+                                $off = count(array_intersect(array_keys($actions), $discordLog['muted']));
+                            @endphp
+                            <p class="tomyum-panel__section-title" style="margin: 12px 0 4px">
+                                {{ $group }}
+                                <span class="tomyum-panel__muted" style="font-size: 12px; font-weight: normal">{{ count($actions) }} action(s){{ $off > 0 ? ", {$off} off" : '' }}</span>
+                            </p>
+                            <table class="tomyum-panel__table">
+                                <colgroup><col><col style="width: 110px"><col style="width: 120px"></colgroup>
+                                @foreach ($actions as $action => $n)
+                                    <tr>
+                                        <td><code>{{ $action }}</code></td>
+                                        <td class="tomyum-panel__muted" style="font-size: 12px">{{ i18n_number_format($n) }} {{ $n === 1 ? 'entry' : 'entries' }}</td>
+                                        <td class="tomyum-panel__nowrap" style="text-align: right">
+                                            <input type="hidden" name="shown[]" value="{{ $action }}">
+                                            <label class="tomyum-panel__toggle" title="Post {{ $action }} to Discord">
+                                                <span>post</span>
+                                                @include('objects._switch', ['locals' => [
+                                                    'checked' => !in_array($action, $discordLog['muted'], true),
+                                                    'name' => 'posted[]',
+                                                    'value' => $action,
+                                                ]])
+                                            </label>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </table>
+                        @endforeach
+                    </div>
+                @endif
                 <div class="tomyum-panel__row" style="margin-top: 10px">
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
                 </div>
