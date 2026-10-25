@@ -36,6 +36,8 @@ class ScoreTokensController extends BaseController
         // TomYum: a TumThai play of an osu!dan map needs the Classic mod (TumThai sends its mods here):
         // without it the game shows "Score will not be submitted" with why.
         \App\Libraries\TomYumDan::refuseLazerWithoutClassic($beatmap->getKey(), $request->input('mods'));
+        // TomYum: a custom ruleset's play submits only on the file staff pinned (TumThai sends its hash).
+        \App\Libraries\TomYumCustomRulesets::refuseUnpinned($request->input('ruleset_id'), $request->input('ruleset_hash'));
 
         $scoreToken = new ScoreToken([
             'beatmap_id' => $beatmap->getKey(),
