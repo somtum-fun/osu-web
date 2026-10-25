@@ -126,8 +126,8 @@ class TomYumCustomRulesetScores
 
     /**
      * A player's scores in a custom ruleset, for their profile (the website's and TumThai's): best (their best on each
-     * ranked map, by score), firsts (those that are the map's #1) or recent (the last 24 hours, newest first; failed
-     * plays only when asked). The page's scores as the profile shows them, and how many there are.
+     * ranked map, by score), firsts (those that are the map's #1) or recent (the last 24 hours on that board, newest
+     * first; failed plays only when asked). The page's scores as the profile shows them, and how many there are.
      *
      * @return array{items: array, total: int}
      */
@@ -139,7 +139,7 @@ class TomYumCustomRulesetScores
         if ($type === 'recent') {
             $ids = array_map(fn ($r) => (int) $r->id, DB::select(
                 'SELECT s.id FROM scores s
-                WHERE s.user_id = ? AND s.ruleset_id = ? AND s.ended_at > NOW() - INTERVAL 1 DAY'.($includeFails ? '' : ' AND s.passed = 1').'
+                WHERE s.user_id = ? AND s.ruleset_id = ? AND s.ended_at > NOW() - INTERVAL 1 DAY AND '.$variantSql.($includeFails ? '' : ' AND s.passed = 1').'
                 ORDER BY s.ended_at DESC, s.id DESC
                 LIMIT 1000',
                 $bindings,
