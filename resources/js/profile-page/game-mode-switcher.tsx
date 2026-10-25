@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import PlaymodeTabs from 'components/playmode-tabs';
+import CustomRulesetTabs from 'components/tomyum-custom-ruleset-tabs';
 import StringWithComponent from 'components/string-with-component';
 import Ruleset, { rulesets } from 'interfaces/ruleset';
 import { route } from 'laroute';
@@ -51,46 +52,18 @@ export default class GameModeSwitcher extends React.Component<Props> {
               mode,
             }))}
             modifiers='inline'
-          />
-          {this.renderCustomRulesets()}
+            // TomYum: the custom lazer rulesets (played in TumThai): the one shown, the others in "…".
+            append={
+              <CustomRulesetTabs
+                current={this.props.controller.customRuleset?.slug ?? null}
+                entries={this.props.controller.customRulesets.map((ruleset) => ({
+                  ...ruleset,
+                  href: route('users.show', { mode: ruleset.slug, user: this.props.controller.state.user.id }),
+                }))}
+              />
+            }
         </div>
       </>
-    );
-  }
-
-  // TomYum: the custom lazer rulesets (played in TumThai): the one shown, with its logo, then the others in a "…" menu.
-  private renderCustomRulesets() {
-    const { controller } = this.props;
-    if (controller.customRulesets.length === 0) {
-      return null;
-    }
-
-    const user = controller.state.user.id;
-    const icon = (ruleset: { icon: string | null; name: string }) => ruleset.icon == null
-      ? <span className='fas fa-puzzle-piece' />
-      : <img alt={ruleset.name} src={ruleset.icon} style={{ height: '1.25em', objectFit: 'contain', verticalAlign: 'middle', width: '1.25em' }} />;
-
-    return (
-      <div style={{ alignItems: 'center', display: 'flex', gap: 4 }}>
-        {controller.customRuleset != null &&
-          <a className='game-mode-link game-mode-link--active' href={route('users.show', { mode: controller.customRuleset.slug, user })} title={controller.customRuleset.name}>
-            {icon(controller.customRuleset)}
-          </a>
-        }
-        <details className='game-mode-link' style={{ position: 'relative' }}>
-          <summary style={{ cursor: 'pointer', listStyle: 'none' }} title='Custom lazer rulesets, played in TumThai'>
-            <span className='fas fa-ellipsis-h' />
-          </summary>
-          <div className='simple-menu' style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)' }}>
-            {controller.customRulesets.map((ruleset) => (
-              <a key={ruleset.slug} className='simple-menu__item' href={route('users.show', { mode: ruleset.slug, user })} style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-                {icon(ruleset)}
-                {ruleset.name}
-              </a>
-            ))}
-          </div>
-        </details>
-      </div>
     );
   }
 

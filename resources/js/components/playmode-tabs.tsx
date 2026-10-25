@@ -15,6 +15,8 @@ interface Entry {
 }
 
 interface Props {
+  // TomYum: more items at the end of the list (custom rulesets: CustomRulesetTabs).
+  append?: React.ReactNode;
   currentMode: Ruleset;
   defaultMode?: Ruleset;
   entries: Entry[];
@@ -27,6 +29,7 @@ export default class PlaymodeTabs extends React.Component<Props> {
     return (
       <ul className={classWithModifiers('game-mode', this.props.modifiers)}>
         {this.props.entries.map(this.renderLink)}
+        {this.props.append}
       </ul>
     );
   }

@@ -30,7 +30,8 @@
         <li>
             <a class="game-mode-link game-mode-link--active" href="{{ $customRulesetCurrent[1] }}" title="{{ $customRulesetCurrent[0] }}">
                 @if ($customRulesetCurrent[2] !== null)
-                    <img src="{{ $customRulesetCurrent[2] }}" alt="{{ $customRulesetCurrent[0] }}" style="width: 1.25em; height: 1.25em; object-fit: contain; vertical-align: middle">
+                    {{-- Its logo as a shape in the bar's colour, as osu!'s mode icons are. --}}
+                    <span style="display: inline-block; width: 1em; height: 1em; vertical-align: middle; background-color: currentColor; -webkit-mask: url('{{ $customRulesetCurrent[2] }}') center / contain no-repeat; mask: url('{{ $customRulesetCurrent[2] }}') center / contain no-repeat"></span>
                 @else
                     <span class="fas fa-puzzle-piece"></span>
                 @endif
@@ -42,7 +43,7 @@
         <li>
             {{-- The site's own popup menu (simple-menu), opened by the "…" like the other modes' links. --}}
             <details class="game-mode-link" style="position: relative">
-                <summary style="cursor: pointer; list-style: none" title="Custom lazer rulesets, played in TumThai">
+                <summary style="cursor: pointer; list-style: none; display: block" title="Custom lazer rulesets, played in TumThai">
                     <span class="fas fa-ellipsis-h"></span>
                 </summary>
                 <div class="simple-menu" style="position: absolute; top: calc(100% + 8px); right: 0">
@@ -53,7 +54,7 @@
                         @endphp
                         <a class="simple-menu__item" href="{{ $url }}" style="display: flex; align-items: center; gap: 8px">
                             @if ($icon !== null)
-                                <img src="{{ $icon }}" alt="" loading="lazy" style="width: 18px; height: 18px; object-fit: contain">
+                                <span style="display: inline-block; width: 1em; height: 1em; background-color: currentColor; -webkit-mask: url('{{ $icon }}') center / contain no-repeat; mask: url('{{ $icon }}') center / contain no-repeat"></span>
                             @else
                                 <span class="fas fa-puzzle-piece" style="width: 18px; text-align: center"></span>
                             @endif

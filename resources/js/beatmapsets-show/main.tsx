@@ -5,6 +5,7 @@ import Comments from 'components/comments';
 import HeaderV4 from 'components/header-v4';
 import NotificationBanner from 'components/notification-banner';
 import PlaymodeTabs from 'components/playmode-tabs';
+import CustomRulesetTabs from 'components/tomyum-custom-ruleset-tabs';
 import StringWithComponent from 'components/string-with-component';
 import Ruleset, { rulesets } from 'interfaces/ruleset';
 import { action, autorun, computed, IReactionDisposer, makeObservable, observable, untracked } from 'mobx';
@@ -64,16 +65,17 @@ export default class Main extends React.Component<Props> {
     });
 
     return (
-      <>
-        <PlaymodeTabs
-          // TomYum: on a custom ruleset none of osu!'s modes is the one shown.
-          currentMode={this.customRuleset == null ? this.controller.currentBeatmap.mode : ('' as Ruleset)}
-          entries={entries}
-          modifiers='beatmapset'
-          onClick={this.onClickPlaymode}
-        />
-        {this.renderCustomRulesets()}
-      </>
+      <PlaymodeTabs
+        // TomYum: on a custom ruleset none of osu!'s modes is the one shown.
+        currentMode={this.customRuleset == null ? this.controller.currentBeatmap.mode : ('' as Ruleset)}
+        entries={entries}
+        // TomYum: custom lazer rulesets (played in TumThai, on the set's osu! difficulties).
+        append={(this.controller.beatmaps.get('osu') ?? []).length > 0 &&
+          <CustomRulesetTabs current={this.customRuleset?.slug ?? null} entries={customRulesets} onSelect={this.onSelectCustomRuleset} />
+        }
+        modifiers='beatmapset'
+        onClick={this.onClickPlaymode}
+      />
     );
   }
 
@@ -84,50 +86,9 @@ export default class Main extends React.Component<Props> {
     return slug == null ? null : customRulesets.find((ruleset) => ruleset.slug === slug) ?? null;
   }
 
-  // TomYum: custom lazer rulesets (played in TumThai, on osu! maps): the one shown with its logo, the others in a "…" menu.
-  private renderCustomRulesets() {
-    if (customRulesets.length === 0 || (this.controller.beatmaps.get('osu') ?? []).length === 0) {
-      return null;
-    }
-
-    const icon = (ruleset: CustomRulesetJson) => ruleset.icon == null
-      ? <span className='fas fa-puzzle-piece' />
-      : <img alt={ruleset.name} src={ruleset.icon} style={{ height: '1.25em', objectFit: 'contain', verticalAlign: 'middle', width: '1.25em' }} />;
-    const current = this.customRuleset;
-
-    return (
-      <div style={{ alignItems: 'center', display: 'flex', gap: 4 }}>
-        {current != null &&
-          <span className='game-mode-link game-mode-link--active' title={current.name}>{icon(current)}</span>
-        }
-        <details className='game-mode-link' style={{ position: 'relative' }}>
-          <summary style={{ cursor: 'pointer', listStyle: 'none' }} title='Custom lazer rulesets, played in TumThai'>
-            <span className='fas fa-ellipsis-h' />
-          </summary>
-          <div className='simple-menu' style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 10 }}>
-            {customRulesets.map((ruleset) => (
-              <button
-                key={ruleset.slug}
-                className='simple-menu__item'
-                data-slug={ruleset.slug}
-                onClick={this.onClickCustomRuleset}
-                style={{ alignItems: 'center', display: 'flex', gap: 8 }}
-                type='button'
-              >
-                {icon(ruleset)}
-                {ruleset.name}
-              </button>
-            ))}
-          </div>
-        </details>
-      </div>
-    );
-  }
-
   @action
-  private readonly onClickCustomRuleset = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.closest('details')?.removeAttribute('open');
-    this.controller.state.customRuleset = e.currentTarget.dataset.slug ?? null;
+  private readonly onSelectCustomRuleset = (slug: string) => {
+    this.controller.state.customRuleset = slug;
     // They play the set's osu! difficulties.
     this.controller.state.playmode = 'osu';
   };
