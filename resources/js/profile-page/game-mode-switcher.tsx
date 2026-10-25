@@ -62,6 +62,7 @@ export default class GameModeSwitcher extends React.Component<Props> {
                 }))}
               />
             }
+          />
         </div>
       </>
     );
