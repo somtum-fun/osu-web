@@ -437,6 +437,7 @@ class BeatmapsController extends Controller
                 $type,
                 array_values(array_filter(get_arr(request('mods'), 'get_string') ?? [])),
                 static::DEFAULT_SCORE_INCLUDES,
+                \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant'))),
             );
         }
         if (($lazerVariant = \App\Libraries\TomYumModeScores::variant($mode)) !== null) {

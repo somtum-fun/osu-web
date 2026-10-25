@@ -31,7 +31,8 @@ class TomYumRulesetsController extends Controller
         $country = presence(get_string(request('country')));
         $country = $country !== null && preg_match('/^[A-Za-z]{2}$/', $country) === 1 ? strtoupper($country) : null;
         $page = max(1, min(200, get_int(request('page')) ?? 1));
-        $rankings = TomYumCustomRulesetScores::rankings($ruleset, $country, $page);
+        $variant = TomYumCustomRulesets::variant(get_string(request('variant')));
+        $rankings = TomYumCustomRulesetScores::rankings($ruleset, $country, $page, $variant);
         $users = \App\Models\User::with('country')->whereIn('user_id', array_column($rankings['rows'], 'user_id'))->get()->keyBy('user_id');
 
         $scores = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -39,7 +40,7 @@ class TomYumRulesetsController extends Controller
             $rankings['total'],
             TomYumCustomRulesetScores::RANKINGS_PAGE,
             $page,
-            ['path' => route('rankings.custom-rulesets', ['slug' => $ruleset->slug]), 'query' => array_filter(['country' => $country])],
+            ['path' => route('rankings.custom-rulesets', ['slug' => $ruleset->slug]), 'query' => array_filter(['country' => $country, 'variant' => $variant === 'vanilla' ? null : $variant])],
         );
 
         return ext_view('rankings.custom_rulesets', [
@@ -48,6 +49,7 @@ class TomYumRulesetsController extends Controller
             'rulesets' => $rulesets,
             'scores' => $scores,
             'users' => $users,
+            'variant' => $variant,
         ]);
     }
 

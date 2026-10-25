@@ -27,19 +27,33 @@
                     </div>
                 </div>
             </div>
+            {{-- TomYum: Relax and Autopilot plays have their own rankings. --}}
+            <div class="ranking-filter">
+                <div class="ranking-filter__title">Board</div>
+                <div class="sort sort--ranking-header">
+                    <div class="sort__items">
+                        @foreach (['vanilla' => 'Normal', 'relax' => 'Relax', 'autopilot' => 'Autopilot'] as $key => $label)
+                            <a
+                                class="{{ class_with_modifiers('sort__item', 'button', ['active' => $variant === $key]) }}"
+                                href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'country' => $country, 'variant' => $key === 'vanilla' ? null : $key])) }}"
+                            >{{ $label }}</a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
             <div class="ranking-filter">
                 <div class="ranking-filter__title">{{ osu_trans('rankings.countries.title') }}</div>
                 <div class="sort sort--ranking-header">
                     <div class="sort__items">
                         <a
                             class="{{ class_with_modifiers('sort__item', 'button', ['active' => $country === null]) }}"
-                            href="{{ route('rankings.custom-rulesets', ['slug' => $ruleset->slug]) }}"
+                            href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'variant' => $variant === 'vanilla' ? null : $variant])) }}"
                         >{{ osu_trans('rankings.countries.all') }}</a>
                         @php
                             $viewerCountry = Auth::user()?->country_acronym;
                         @endphp
                         @if ($viewerCountry !== null && $viewerCountry !== '' && $viewerCountry !== $country)
-                            <a class="sort__item button" href="{{ route('rankings.custom-rulesets', ['slug' => $ruleset->slug, 'country' => $viewerCountry]) }}">
+                            <a class="sort__item button" href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'country' => $viewerCountry, 'variant' => $variant === 'vanilla' ? null : $variant])) }}">
                                 @include('objects._flag_country', ['country' => $viewerCountry])
                             </a>
                         @endif

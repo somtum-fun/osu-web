@@ -97,8 +97,32 @@ class TomYumCustomRulesets
         }
     }
 
-    /** Mods that play by themselves or for you: a custom ruleset's play with one isn't ranked. */
-    const UNRANKED_MODS = ['AT', 'CN', 'RX', 'AP', 'AU'];
+    /**
+     * Mods that play by themselves: a custom ruleset's play with one isn't ranked. Relax (RX) and Autopilot (AP) plays are,
+     * on their own boards and rankings (VARIANTS).
+     */
+    const UNRANKED_MODS = ['AT', 'CN', 'AU'];
+
+    /** A custom ruleset's boards: normal (no RX or AP), Relax, Autopilot; `variant` in requests. */
+    const VARIANTS = ['vanilla', 'relax', 'autopilot'];
+
+    /** The board a request asks for (`variant`: relax or autopilot, anything else the normal one). */
+    public static function variant(mixed $value): string
+    {
+        return in_array($value, static::VARIANTS, true) ? $value : 'vanilla';
+    }
+
+    /** SQL (on scores `s`) for the plays on a variant's board: normal has neither RX nor AP, Relax RX, Autopilot AP. */
+    public static function variantSql(string $variant): string
+    {
+        $has = fn (string $acronym) => "JSON_CONTAINS(COALESCE(JSON_EXTRACT(s.data, '$.mods[*].acronym'), JSON_ARRAY()), '\"{$acronym}\"')";
+
+        return match ($variant) {
+            'relax' => $has('RX'),
+            'autopilot' => $has('AP'),
+            default => "NOT {$has('RX')} AND NOT {$has('AP')}",
+        };
+    }
 
     /**
      * A custom ruleset's mods as TumThai sent them, cleaned: [{acronym, settings?}], acronyms of 1-8 letters or digits,

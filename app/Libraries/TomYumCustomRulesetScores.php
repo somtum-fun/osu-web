@@ -31,7 +31,7 @@ class TomYumCustomRulesetScores
      *
      * @param string[] $mods Acronyms: only plays with exactly these mods ('NM': none); empty: all.
      */
-    public static function beatmapLeaderboard(Beatmap $beatmap, TomYumCustomRuleset $ruleset, string $type, array $mods, array $includes): array
+    public static function beatmapLeaderboard(Beatmap $beatmap, TomYumCustomRuleset $ruleset, string $type, array $mods, array $includes, string $variant = 'vanilla'): array
     {
         if ($beatmap->approved <= 0 || (int) $beatmap->playmode !== Beatmap::MODES['osu']) {
             return ['scores' => []];
@@ -48,7 +48,7 @@ class TomYumCustomRulesetScores
             return ['scores' => []];
         }
 
-        $best = static::bestPerUser($beatmap->getKey(), $ruleset->id, $userIds, $mods);
+        $best = static::bestPerUser($beatmap->getKey(), $ruleset->id, $userIds, $mods, $variant);
         $top = array_slice($best, 0, static::BOARD_SIZE);
         $scores = Score::with(['beatmap', 'user.country', 'user.team'])->whereIn('id', array_column($top, 'id'))->get()->keyBy('id');
         $transformer = new ScoreTransformer(false);
@@ -82,15 +82,16 @@ class TomYumCustomRulesetScores
      *
      * @return array{rows: array<int, array{user_id: int, ranked_score: int, maps: int, best: int}>, total: int}
      */
-    public static function rankings(TomYumCustomRuleset $ruleset, ?string $country, int $page): array
+    public static function rankings(TomYumCustomRuleset $ruleset, ?string $country, int $page, string $variant = 'vanilla'): array
     {
-        $all = Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:".($country ?? ''), 300, function () use ($ruleset, $country) {
+        $variantSql = TomYumCustomRulesets::variantSql($variant);
+        $all = Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:{$variant}:".($country ?? ''), 300, function () use ($ruleset, $country, $variantSql) {
             $rows = DB::select(
                 'SELECT b.user_id, CAST(SUM(b.best) AS SIGNED) AS ranked_score, COUNT(*) AS maps, CAST(MAX(b.best) AS SIGNED) AS best
                 FROM (
                   SELECT s.user_id, s.beatmap_id, MAX(s.total_score) AS best
                   FROM scores s
-                  WHERE s.ruleset_id = ? AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1
+                  WHERE s.ruleset_id = ? AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1 AND '.$variantSql.'
                   GROUP BY s.user_id, s.beatmap_id
                 ) b
                 JOIN phpbb_users u ON u.user_id = b.user_id AND u.user_warnings = 0 AND u.user_type = 0'.($country !== null ? ' AND u.country_acronym = ?' : '').'
@@ -118,10 +119,10 @@ class TomYumCustomRulesetScores
      * Each player's best play of the map in the ruleset (by score, the earlier play on a tie), best first:
      * [['id', 'user_id', 'total_score'], ...].
      */
-    private static function bestPerUser(int $beatmapId, int $rulesetId, ?array $userIds, array $mods): array
+    private static function bestPerUser(int $beatmapId, int $rulesetId, ?array $userIds, array $mods, string $variant = 'vanilla'): array
     {
         $bindings = [$beatmapId, $rulesetId];
-        $filter = '';
+        $filter = ' AND '.TomYumCustomRulesets::variantSql($variant);
         if ($userIds !== null) {
             $userIds = array_values(array_unique(array_map('intval', $userIds)));
             $filter .= ' AND s.user_id IN ('.implode(',', array_fill(0, count($userIds), '?')).')';
