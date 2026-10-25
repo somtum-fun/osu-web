@@ -28,13 +28,25 @@
     {{-- TomYum: custom lazer rulesets (a page that has them passes $customRulesetLinks: [name, url]). --}}
     @if (!empty($customRulesetLinks))
         <li>
+            {{-- The site's own popup menu (simple-menu), opened by the "…" like the other modes' links. --}}
             <details class="game-mode-link" style="position: relative">
                 <summary style="cursor: pointer; list-style: none" title="Custom lazer rulesets, played in TumThai">
                     <span class="fas fa-ellipsis-h"></span>
                 </summary>
-                <div style="position: absolute; right: 0; z-index: 10; min-width: 160px; padding: 6px 0; border-radius: 6px; background: hsl(var(--hsl-b3, 333 18% 15%)); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4)">
-                    @foreach ($customRulesetLinks as [$name, $url])
-                        <a href="{{ $url }}" style="display: block; padding: 4px 14px; white-space: nowrap">{{ $name }}</a>
+                <div class="simple-menu" style="position: absolute; top: calc(100% + 8px); right: 0">
+                    @foreach ($customRulesetLinks as $link)
+                        @php
+                            [$name, $url] = $link;
+                            $icon = $link[2] ?? null;
+                        @endphp
+                        <a class="simple-menu__item" href="{{ $url }}" style="display: flex; align-items: center; gap: 8px">
+                            @if ($icon !== null)
+                                <img src="{{ $icon }}" alt="" loading="lazy" style="width: 18px; height: 18px; object-fit: contain">
+                            @else
+                                <span class="fas fa-puzzle-piece" style="width: 18px; text-align: center"></span>
+                            @endif
+                            {{ $name }}
+                        </a>
                     @endforeach
                 </div>
             </details>

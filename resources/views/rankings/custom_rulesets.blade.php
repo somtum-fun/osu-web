@@ -22,7 +22,13 @@
                             <a
                                 class="{{ class_with_modifiers('sort__item', 'button', ['active' => $item->id === $ruleset->id]) }}"
                                 href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $item->slug, 'country' => $country])) }}"
-                            >{{ $item->name }}</a>
+                                style="display: inline-flex; align-items: center; gap: 6px"
+                            >
+                                @if ($item->icon_url !== null)
+                                    <img src="{{ route('tomyum.rulesets.icon', ['slug' => $item->slug]) }}" alt="" loading="lazy" style="width: 18px; height: 18px; object-fit: contain">
+                                @endif
+                                {{ $item->name }}
+                            </a>
                         @endforeach
                     </div>
                 </div>

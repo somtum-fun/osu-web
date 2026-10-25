@@ -1034,6 +1034,8 @@ function page_title()
         'ranking.daily_challenge_controller._' => 'main.ranking_controller._',
         'ranking.matchmaking_controller._' => 'main.ranking_controller._',
         'ranking.top_plays_controller._' => 'main.ranking_controller._',
+        // TomYum: a custom lazer ruleset's rankings are a rankings page.
+        'main.tom_yum_rulesets_controller._' => 'main.ranking_controller._',
         default => $controllerKey,
     };
     $namespaceKey = "{$currentRoute['namespace']}._";

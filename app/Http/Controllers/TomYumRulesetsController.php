@@ -87,6 +87,19 @@ class TomYumRulesetsController extends Controller
         ]);
     }
 
+    /** GET /api/v2/tomyum/rulesets/{slug}/me: the signed-in player's standing in a custom ruleset (TumThai's user card). */
+    public function me(string $slug)
+    {
+        $ruleset = TomYumCustomRulesets::findBySlug($slug) ?? abort(404);
+        $user = \Auth::user() ?? abort(401);
+
+        return response()->json(TomYumCustomRulesetScores::standing(
+            $ruleset,
+            $user,
+            TomYumCustomRulesets::variant(get_string(request('variant'))),
+        ));
+    }
+
     public function index()
     {
         return response()->json([

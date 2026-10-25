@@ -47,7 +47,7 @@
             'urlFn' => $rulesetSelectorUrlFn,
             // TomYum: custom lazer rulesets' own rankings (by ranked score).
             'customRulesetLinks' => array_values(array_map(
-                fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug])],
+                fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug]), $r->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $r->slug])],
                 App\Libraries\TomYumCustomRulesets::enabled(),
             )),
         ])

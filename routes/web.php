@@ -970,6 +970,7 @@ Route::group(['as' => 'api.', 'prefix' => 'api', 'middleware' => ['api', Throttl
 
         //  GET /api/v2/tomyum/rulesets (TomYum: custom lazer rulesets, their pinned DLLs; TumThai reads it)
         Route::get('tomyum/rulesets', 'TomYumRulesetsController@index')->name('tomyum.rulesets');
+        Route::get('tomyum/rulesets/{slug}/me', 'TomYumRulesetsController@me')->name('tomyum.rulesets.me');
 
         Route::group(['prefix' => 'scores', 'as' => 'scores.'], function () {
             Route::get('{score}/download', 'ScoresController@download')->middleware(ThrottleRequests::getApiThrottle('scores_download'))->name('download');

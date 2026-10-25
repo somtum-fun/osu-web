@@ -84,8 +84,51 @@ class TomYumCustomRulesetScores
      */
     public static function rankings(TomYumCustomRuleset $ruleset, ?string $country, int $page, string $variant = 'vanilla'): array
     {
+        $all = static::allRanked($ruleset, $country, $variant);
+
+        return [
+            'rows' => array_slice($all, max(0, $page - 1) * static::RANKINGS_PAGE, static::RANKINGS_PAGE),
+            'total' => count($all),
+        ];
+    }
+
+    /**
+     * A player's standing in a custom ruleset (what TumThai shows on their card): global and country rank (null when
+     * unranked), ranked score, ranked maps played and their best play.
+     */
+    public static function standing(TomYumCustomRuleset $ruleset, User $user, string $variant = 'vanilla'): array
+    {
+        $find = function (array $rows) use ($user) {
+            foreach ($rows as $index => $row) {
+                if ($row['user_id'] === $user->getKey()) {
+                    return [$index + 1, $row];
+                }
+            }
+
+            return [null, null];
+        };
+        [$globalRank, $row] = $find(static::allRanked($ruleset, null, $variant));
+        $countryRank = $row !== null && $user->country_acronym !== null
+            ? $find(static::allRanked($ruleset, $user->country_acronym, $variant))[0]
+            : null;
+
+        return [
+            // The same names as a user's statistics (TumThai reads it as UserStatistics).
+            'is_ranked' => $globalRank !== null,
+            'pp' => 0,
+            'global_rank' => $globalRank,
+            'country_rank' => $countryRank,
+            'ranked_score' => $row['ranked_score'] ?? 0,
+            'maps' => $row['maps'] ?? 0,
+            'best' => $row['best'] ?? 0,
+        ];
+    }
+
+    /** Everyone ranked in a custom ruleset (best per ranked map, added up), highest first, kept five minutes. */
+    private static function allRanked(TomYumCustomRuleset $ruleset, ?string $country, string $variant): array
+    {
         $variantSql = TomYumCustomRulesets::variantSql($variant);
-        $all = Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:{$variant}:".($country ?? ''), 300, function () use ($ruleset, $country, $variantSql) {
+        return Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:{$variant}:".($country ?? ''), 300, function () use ($ruleset, $country, $variantSql) {
             $rows = DB::select(
                 'SELECT b.user_id, CAST(SUM(b.best) AS SIGNED) AS ranked_score, COUNT(*) AS maps, CAST(MAX(b.best) AS SIGNED) AS best
                 FROM (
@@ -108,11 +151,6 @@ class TomYumCustomRulesetScores
                 'best' => (int) $r->best,
             ], $rows);
         });
-
-        return [
-            'rows' => array_slice($all, max(0, $page - 1) * static::RANKINGS_PAGE, static::RANKINGS_PAGE),
-            'total' => count($all),
-        ];
     }
 
     /**
