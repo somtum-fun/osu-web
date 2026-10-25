@@ -25,6 +25,18 @@
             </a>
         </li>
     @endforeach
+    {{-- TomYum: the custom ruleset the page is for ($customRulesetCurrent: [name, url, icon]), as the selected mode. --}}
+    @if (!empty($customRulesetCurrent))
+        <li>
+            <a class="game-mode-link game-mode-link--active" href="{{ $customRulesetCurrent[1] }}" title="{{ $customRulesetCurrent[0] }}">
+                @if ($customRulesetCurrent[2] !== null)
+                    <img src="{{ $customRulesetCurrent[2] }}" alt="{{ $customRulesetCurrent[0] }}" style="width: 1.25em; height: 1.25em; object-fit: contain; vertical-align: middle">
+                @else
+                    <span class="fas fa-puzzle-piece"></span>
+                @endif
+            </a>
+        </li>
+    @endif
     {{-- TomYum: custom lazer rulesets (a page that has them passes $customRulesetLinks: [name, url]). --}}
     @if (!empty($customRulesetLinks))
         <li>

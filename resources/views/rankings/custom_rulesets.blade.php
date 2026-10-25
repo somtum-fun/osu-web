@@ -4,35 +4,27 @@
 --}}
 {{-- TomYum: a custom lazer ruleset's rankings by ranked score (TomYumRulesetsController@rankings). --}}
 @extends('rankings.index', [
+    // The rankings page's own layout: the mode bar (this ruleset selected, the others in "…"), a Score tab, the filters.
+    'customRulesetCurrent' => [
+        $ruleset->name,
+        route('rankings.custom-rulesets', ['slug' => $ruleset->slug]),
+        $ruleset->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $ruleset->slug]),
+    ],
     'hasFilter' => false,
-    'hasMode' => false,
+    'linksOverride' => [[
+        'active' => true,
+        'title' => osu_trans('rankings.stat.ranked_score'),
+        'url' => route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'country' => $country, 'variant' => $variant === 'vanilla' ? null : $variant])),
+    ]],
     'pageDescription' => "{$ruleset->name} rankings: TumThai players by ranked score.",
-    'params' => ['type' => null],
+    'params' => ['mode' => $ruleset->slug, 'type' => null],
+    'rulesetSelectorUrlFn' => fn (string $r): string => route('rankings', ['mode' => $r, 'type' => 'score']),
     'titlePrepend' => "{$ruleset->name} rankings",
 ])
 
 @section('ranking-header')
     <div class="osu-page osu-page--ranking-info">
         <div class="grid-items grid-items--ranking-filter">
-            <div class="ranking-filter">
-                <div class="ranking-filter__title">Ruleset</div>
-                <div class="sort sort--ranking-header">
-                    <div class="sort__items">
-                        @foreach ($rulesets as $item)
-                            <a
-                                class="{{ class_with_modifiers('sort__item', 'button', ['active' => $item->id === $ruleset->id]) }}"
-                                href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $item->slug, 'country' => $country])) }}"
-                                style="display: inline-flex; align-items: center; gap: 6px"
-                            >
-                                @if ($item->icon_url !== null)
-                                    <img src="{{ route('tomyum.rulesets.icon', ['slug' => $item->slug]) }}" alt="" loading="lazy" style="width: 18px; height: 18px; object-fit: contain">
-                                @endif
-                                {{ $item->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
             {{-- TomYum: Relax and Autopilot plays have their own rankings. --}}
             <div class="ranking-filter">
                 <div class="ranking-filter__title">Board</div>

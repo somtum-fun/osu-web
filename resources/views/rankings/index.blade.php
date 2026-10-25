@@ -5,7 +5,10 @@
 @php
     use App\Http\Controllers\RankingController;
 
-    if ($params['type'] === null) {
+    // TomYum: a custom ruleset's rankings page passes its own tabs (score only).
+    if (isset($linksOverride)) {
+        $links = $linksOverride;
+    } elseif ($params['type'] === null) {
         $links = null;
     } else {
         $links = [];
@@ -45,6 +48,8 @@
         @include('objects._ruleset_selector', [
             'currentRuleset' => $params['mode'],
             'urlFn' => $rulesetSelectorUrlFn,
+            // TomYum: the custom ruleset this page is for, shown as the selected mode.
+            'customRulesetCurrent' => $customRulesetCurrent ?? null,
             // TomYum: custom lazer rulesets' own rankings (by ranked score).
             'customRulesetLinks' => array_values(array_map(
                 fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug]), $r->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $r->slug])],
