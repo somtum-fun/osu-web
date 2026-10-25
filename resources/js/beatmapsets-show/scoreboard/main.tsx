@@ -122,7 +122,8 @@ export default class Main extends React.Component<Props> {
 
   private readonly onClickVariant = (e: React.MouseEvent<HTMLButtonElement>) => {
     const variant = e.currentTarget.dataset.variant as ScoreboardVariant;
-    // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter.
+    // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter. On a custom
+    // ruleset's board, it's that ruleset's Relax/Autopilot board.
     this.controller.setCurrent({ resetMods: true, variant });
   };
 
@@ -190,7 +191,8 @@ export default class Main extends React.Component<Props> {
   }
 
   // TomYum: one row under the board tabs: Vanilla / Relax / Autopilot (for the rulesets that have
-  // them) and, on Vanilla, the order (by pp or by score), as small buttons like the listing's "Sort by".
+  // them, and for a custom ruleset's boards on osu! maps) and, on Vanilla, the order (by pp or by score),
+  // as small buttons like the listing's "Sort by". A custom ruleset's boards are by score only.
   private renderOptions() {
     if (!this.controller.beatmap.is_scoreable) return null;
 
@@ -203,7 +205,7 @@ export default class Main extends React.Component<Props> {
             {variants.map((variant) => (
               <button
                 key={variant}
-                className={classWithModifiers('sort__item', 'button', { active: this.controller.customRuleset == null && this.controller.variant === variant })}
+                className={classWithModifiers('sort__item', 'button', { active: this.controller.variant === variant })}
                 data-variant={variant}
                 onClick={this.onClickVariant}
                 type='button'

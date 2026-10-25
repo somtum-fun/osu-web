@@ -106,9 +106,18 @@ class TomYumCustomRulesets
     /** A custom ruleset's boards: normal (no RX or AP), Relax, Autopilot; `variant` in requests. */
     const VARIANTS = ['vanilla', 'relax', 'autopilot'];
 
-    /** The board a request asks for (`variant`: relax or autopilot, anything else the normal one). */
+    /**
+     * The board a request asks for (`variant`: relax or autopilot, or the beatmap page's rx / ap; anything else the
+     * normal one).
+     */
     public static function variant(mixed $value): string
     {
+        $value = match ($value) {
+            'rx' => 'relax',
+            'ap' => 'autopilot',
+            default => $value,
+        };
+
         return in_array($value, static::VARIANTS, true) ? $value : 'vanilla';
     }
 
@@ -176,6 +185,8 @@ class TomYumCustomRulesets
             'assembly' => $ruleset->assembly,
             'description' => $ruleset->description,
             'icon_url' => $ruleset->icon_url,
+            // The same icon from this server (TumThai loads images only from its own server's domain).
+            'icon' => $ruleset->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $ruleset->slug]),
             'source_url' => $ruleset->source_url,
             'version' => $ruleset->version,
             'download_url' => $ruleset->download_url,

@@ -53,6 +53,40 @@ class TomYumRulesetsController extends Controller
         ]);
     }
 
+    /**
+     * A custom ruleset's icon (rulesets.info's), served from here: TumThai loads images only from its own server's
+     * domain. Kept a day; PNG, JPEG, GIF or WebP up to 1 MB.
+     */
+    public function icon(string $slug)
+    {
+        $ruleset = TomYumCustomRulesets::findBySlug($slug) ?? abort(404);
+        $url = $ruleset->icon_url ?? abort(404);
+
+        $icon = \Cache::remember('tomyum:ruleset-icon:'.md5($url), 86400, function () use ($url) {
+            try {
+                $response = \Http::timeout(10)->withHeaders(['User-Agent' => 'TomYum (osu-web)'])->get($url);
+            } catch (\Throwable) {
+                return null;
+            }
+            $type = strtolower(explode(';', $response->header('Content-Type'))[0]);
+            if (!$response->successful() || !in_array($type, ['image/png', 'image/jpeg', 'image/gif', 'image/webp'], true)
+                || strlen($response->body()) > 1024 * 1024) {
+                return null;
+            }
+
+            return ['type' => $type, 'body' => base64_encode($response->body())];
+        });
+        if ($icon === null) {
+            \Cache::forget('tomyum:ruleset-icon:'.md5($url));
+            abort(404);
+        }
+
+        return response(base64_decode($icon['body']), 200, [
+            'Content-Type' => $icon['type'],
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
     public function index()
     {
         return response()->json([

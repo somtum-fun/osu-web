@@ -178,19 +178,19 @@ export default class Controller {
 
     if (options.customRuleset !== undefined) {
       this.customRuleset = options.customRuleset;
+      // A custom ruleset's boards (Normal, Relax, Autopilot alike) are by score only: no pp.
       if (options.customRuleset != null) {
-        this.variant = 'vn';
         this.sort = 'score';
+      } else {
+        this.sort = defaultSort(this.variant);
       }
     }
 
     if (options.variant != null) {
-      if (options.customRuleset === undefined) {
-        this.customRuleset = null;
-      }
-      // Each board starts in its own order (pp for Relax/Autopilot, score for Vanilla).
+      // Each board starts in its own order (pp for Relax/Autopilot, score for Vanilla); a custom ruleset's
+      // are all by score.
       if (options.variant !== this.variant) {
-        this.sort = defaultSort(options.variant);
+        this.sort = this.customRuleset != null ? 'score' : defaultSort(options.variant);
       }
       this.variant = options.variant;
     }
@@ -214,7 +214,7 @@ export default class Controller {
         mods: [...this.enabledMods],
         sort: this.customRuleset != null ? 'score' : this.sort,
         type: this.currentType,
-        variant: this.variant === 'vn' || this.customRuleset != null ? undefined : this.variant,
+        variant: this.variant === 'vn' ? undefined : this.variant,
       },
       dataType: 'JSON',
       method: 'GET',

@@ -671,6 +671,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('rankings/top-plays/{mode?}', 'Ranking\TopPlaysController@show')->name('rankings.top-plays');
     // TomYum: custom lazer rulesets' rankings, by ranked score (TomYumCustomRulesetScores).
     Route::get('rankings/rulesets/{slug?}', 'TomYumRulesetsController@rankings')->name('rankings.custom-rulesets');
+    // TomYum: a custom ruleset's icon, from this server (TumThai only loads images from its own server's domain).
+    Route::get('tomyum/rulesets/{slug}/icon', 'TomYumRulesetsController@icon')->name('tomyum.rulesets.icon');
     Route::get('rankings/{mode?}/{type?}/{sort?}', 'RankingController@index')->name('rankings');
 
     Route::resource('reports', 'ReportsController', ['only' => ['store']]);
