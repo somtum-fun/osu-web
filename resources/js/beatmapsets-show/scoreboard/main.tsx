@@ -13,7 +13,6 @@ import * as React from 'react';
 import { shouldShowPp } from 'utils/beatmap-helper';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
-import { parseJsonNullable } from 'utils/json';
 import { SwitchError } from 'utils/switch-never';
 import Controller, { ScoreboardSort, ScoreboardVariant, sortsFor, variantsByRuleset } from './controller';
 import Mod from './mod';
@@ -34,15 +33,11 @@ const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 
 const sortLabels: Record<ScoreboardSort, string> = { pp: 'pp', score: 'Score' };
 
 // TomYum: the custom lazer rulesets staff turned on (they play osu! maps), from the page.
-interface CustomRulesetJson {
-  name: string;
-  slug: string;
-}
-const customRulesets = parseJsonNullable<CustomRulesetJson[]>('json-tomyum-custom-rulesets') ?? [];
-
 interface Props {
   beatmap: BeatmapExtendedJson;
   container: HTMLElement;
+  // TomYum: the custom lazer ruleset picked in the page's mode bar (its slug), if any.
+  customRuleset: string | null;
 }
 
 @observer
@@ -82,12 +77,18 @@ export default class Main extends React.Component<Props> {
   constructor(props: Props) {
     super(props);
     this.controller = new Controller(this.props.container, () => this.props.beatmap);
+    if (this.controller.customRuleset !== props.customRuleset) {
+      this.controller.setCurrent({ customRuleset: props.customRuleset, resetMods: true });
+    }
 
     makeObservable(this);
   }
 
-  private get showCustomRulesets() {
-    return this.controller.beatmap.mode === 'osu' && customRulesets.length > 0;
+  componentDidUpdate(prevProps: Props) {
+    // A custom ruleset's mods are its own: start without a filter.
+    if (prevProps.customRuleset !== this.props.customRuleset) {
+      this.controller.setCurrent({ customRuleset: this.props.customRuleset, resetMods: true });
+    }
   }
 
   render() {
@@ -125,11 +126,6 @@ export default class Main extends React.Component<Props> {
     // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter. On a custom
     // ruleset's board, it's that ruleset's Relax/Autopilot board.
     this.controller.setCurrent({ resetMods: true, variant });
-  };
-
-  private readonly onChangeCustomRuleset = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    // A custom ruleset's mods are its own: start without a filter.
-    this.controller.setCurrent({ customRuleset: e.currentTarget.value === '' ? null : e.currentTarget.value, resetMods: true });
   };
 
   private readonly onClickSort = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -213,22 +209,6 @@ export default class Main extends React.Component<Props> {
                 {variantLabels[variant]}
               </button>
             ))}
-          </div>
-        }
-
-        {this.showCustomRulesets &&
-          <div className='sort__items'>
-            <select
-              className={classWithModifiers('sort__item', 'button', { active: this.controller.customRuleset != null })}
-              onChange={this.onChangeCustomRuleset}
-              title='Custom lazer rulesets, played in TumThai: ranked by score'
-              value={this.controller.customRuleset ?? ''}
-            >
-              <option value=''>Other rulesets…</option>
-              {customRulesets.map((ruleset) => (
-                <option key={ruleset.slug} value={ruleset.slug}>{ruleset.name}</option>
-              ))}
-            </select>
           </div>
         }
 

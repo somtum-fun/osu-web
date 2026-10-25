@@ -398,16 +398,19 @@ class BeatmapsController extends Controller
      * @queryParam type Beatmap score ranking type // TODO.
      */
     /**
-     * TomYum: the beatmap page's pp calculator (osu! maps): what a pass would be worth with some lazer mods
-     * (settings and all), misses and combo, at a few accuracies. TomYum works it out as it does a submitted play.
+     * TomYum: the beatmap page's pp calculator: what a pass would be worth in a ruleset (the map's own, or taiko,
+     * catch or mania on an osu! map, converted) with some lazer mods (settings and all), misses and combo, at a few
+     * accuracies. TomYum works it out as it does a submitted play.
      */
     public function tomyumPp($id)
     {
         $beatmap = Beatmap::findOrFail($id);
-        abort_if($beatmap->playmode !== Beatmap::MODES['osu'], 422, 'osu! maps only');
+        $rulesetId = Beatmap::modeInt(get_string(request('mode'))) ?? $beatmap->playmode;
+        abort_if($rulesetId !== $beatmap->playmode && $beatmap->playmode !== Beatmap::MODES['osu'], 422, "that map doesn't play in that ruleset");
 
         $response = (new \App\Libraries\TomYumAdmin())->get('/pp-calc', array_filter([
             'beatmapId' => $beatmap->getKey(),
+            'ruleset' => $rulesetId,
             'mods' => get_string(request('mods')),
             'acc' => get_string(request('acc')),
             'misses' => get_int(request('misses')),

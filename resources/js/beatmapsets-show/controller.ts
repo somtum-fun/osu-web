@@ -26,6 +26,8 @@ interface Config {
 interface State {
   beatmapId?: BeatmapJsonForBeatmapsetShow['id'];
   beatmapset: BeatmapsetJsonForShow;
+  // TomYum: the custom lazer ruleset shown (its slug), on the set's osu! difficulties.
+  customRuleset?: string | null;
   playmode?: BeatmapJsonForBeatmapsetShow['mode'];
   showingNsfwWarning: boolean;
 }

@@ -1,9 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-// TomYum: the beatmap page's pp calculator (osu! maps): pick mods (a DT's speed, Difficulty Adjust's stats,
-// Relax/Autopilot), misses and combo, and see what a pass would be worth at a few accuracies. The server works
-// it out as it does a submitted lazer play (TomYum's /pp-calc), with Reprise's own rules.
+// TomYum: the beatmap page's pp calculator (osu!, taiko, catch and mania, converts too): pick mods (a DT's speed,
+// Difficulty Adjust's stats, Relax/Autopilot, a mania convert's keys), misses and combo, and see what a pass would be
+// worth at a few accuracies. The server works it out as it does a submitted lazer play (TomYum's /pp-calc), with
+// Reprise's own rules.
 
 import Mod from 'components/mod';
 import BeatmapExtendedJson from 'interfaces/beatmap-extended-json';
@@ -29,8 +30,20 @@ interface Response {
   results: Result[];
 }
 
-// The mods that change pp, in osu!'s order; each row's are mutually exclusive.
-const modRows = [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'AP', 'SO', 'DA']];
+// The mods that change pp in each ruleset, in its order; some are mutually exclusive.
+const keyMods = ['4K', '5K', '6K', '7K', '8K', '9K'];
+const modRowsFor = (beatmap: BeatmapExtendedJson): string[][] => {
+  switch (beatmap.mode) {
+    case 'taiko':
+    case 'fruits':
+      return [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'DA']];
+    case 'mania':
+      // A converted map's key count is a mod too.
+      return beatmap.convert ? [['EZ', 'NF', 'HT'], ['DT', 'NC', 'DA'], keyMods] : [['EZ', 'NF', 'HT'], ['DT', 'NC', 'DA']];
+    default:
+      return [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'AP', 'SO', 'DA']];
+  }
+};
 const exclusive: Partial<Record<string, string[]>> = {
   AP: ['RX', 'SO'],
   DT: ['NC', 'HT'],
@@ -40,9 +53,14 @@ const exclusive: Partial<Record<string, string[]>> = {
   NC: ['DT', 'HT'],
   RX: ['AP'],
   SO: ['AP'],
+  ...Object.fromEntries(keyMods.map((key) => [key, keyMods.filter((other) => other !== key)])),
 };
 const speedRange: Partial<Record<string, [number, number, number]>> = { DT: [1.01, 2, 1.5], HT: [0.5, 0.99, 0.75], NC: [1.01, 2, 1.5] };
-const adjustStats = [['circle_size', 'CS'], ['approach_rate', 'AR'], ['overall_difficulty', 'OD'], ['drain_rate', 'HP']] as const;
+type AdjustStat = 'approach_rate' | 'circle_size' | 'drain_rate' | 'overall_difficulty';
+// Difficulty Adjust's settings in each ruleset (taiko and mania have no circle size or approach rate).
+const adjustStatsFor = (mode: string): [AdjustStat, string][] => mode === 'taiko' || mode === 'mania'
+  ? [['overall_difficulty', 'OD'], ['drain_rate', 'HP']]
+  : [['circle_size', 'CS'], ['approach_rate', 'AR'], ['overall_difficulty', 'OD'], ['drain_rate', 'HP']];
 
 @observer
 export default class PpCalculator extends React.Component<Props> {
@@ -94,7 +112,7 @@ export default class PpCalculator extends React.Component<Props> {
         if (this.speed !== '' && speed >= min && speed <= max) settings.speed_change = speed;
       }
       if (acronym === 'DA') {
-        for (const [setting] of adjustStats) {
+        for (const [setting] of adjustStatsFor(this.props.beatmap.mode)) {
           const value = Number(this.adjust.get(setting));
           if (this.adjust.get(setting) != null && this.adjust.get(setting) !== '' && value >= 0 && value <= 11) settings[setting] = value;
         }
@@ -116,6 +134,8 @@ export default class PpCalculator extends React.Component<Props> {
       acc: accuracies.sort((a, b) => a - b).join(','),
       combo: this.combo === '' ? undefined : this.combo,
       misses: this.misses === '' ? '0' : this.misses,
+      // The ruleset shown (a converted map's too).
+      mode: this.props.beatmap.mode,
       mods: JSON.stringify(this.lazerMods),
     };
   }
@@ -151,7 +171,7 @@ export default class PpCalculator extends React.Component<Props> {
         <div className='beatmapset-pp-calculator__body'>
           <div className='beatmapset-pp-calculator__controls'>
             <div className='beatmapset-pp-calculator__mods'>
-              {modRows.map((row) => (
+              {modRowsFor(this.props.beatmap).map((row) => (
                 <div key={row.join()} className='beatmapset-pp-calculator__mod-row'>
                   {row.map((acronym) => (
                     <button
@@ -205,7 +225,7 @@ export default class PpCalculator extends React.Component<Props> {
                   value={this.speed}
                 />
               ), '×')}
-              {this.enabled.has('DA') && adjustStats.map(([setting, label]) => (
+              {this.enabled.has('DA') && adjustStatsFor(this.props.beatmap.mode).map(([setting, label]) => (
                 <React.Fragment key={setting}>
                   {this.renderField(label, (
                     <input
@@ -257,7 +277,7 @@ export default class PpCalculator extends React.Component<Props> {
       .always(() => runInAction(() => this.loading = false));
   }
 
-  private mapStat(setting: typeof adjustStats[number][0]) {
+  private mapStat(setting: AdjustStat) {
     switch (setting) {
       case 'circle_size': return this.props.beatmap.cs;
       case 'approach_rate': return this.props.beatmap.ar;

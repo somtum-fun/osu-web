@@ -13,6 +13,7 @@ import core from 'osu-core-singleton';
 import * as React from 'react';
 import { showVisual } from 'utils/beatmapset-helper';
 import { generate, setHash } from 'utils/beatmapset-page-hash';
+import { parseJsonNullable } from 'utils/json';
 import { trans } from 'utils/lang';
 import { reloadPage } from 'utils/turbolinks';
 import Controller from './controller';
@@ -26,6 +27,14 @@ import ScoreboardMain from './scoreboard/main';
 interface Props {
   container: HTMLElement;
 }
+
+// TomYum: the enabled custom lazer rulesets (the mode bar's "…" menu).
+interface CustomRulesetJson {
+  icon: string | null;
+  name: string;
+  slug: string;
+}
+const customRulesets = parseJsonNullable<CustomRulesetJson[]>('json-tomyum-custom-rulesets') ?? [];
 
 @observer
 export default class Main extends React.Component<Props> {
@@ -55,14 +64,73 @@ export default class Main extends React.Component<Props> {
     });
 
     return (
-      <PlaymodeTabs
-        currentMode={this.controller.currentBeatmap.mode}
-        entries={entries}
-        modifiers='beatmapset'
-        onClick={this.onClickPlaymode}
-      />
+      <>
+        <PlaymodeTabs
+          // TomYum: on a custom ruleset none of osu!'s modes is the one shown.
+          currentMode={this.customRuleset == null ? this.controller.currentBeatmap.mode : ('' as Ruleset)}
+          entries={entries}
+          modifiers='beatmapset'
+          onClick={this.onClickPlaymode}
+        />
+        {this.renderCustomRulesets()}
+      </>
     );
   }
+
+  // TomYum: the custom ruleset shown, if it's still enabled.
+  private get customRuleset() {
+    const slug = this.controller.state.customRuleset;
+
+    return slug == null ? null : customRulesets.find((ruleset) => ruleset.slug === slug) ?? null;
+  }
+
+  // TomYum: custom lazer rulesets (played in TumThai, on osu! maps): the one shown with its logo, the others in a "…" menu.
+  private renderCustomRulesets() {
+    if (customRulesets.length === 0 || (this.controller.beatmaps.get('osu') ?? []).length === 0) {
+      return null;
+    }
+
+    const icon = (ruleset: CustomRulesetJson) => ruleset.icon == null
+      ? <span className='fas fa-puzzle-piece' />
+      : <img alt={ruleset.name} src={ruleset.icon} style={{ height: '1.25em', objectFit: 'contain', verticalAlign: 'middle', width: '1.25em' }} />;
+    const current = this.customRuleset;
+
+    return (
+      <div style={{ alignItems: 'center', display: 'flex', gap: 4 }}>
+        {current != null &&
+          <span className='game-mode-link game-mode-link--active' title={current.name}>{icon(current)}</span>
+        }
+        <details className='game-mode-link' style={{ position: 'relative' }}>
+          <summary style={{ cursor: 'pointer', listStyle: 'none' }} title='Custom lazer rulesets, played in TumThai'>
+            <span className='fas fa-ellipsis-h' />
+          </summary>
+          <div className='simple-menu' style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 10 }}>
+            {customRulesets.map((ruleset) => (
+              <button
+                key={ruleset.slug}
+                className='simple-menu__item'
+                data-slug={ruleset.slug}
+                onClick={this.onClickCustomRuleset}
+                style={{ alignItems: 'center', display: 'flex', gap: 8 }}
+                type='button'
+              >
+                {icon(ruleset)}
+                {ruleset.name}
+              </button>
+            ))}
+          </div>
+        </details>
+      </div>
+    );
+  }
+
+  @action
+  private readonly onClickCustomRuleset = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.closest('details')?.removeAttribute('open');
+    this.controller.state.customRuleset = e.currentTarget.dataset.slug ?? null;
+    // They play the set's osu! difficulties.
+    this.controller.state.playmode = 'osu';
+  };
 
   // TomYum: opened from the Comments tab (#comments): scrolled to them once the page is up (the
   // hash is the difficulty's afterwards).
@@ -124,6 +192,7 @@ export default class Main extends React.Component<Props> {
   private readonly onClickPlaymode = (e: React.MouseEvent, mode: Ruleset) => {
     e.preventDefault();
 
+    this.controller.state.customRuleset = null;
     this.controller.state.playmode = mode;
   };
 
@@ -193,10 +262,10 @@ export default class Main extends React.Component<Props> {
               </div>
             )}
 
-            {/* TomYum: the pp calculator, for osu! maps. */}
-            {this.controller.currentBeatmap.mode === 'osu' && (
+            {/* TomYum: the pp calculator, in each ruleset (a converted map's too); custom rulesets have no pp. */}
+            {this.customRuleset == null && (
               <div className='page-extra'>
-                <PpCalculator key={this.controller.currentBeatmap.id} beatmap={this.controller.currentBeatmap} />
+                <PpCalculator key={`${this.controller.currentBeatmap.id}-${this.controller.currentBeatmap.mode}`} beatmap={this.controller.currentBeatmap} />
               </div>
             )}
 
@@ -205,6 +274,7 @@ export default class Main extends React.Component<Props> {
                 <ScoreboardMain
                   beatmap={this.controller.currentBeatmap}
                   container={this.props.container}
+                  customRuleset={this.customRuleset?.slug ?? null}
                 />
               </div>
             }
