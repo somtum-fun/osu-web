@@ -124,6 +124,122 @@ class TomYumCustomRulesetScores
         ];
     }
 
+    /**
+     * A player's scores in a custom ruleset, for their profile (the website's and TumThai's): best (their best on each
+     * ranked map, by score), firsts (those that are the map's #1) or recent (the last 24 hours, newest first; failed
+     * plays only when asked). The page's scores as the profile shows them, and how many there are.
+     *
+     * @return array{items: array, total: int}
+     */
+    public static function profileScores(User $user, TomYumCustomRuleset $ruleset, string $type, int $offset, int $limit, bool $includeFails = false, string $variant = 'vanilla'): array
+    {
+        $variantSql = TomYumCustomRulesets::variantSql($variant);
+        $bindings = [$user->getKey(), $ruleset->id];
+
+        if ($type === 'recent') {
+            $ids = array_map(fn ($r) => (int) $r->id, DB::select(
+                'SELECT s.id FROM scores s
+                WHERE s.user_id = ? AND s.ruleset_id = ? AND s.ended_at > NOW() - INTERVAL 1 DAY'.($includeFails ? '' : ' AND s.passed = 1').'
+                ORDER BY s.ended_at DESC, s.id DESC
+                LIMIT 1000',
+                $bindings,
+            ));
+        } elseif ($type === 'best' || $type === 'firsts') {
+            $best = "SELECT id, beatmap_id, total_score FROM (
+                  SELECT s.id, s.beatmap_id, s.total_score,
+                    ROW_NUMBER() OVER (PARTITION BY s.beatmap_id ORDER BY s.total_score DESC, s.id) AS place
+                  FROM scores s
+                  WHERE s.user_id = ? AND s.ruleset_id = ? AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1 AND {$variantSql}
+                ) b WHERE place = 1";
+            if ($type === 'firsts') {
+                $otherVariant = TomYumCustomRulesets::variantSql($variant, 'o');
+                $best = "SELECT * FROM ({$best}) mine WHERE NOT EXISTS (
+                    SELECT 1 FROM scores o
+                    JOIN phpbb_users u ON u.user_id = o.user_id AND u.user_warnings = 0 AND u.user_type = 0
+                    WHERE o.beatmap_id = mine.beatmap_id AND o.ruleset_id = ? AND o.passed = 1 AND o.preserve = 1 AND o.ranked = 1
+                      AND o.user_id <> ? AND {$otherVariant}
+                      AND (o.total_score > mine.total_score OR (o.total_score = mine.total_score AND o.id < mine.id))
+                )";
+                array_push($bindings, $ruleset->id, $user->getKey());
+            }
+            $ids = array_map(fn ($r) => (int) $r->id, DB::select("{$best} ORDER BY total_score DESC, id LIMIT 1000", $bindings));
+        } else {
+            return ['items' => [], 'total' => 0];
+        }
+
+        $page = array_slice($ids, max(0, $offset), max(0, $limit));
+        $scores = Score::with(\App\Transformers\ScoreTransformer::USER_PROFILE_INCLUDES_PRELOAD)->whereIn('id', $page)->get()->keyBy('id');
+        $transformer = new ScoreTransformer();
+        $items = [];
+        foreach ($page as $id) {
+            if (isset($scores[$id])) {
+                $scores[$id]->setRelation('user', $user);
+                $items[] = json_item($scores[$id], $transformer, \App\Transformers\ScoreTransformer::USER_PROFILE_INCLUDES);
+            }
+        }
+
+        return ['items' => $items, 'total' => count($ids)];
+    }
+
+    /**
+     * A player's statistics in a custom ruleset, shaped as a user's statistics (the profile shows them as it would a
+     * ruleset's): rank and ranked score from the rankings, play count and total score of every play, accuracy and
+     * grades of their best on each ranked map. No pp, level or play time.
+     */
+    public static function profileStatistics(User $user, TomYumCustomRuleset $ruleset, array $base, string $variant = 'vanilla'): array
+    {
+        $standing = static::standing($ruleset, $user, $variant);
+        $variantSql = TomYumCustomRulesets::variantSql($variant);
+        $all = DB::selectOne(
+            "SELECT COUNT(*) AS plays, CAST(COALESCE(SUM(s.total_score), 0) AS SIGNED) AS total, COALESCE(MAX(s.max_combo), 0) AS combo
+            FROM scores s WHERE s.user_id = ? AND s.ruleset_id = ? AND {$variantSql}",
+            [$user->getKey(), $ruleset->id],
+        );
+        $best = DB::selectOne(
+            "SELECT COALESCE(AVG(b.accuracy), 0) AS accuracy,
+              SUM(b.grade = 'XH') AS ssh, SUM(b.grade = 'X') AS ss, SUM(b.grade = 'SH') AS sh, SUM(b.grade = 'S') AS s, SUM(b.grade = 'A') AS a
+            FROM (
+              SELECT s.accuracy, s.rank AS grade,
+                ROW_NUMBER() OVER (PARTITION BY s.beatmap_id ORDER BY s.total_score DESC, s.id) AS place
+              FROM scores s
+              WHERE s.user_id = ? AND s.ruleset_id = ? AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1 AND {$variantSql}
+            ) b WHERE b.place = 1",
+            [$user->getKey(), $ruleset->id],
+        );
+
+        return [
+            ...$base,
+            'count_100' => 0,
+            'count_300' => 0,
+            'count_50' => 0,
+            'count_miss' => 0,
+            'country_rank' => $standing['country_rank'],
+            'global_rank' => $standing['global_rank'],
+            'global_rank_exp' => null,
+            'grade_counts' => [
+                'a' => (int) ($best->a ?? 0),
+                's' => (int) ($best->s ?? 0),
+                'sh' => (int) ($best->sh ?? 0),
+                'ss' => (int) ($best->ss ?? 0),
+                'ssh' => (int) ($best->ssh ?? 0),
+            ],
+            'hit_accuracy' => round((float) ($best->accuracy ?? 0) * 100, 2),
+            'is_ranked' => $standing['global_rank'] !== null,
+            'level' => ['current' => 0, 'progress' => 0],
+            'maximum_combo' => (int) ($all->combo ?? 0),
+            'play_count' => (int) ($all->plays ?? 0),
+            'play_time' => 0,
+            'pp' => 0,
+            'pp_exp' => 0,
+            'rank' => ['country' => $standing['country_rank']],
+            'ranked_score' => $standing['ranked_score'],
+            'replays_watched_by_others' => 0,
+            'total_hits' => 0,
+            'total_score' => (int) ($all->total ?? 0),
+            'variants' => null,
+        ];
+    }
+
     /** Everyone ranked in a custom ruleset (best per ranked map, added up), highest first, kept five minutes. */
     private static function allRanked(TomYumCustomRuleset $ruleset, ?string $country, string $variant): array
     {

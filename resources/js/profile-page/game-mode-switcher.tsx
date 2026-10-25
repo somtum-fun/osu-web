@@ -42,7 +42,8 @@ export default class GameModeSwitcher extends React.Component<Props> {
         <div className={variants == null ? 'game-mode' : 'game-mode game-mode--variants'}>
           {variants}
           <PlaymodeTabs
-            currentMode={this.props.controller.currentMode}
+            // TomYum: on a custom ruleset's profile none of osu!'s modes is the one shown.
+            currentMode={this.props.controller.customRuleset == null ? this.props.controller.currentMode : ('' as Ruleset)}
             defaultMode={this.props.controller.state.user.playmode}
             entries={rulesets.map((mode) => ({
               disabled: false,
@@ -51,8 +52,45 @@ export default class GameModeSwitcher extends React.Component<Props> {
             }))}
             modifiers='inline'
           />
+          {this.renderCustomRulesets()}
         </div>
       </>
+    );
+  }
+
+  // TomYum: the custom lazer rulesets (played in TumThai): the one shown, with its logo, then the others in a "…" menu.
+  private renderCustomRulesets() {
+    const { controller } = this.props;
+    if (controller.customRulesets.length === 0) {
+      return null;
+    }
+
+    const user = controller.state.user.id;
+    const icon = (ruleset: { icon: string | null; name: string }) => ruleset.icon == null
+      ? <span className='fas fa-puzzle-piece' />
+      : <img alt={ruleset.name} src={ruleset.icon} style={{ height: '1.25em', objectFit: 'contain', verticalAlign: 'middle', width: '1.25em' }} />;
+
+    return (
+      <div style={{ alignItems: 'center', display: 'flex', gap: 4 }}>
+        {controller.customRuleset != null &&
+          <a className='game-mode-link game-mode-link--active' href={route('users.show', { mode: controller.customRuleset.slug, user })} title={controller.customRuleset.name}>
+            {icon(controller.customRuleset)}
+          </a>
+        }
+        <details className='game-mode-link' style={{ position: 'relative' }}>
+          <summary style={{ cursor: 'pointer', listStyle: 'none' }} title='Custom lazer rulesets, played in TumThai'>
+            <span className='fas fa-ellipsis-h' />
+          </summary>
+          <div className='simple-menu' style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)' }}>
+            {controller.customRulesets.map((ruleset) => (
+              <a key={ruleset.slug} className='simple-menu__item' href={route('users.show', { mode: ruleset.slug, user })} style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
+                {icon(ruleset)}
+                {ruleset.name}
+              </a>
+            ))}
+          </div>
+        </details>
+      </div>
     );
   }
 
@@ -60,6 +98,41 @@ export default class GameModeSwitcher extends React.Component<Props> {
   // Each pill also carries a star you can click (your own profile only) to pin that mode as a
   // favourite; favourites get a gold border so other players see which modes a user cares about.
   private renderVariants() {
+    // TomYum: a custom ruleset's profile has its own Normal / Relax / Autopilot (by query: ?variant=).
+    const custom = this.props.controller.customRuleset;
+    if (custom != null) {
+      const user = this.props.controller.state.user.id;
+
+      return (
+        <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {[['Normal', 'vanilla'], ['Relax', 'relax'], ['Autopilot', 'autopilot']].map(([label, variant]) => {
+            const active = this.props.controller.customVariant === variant;
+            const href = route('users.show', { mode: custom.slug, user }) + (variant === 'vanilla' ? '' : `?variant=${variant}`);
+
+            return (
+              <a
+                key={variant}
+                href={href}
+                style={{
+                  background: active ? 'hsl(var(--hsl-h1))' : 'hsl(var(--hsl-b4))',
+                  borderRadius: 999,
+                  color: active ? 'hsl(var(--hsl-b6))' : 'hsl(var(--hsl-c1))',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  lineHeight: '20px',
+                  padding: '1px 10px',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {label}
+              </a>
+            );
+          })}
+        </div>
+      );
+    }
+
     const mode = this.props.controller.currentMode;
     const variants: Partial<Record<Ruleset, [string, string, string][]>> = {
       fruits: [['RX', 'fruitsrx', 'Relax']],
@@ -150,7 +223,8 @@ export default class GameModeSwitcher extends React.Component<Props> {
     const isDefault = controller.state.user.playmode === controller.currentMode
       && (controller.state.user.tomyum_default_variant ?? null) === controller.variant;
 
-    if (!controller.withEdit || isDefault) {
+    // TomYum: a custom ruleset can't be the default mode (osu! is what the website and stable know).
+    if (!controller.withEdit || isDefault || controller.customRuleset != null) {
       return null;
     }
 

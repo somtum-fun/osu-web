@@ -20,8 +20,8 @@ export interface PageSectionWithoutCountJson<T> {
 }
 
 // TODO: how to require mode conditionally based on page?
-export default function getPage<T>(user: Pick<UserJson, 'id'>, page: ProfileExtraPage, mode?: Ruleset, variant?: string | null) {
-  // TomYum: a Relax/Autopilot profile asks for its variant's lists.
-  const params = variant == null ? { mode, page, user: user.id } : { mode, page, user: user.id, variant };
+export default function getPage<T>(user: Pick<UserJson, 'id'>, page: ProfileExtraPage, mode?: Ruleset, variant?: string | null, extra: Record<string, string> = {}) {
+  // TomYum: a Relax/Autopilot profile asks for its variant's lists, a custom ruleset's for its own (extra).
+  const params = { ...(variant == null ? { mode, page, user: user.id } : { mode, page, user: user.id, variant }), ...extra };
   return $.ajax(route('users.extra-page', params)) as JQuery.jqXHR<T>;
 }

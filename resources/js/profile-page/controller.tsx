@@ -71,6 +71,11 @@ export function validPage(page: unknown) {
 interface InitialData {
   achievements: AchievementJson[];
   current_mode: Ruleset;
+  // TomYum: the custom lazer ruleset this profile is for (its slug, name and icon), its board (vanilla, relax,
+  // autopilot), and every enabled one (the mode bar's "…" menu).
+  tomyum_custom_ruleset?: CustomRulesetJson | null;
+  tomyum_custom_rulesets?: CustomRulesetJson[];
+  tomyum_custom_variant?: string | null;
   // TomYum: the Relax/Autopilot variant shown (osurx, osuap, taikorx, fruitsrx), if any.
   tomyum_variant?: string | null;
   score_processing_notice_url: string | null;
@@ -97,9 +102,20 @@ interface State {
   user: ProfilePageUserJson;
 }
 
+// TomYum: a custom lazer ruleset (TomYumCustomRulesets::toApi, or its slug, name and icon).
+export interface CustomRulesetJson {
+  icon: string | null;
+  name: string;
+  slug: string;
+}
+
 export default class Controller {
   readonly achievements: Map<number, AchievementJson>;
   readonly currentMode: Ruleset;
+  // TomYum: the custom ruleset this profile is for, its board, and every enabled one.
+  readonly customRuleset: CustomRulesetJson | null;
+  readonly customRulesets: CustomRulesetJson[];
+  readonly customVariant: string;
   readonly variant: string | null;
 
   // TomYum: the mode shown as TomYum numbers it (0-3 the rulesets, 4-6 Relax, 8 Autopilot), for its pp history.
@@ -174,6 +190,9 @@ export default class Controller {
     }
     this.currentMode = initialData.current_mode;
     this.variant = initialData.tomyum_variant ?? null;
+    this.customRuleset = initialData.tomyum_custom_ruleset ?? null;
+    this.customRulesets = initialData.tomyum_custom_rulesets ?? [];
+    this.customVariant = initialData.tomyum_custom_variant ?? 'vanilla';
     this.scoreProcessingNoticeUrl = initialData.score_processing_notice_url;
     this.displayCoverUrl = this.state.user.cover.url;
     this.selectedHue = this.state.user.profile_hue;
@@ -444,7 +463,13 @@ export default class Controller {
           this.xhr[section] = apiShowMore(
             json,
             'users.scores',
-            { ...baseParams, mode: this.currentMode, type, ...(this.variant == null ? {} : { variant: this.variant }) },
+            {
+              ...baseParams,
+              mode: this.currentMode,
+              type,
+              ...(this.variant == null ? {} : { variant: this.variant }),
+              ...this.customParams,
+            },
           );
         }
 
@@ -466,9 +491,20 @@ export default class Controller {
     this.saveState();
   }
 
+  // TomYum: what a custom ruleset's profile adds to its list requests.
+  private get customParams(): Record<string, string> {
+    if (this.customRuleset == null) {
+      return {};
+    }
+
+    return this.customVariant === 'vanilla'
+      ? { custom_ruleset: this.customRuleset.slug }
+      : { custom_ruleset: this.customRuleset.slug, variant: this.customVariant };
+  }
+
   @action
   get<T extends keyof LazyPages>(page: T) {
-    const xhr = getPage<LazyPages[T]>(this.state.user, page, this.currentMode, this.variant)
+    const xhr = getPage<LazyPages[T]>(this.state.user, page, this.currentMode, this.variant, this.customParams)
       .done((json) => runInAction(() => {
         this.state.lazy[page] = json;
       }));

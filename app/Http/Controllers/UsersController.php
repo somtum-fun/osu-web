@@ -78,6 +78,9 @@ class UsersController extends Controller
     // TomYum: [ruleset, TomYum mode] when lazer asks for a Relax/Autopilot list (mode=osurx, ...).
     private ?array $tomyumVariant = null;
 
+    // TomYum: the custom lazer ruleset a profile list is for (parsePaginationParams).
+    private ?\App\Models\TomYumCustomRuleset $customRuleset = null;
+
     public function __construct()
     {
         $this->middleware('guest', ['only' => ['create', 'store', 'storeWeb']]);
@@ -161,6 +164,37 @@ class UsersController extends Controller
 
     public function extraPages($_id, $page)
     {
+        // TomYum: a custom lazer ruleset's profile lists its plays (best, firsts, recent; none pinned).
+        if ($this->customRuleset !== null && in_array($page, ['top_ranks', 'historical'], true)) {
+            $customVariant = \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant')));
+            $section = function (string $type, int $perPage) use ($customVariant) {
+                $page = \App\Libraries\TomYumCustomRulesetScores::profileScores($this->user, $this->customRuleset, $type, 0, $perPage + 1, false, $customVariant);
+                $items = $page['items'];
+                $hasMore = count($items) > $perPage;
+                if ($hasMore) {
+                    array_pop($items);
+                }
+
+                return ['items' => $items, 'pagination' => ['hasMore' => $hasMore], 'count' => $page['total']];
+            };
+
+            if ($page === 'top_ranks') {
+                return [
+                    'best' => $section('best', static::PER_PAGE['scoresBest']),
+                    'firsts' => $section('firsts', static::PER_PAGE['scoresFirsts']),
+                    'pinned' => ['items' => [], 'pagination' => ['hasMore' => false], 'count' => 0],
+                ];
+            }
+
+            return [
+                'beatmap_playcounts' => $this->getExtraSection('beatmapPlaycounts'),
+                'monthly_playcounts' => json_collection($this->user->monthlyPlaycounts, new UserMonthlyPlaycountTransformer()),
+                'recent' => $section('recent', static::PER_PAGE['scoresRecent']),
+                'replays_watched_counts' => json_collection($this->user->replaysWatchedCounts, new UserReplaysWatchedCountTransformer()),
+                'score_replay_stats' => $this->getExtraSection('scoreReplayStats'),
+            ];
+        }
+
         // TomYum: a Relax/Autopilot profile lists TomYum's plays in that mode.
         $variant = \App\Libraries\TomYumModeScores::variant(request('variant'));
         if ($variant !== null && $page === 'top_ranks') {
@@ -559,6 +593,23 @@ class UsersController extends Controller
             'includeFails' => get_bool(request('include_fails')) ?? false,
         ];
 
+        // TomYum: a custom lazer ruleset's list (best, firsts, recent; none pinned).
+        if ($this->customRuleset !== null) {
+            if ($type === 'pinned') {
+                return response([]);
+            }
+
+            return response(\App\Libraries\TomYumCustomRulesetScores::profileScores(
+                $this->user,
+                $this->customRuleset,
+                $type,
+                $this->offset,
+                $perPage,
+                $options['includeFails'],
+                \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant'))),
+            )['items']);
+        }
+
         // TomYum: more of a Relax/Autopilot profile's list.
         if (($variant = \App\Libraries\TomYumModeScores::variant(request('variant')) ?? $this->tomyumVariant) !== null) {
             if ($type === 'pinned') {
@@ -680,6 +731,13 @@ class UsersController extends Controller
             $mode = \App\Libraries\TomYumModeScores::defaultVariant($user);
         }
 
+        // TomYum: a custom lazer ruleset (its slug as the mode, from TumThai and the profile's "…" menu): the profile,
+        // with that ruleset's statistics and scores (they play osu! maps, so osu!'s is the base).
+        $customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($mode);
+        if ($customRuleset !== null) {
+            $mode = 'osu';
+        }
+
         // TomYum: lazer's Relax/Autopilot modes (LazerAuthlibInjection asks for them like rulesets):
         // the normal profile, with TomYum's stats for that mode (the website has none).
         $tomyumMode = \App\Libraries\TomYumModeScores::variant($mode);
@@ -721,6 +779,17 @@ class UsersController extends Controller
             $userArray['scores_pinned_count'] = 0;
         }
 
+        if ($customRuleset !== null) {
+            $customVariant = \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant')));
+            $userArray['statistics'] = \App\Libraries\TomYumCustomRulesetScores::profileStatistics($user, $customRuleset, $userArray['statistics'] ?? [], $customVariant);
+            $userArray['rank_history'] = $userArray['rankHistory'] = null;
+            $userArray['rank_highest'] = null;
+            foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
+                $userArray[$key] = \App\Libraries\TomYumCustomRulesetScores::profileScores($user, $customRuleset, $type, 0, 0, false, $customVariant)['total'];
+            }
+            $userArray['scores_pinned_count'] = 0;
+        }
+
         if (is_api_request()) {
             return $userArray;
         } else {
@@ -746,6 +815,13 @@ class UsersController extends Controller
                 'achievements' => $achievements,
                 'current_mode' => $currentMode,
                 'tomyum_variant' => $tomyumMode !== null ? $shownMode : null,
+                // TomYum: the custom ruleset this profile is for ({slug, name, icon}), and every enabled one (the "…" menu).
+                'tomyum_custom_ruleset' => $customRuleset === null ? null : \App\Libraries\TomYumCustomRulesets::toApi($customRuleset),
+                'tomyum_custom_variant' => $customRuleset === null ? null : \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant'))),
+                'tomyum_custom_rulesets' => array_values(array_map(
+                    fn ($r) => ['slug' => $r->slug, 'name' => $r->name, 'icon' => \App\Libraries\TomYumCustomRulesets::toApi($r)['icon']],
+                    \App\Libraries\TomYumCustomRulesets::enabled(),
+                )),
                 'score_processing_notice_url' => $GLOBALS['cfg']['osu']['score']['processing_notice_url'],
                 'user' => $userArray,
                 'user_cover_presets' => $userCoverPresets ?? [],
@@ -847,6 +923,12 @@ class UsersController extends Controller
         $this->user = FindForProfilePage::find(request()->route('user'), 'id');
 
         $this->mode = request()->route('mode') ?? request()->input('mode') ?? $this->user->playmode;
+        // TomYum: a custom lazer ruleset's lists (its slug as the mode, from TumThai; the website sends custom_ruleset).
+        $this->customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($this->mode)
+            ?? \App\Libraries\TomYumCustomRulesets::findBySlug(get_string(request('custom_ruleset')));
+        if ($this->customRuleset !== null) {
+            $this->mode = 'osu';
+        }
         // TomYum: lazer asks for Relax/Autopilot lists with its mode (osurx, ...), the website with variant.
         if (($this->tomyumVariant = \App\Libraries\TomYumModeScores::variant($this->mode)) !== null) {
             $this->mode = $this->tomyumVariant[0];

@@ -121,10 +121,10 @@ class TomYumCustomRulesets
         return in_array($value, static::VARIANTS, true) ? $value : 'vanilla';
     }
 
-    /** SQL (on scores `s`) for the plays on a variant's board: normal has neither RX nor AP, Relax RX, Autopilot AP. */
-    public static function variantSql(string $variant): string
+    /** SQL (on scores `$alias`) for the plays on a variant's board: normal has neither RX nor AP, Relax RX, Autopilot AP. */
+    public static function variantSql(string $variant, string $alias = 's'): string
     {
-        $has = fn (string $acronym) => "JSON_CONTAINS(COALESCE(JSON_EXTRACT(s.data, '$.mods[*].acronym'), JSON_ARRAY()), '\"{$acronym}\"')";
+        $has = fn (string $acronym) => "JSON_CONTAINS(COALESCE(JSON_EXTRACT({$alias}.data, '$.mods[*].acronym'), JSON_ARRAY()), '\"{$acronym}\"')";
 
         return match ($variant) {
             'relax' => $has('RX'),
