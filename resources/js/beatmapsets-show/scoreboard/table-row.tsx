@@ -46,6 +46,8 @@ interface Props {
   activated: boolean;
   beatmap: BeatmapJson;
   byPp: boolean; // TomYum: show pp in the score column
+  // TomYum: a custom ruleset's board's judgement columns (the table's), in place of the mode's.
+  customAttributes?: string[] | null;
   highlightFriends: boolean;
   index: number;
   score: ScoreJsonForBeatmap;
@@ -137,7 +139,16 @@ export default class ScoreboardTableRow extends React.Component<Props> {
           {`${formatNumber(score.max_combo)}x`}
         </TdLink>
 
-        {calculateStatisticsFor(score, 'leaderboard').map((stat) => (
+        {this.props.customAttributes != null && this.props.customAttributes.map((attribute) => {
+          const value = (score.statistics as Partial<Record<string, number>>)[attribute] ?? 0;
+
+          return (
+            <TdLink key={attribute} href={this.scoreUrl} modifiers={mergeModifiers(`hit-${attribute}`, { zero: value === 0 })}>
+              {formatNumber(value)}
+            </TdLink>
+          );
+        })}
+        {this.props.customAttributes == null && calculateStatisticsFor(score, 'leaderboard').map((stat) => (
           <TdLink
             key={stat.label.short}
             href={this.scoreUrl}

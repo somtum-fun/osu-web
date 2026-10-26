@@ -29,6 +29,22 @@ export default class Table extends React.Component<Props> {
   }
 
   @computed
+  // TomYum: on a custom ruleset's board, the judgements its plays have (lazer's names), in the order they first come.
+  get customAttributes() {
+    if (this.props.controller.customRuleset == null) return null;
+
+    const attributes: string[] = [];
+    for (const score of this.props.controller.data.scores) {
+      for (const [attribute, value] of Object.entries(score.statistics)) {
+        if (value != null && value > 0 && !attribute.startsWith('ignore_') && !attributes.includes(attribute)) {
+          attributes.push(attribute);
+        }
+      }
+    }
+
+    return attributes;
+  }
+
   get showPp() {
     // TomYum: a custom lazer ruleset has no pp.
     return this.props.controller.customRuleset == null && shouldShowPp(this.props.controller.beatmap);
@@ -64,7 +80,13 @@ export default class Table extends React.Component<Props> {
                 <th className={`${bn}__header ${bn}__header--maxcombo`}>
                   {trans('beatmapsets.show.scoreboard.headers.combo')}
                 </th>
-                {scoreStatisticsMapping[this.props.controller.beatmap.mode]
+                {/* TomYum: a custom ruleset's board: its plays' own judgements. */}
+                {this.customAttributes != null && this.customAttributes.map((attribute) => (
+                  <th key={attribute} className={classWithModifiers(`${bn}__header`, ['hitstat', `hit-${attribute}`])}>
+                    {attribute.replace(/_/g, ' ')}
+                  </th>
+                ))}
+                {this.customAttributes == null && scoreStatisticsMapping[this.props.controller.beatmap.mode]
                   .filter((stat) => stat.relevantTypes.includes('leaderboard'))
                   .map((stat) => (
                     <th
@@ -97,6 +119,7 @@ export default class Table extends React.Component<Props> {
                     byPp={this.byPp}
                     highlightFriends={this.props.controller.currentType !== 'friend'}
                     index={index}
+                    customAttributes={this.customAttributes}
                     score={score}
                     showPp={this.showPp && !this.byPp}
                   />
