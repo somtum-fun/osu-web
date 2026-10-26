@@ -59,6 +59,12 @@ class Kernel extends ConsoleKernel
             ->cron('35 0,3,6,9,12,15,18,21 * * *')
             ->onOneServer();
 
+        // TomYum: players' daily rank on custom lazer rulesets' boards (their profile's rank graph).
+        $schedule->command('tomyum:custom-ruleset-ranks')
+            ->hourly()
+            ->withoutOverlapping(30)
+            ->onOneServer();
+
         // TomYum: tournaments whose registration closed: who no longer qualifies is marked for staff.
         $schedule->command('tomyum:tournaments-recheck')
             ->everyTenMinutes()

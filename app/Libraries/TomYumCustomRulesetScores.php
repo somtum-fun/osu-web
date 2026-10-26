@@ -330,6 +330,54 @@ class TomYumCustomRulesetScores
     }
 
     /** Everyone ranked in a custom ruleset (best per ranked map, added up), highest first, kept five minutes. */
+    /**
+     * The players ranked on a ruleset's board (best first) as the plays before $before had it (now when null): for
+     * the rank history.
+     *
+     * @return int[]
+     */
+    public static function rankedUserIdsBefore(TomYumCustomRuleset $ruleset, string $variant, ?\DateTimeInterface $before): array
+    {
+        $rows = DB::select(
+            'SELECT b.user_id
+            FROM (
+              SELECT s.user_id, s.beatmap_id, MAX(s.total_score) AS best
+              FROM scores s
+              WHERE s.ruleset_id = ? AND s.passed = 1 AND s.preserve = 1 AND s.ranked = 1 AND '.TomYumCustomRulesets::variantSql($variant)
+                .($before !== null ? ' AND s.ended_at < ?' : '').'
+              GROUP BY s.user_id, s.beatmap_id
+            ) b
+            JOIN phpbb_users u ON u.user_id = b.user_id AND u.user_warnings = 0 AND u.user_type = 0
+            GROUP BY b.user_id
+            ORDER BY SUM(b.best) DESC, b.user_id
+            LIMIT 10000',
+            $before !== null ? [$ruleset->id, $before->format('Y-m-d H:i:s')] : [$ruleset->id],
+        );
+
+        return array_map(fn ($r) => (int) $r->user_id, $rows);
+    }
+
+    /**
+     * A player's rank graph on a ruleset's board: the last 90 days' ranks, oldest first (0 on a day without one),
+     * as the profile's rank chart takes it.
+     *
+     * @return int[]
+     */
+    public static function rankHistory(User $user, TomYumCustomRuleset $ruleset, string $variant): array
+    {
+        $today = \Carbon\CarbonImmutable::now()->startOfDay();
+        $ranks = DB::table('tomyum_custom_ruleset_rank_history')
+            ->where(['user_id' => $user->getKey(), 'ruleset_id' => $ruleset->id, 'variant' => $variant])
+            ->where('date', '>', $today->subDays(90)->toDateString())
+            ->pluck('rank', 'date');
+        $data = [];
+        for ($back = 89; $back >= 0; $back--) {
+            $data[] = (int) ($ranks[$today->subDays($back)->toDateString()] ?? 0);
+        }
+
+        return $data;
+    }
+
     private static function allRanked(TomYumCustomRuleset $ruleset, ?string $country, string $variant): array
     {
         $variantSql = TomYumCustomRulesets::variantSql($variant);

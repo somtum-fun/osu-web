@@ -782,7 +782,9 @@ class UsersController extends Controller
         if ($customRuleset !== null) {
             $customVariant = \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant')));
             $userArray['statistics'] = \App\Libraries\TomYumCustomRulesetScores::profileStatistics($user, $customRuleset, $userArray['statistics'] ?? [], $customVariant);
-            $userArray['rank_history'] = $userArray['rankHistory'] = null;
+            // Its rank graph: the daily ranks tomyum:custom-ruleset-ranks keeps (rank only: no pp).
+            $history = \App\Libraries\TomYumCustomRulesetScores::rankHistory($user, $customRuleset, $customVariant);
+            $userArray['rank_history'] = $userArray['rankHistory'] = array_sum($history) === 0 ? null : ['mode' => 'osu', 'data' => $history];
             $userArray['rank_highest'] = null;
             foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
                 $userArray[$key] = \App\Libraries\TomYumCustomRulesetScores::profileScores($user, $customRuleset, $type, 0, 0, false, $customVariant)['total'];

@@ -43,11 +43,9 @@ export default class DetailStats extends React.PureComponent<Props> {
           </div>
 
           <div className='profile-detail-stats__chart'>
-            {/* TomYum: a custom lazer ruleset keeps no rank or pp history. */}
-            {this.props.custom ? (
-              <div className='profile-detail-stats__empty-chart'>Ranked by score: no rank history for custom rulesets</div>
-            ) : user.statistics.is_ranked ? (
-              <RankChart ppHistoryUrl={this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
+            {/* TomYum: a custom lazer ruleset's graph is its rank only (it has no pp). */}
+            {user.statistics.is_ranked ? (
+              <RankChart ppHistoryUrl={this.props.custom ? undefined : this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
             ) : (
               <div className='profile-detail-stats__empty-chart'>{trans('users.show.extra.unranked')}</div>
             )}

@@ -37,7 +37,7 @@ export default class Solo extends React.PureComponent<Props> {
             <Rank modifiers='rank-small' plainValue stats={user.statistics} type='country' />
           </div>
           <div className='profile-detail-stats-card__values profile-detail-stats-card__values--row'>
-            {/* TomYum: a custom lazer ruleset has no pp (or rank graph: below). */}
+            {/* TomYum: a custom lazer ruleset has no pp. */}
             {this.props.controller.customRuleset == null && <Pp stats={user.statistics} />}
             <MedalsCount userAchievements={user.user_achievements} />
           </div>
@@ -48,18 +48,19 @@ export default class Solo extends React.PureComponent<Props> {
         </div>
 
         <div className='profile-detail-stats-card__bottom'>
-          {user.statistics.is_ranked && this.props.controller.customRuleset == null
+          {user.statistics.is_ranked
             ? (
               <div className='profile-detail-stats-card__chart'>
                 <RankChart
-                  ppHistoryUrl={route('users.tomyum-pp-history', { mode: this.props.controller.tomyumMode, user: user.id })}
+                  // TomYum: a custom lazer ruleset's graph is its rank only (it has no pp).
+                  ppHistoryUrl={this.props.controller.customRuleset == null ? route('users.tomyum-pp-history', { mode: this.props.controller.tomyumMode, user: user.id }) : undefined}
                   rankHistory={user.rank_history}
                   stats={user.statistics}
                 />
               </div>
             ) : (
               <div className='profile-detail-stats-card__empty-chart'>
-                {this.props.controller.customRuleset != null ? 'Ranked by score: no rank history for custom rulesets' : trans('users.show.extra.unranked')}
+                {trans('users.show.extra.unranked')}
               </div>
             )
           }
