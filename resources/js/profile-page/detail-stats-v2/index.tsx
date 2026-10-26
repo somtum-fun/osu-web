@@ -27,7 +27,7 @@ export default class DetailStatsV2 extends React.Component<Props> {
           {this.props.controller.state.user.current_season_stats != null &&
             <SeasonStats stats={this.props.controller.state.user.current_season_stats} v2 />
           }
-          <Stats stats={this.props.controller.state.user.statistics} v2 />
+          <Stats custom={this.props.controller.customRuleset != null} stats={this.props.controller.state.user.statistics} v2 />
         </div>
       </div>
     );

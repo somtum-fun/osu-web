@@ -24,9 +24,13 @@ const entryKeys = [
 type EntryKey = typeof entryKeys[number];
 
 interface Props {
+  // TomYum: a custom lazer ruleset's (no play time or hit counts kept).
+  custom?: boolean;
   stats: UserStatisticsJson;
   v2?: boolean;
 }
+
+const customHidden = new Set(['play_time', 'total_hits', 'hits_per_play', 'replays_watched_by_others']);
 
 function getHitsPerPlay(stats: UserStatisticsJson) {
   return stats.play_count === 0
@@ -59,7 +63,7 @@ export default class Stats extends React.PureComponent<Props> {
   }
 
   private readonly renderEntry = (key: EntryKey) => (
-    (key !== 'play_time' || this.props.v2) && (
+    (key !== 'play_time' || this.props.v2) && !(this.props.custom && customHidden.has(key)) && (
       <dl key={key} className={classWithModifiers('profile-stats__entry', `key-${key}`)}>
         <dt className='profile-stats__key'>{trans(`users.show.stats.${key}`)}</dt>
         <dd className='profile-stats__value'>{this.formatValue(key)}</dd>

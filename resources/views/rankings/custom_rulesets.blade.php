@@ -99,7 +99,11 @@
                         <tr class="ranking-page-table__row">
                             <td class="ranking-page-table__column">#{{ i18n_number_format($firstItem + $index) }}</td>
                             <td class="ranking-page-table__column ranking-page-table__column--main">
-                                @include('rankings._main_column', ['object' => $user])
+                                @include('rankings._main_column', [
+                                    'object' => $user,
+                                    // Their profile on this ruleset (and board).
+                                    'userUrl' => route('users.show', ['user' => $user->getKey(), 'mode' => $ruleset->slug]).($variant === 'vanilla' ? '' : "?variant={$variant}"),
+                                ])
                             </td>
                             <td class="ranking-page-table__column">{{ i18n_number_format($row['ranked_score']) }}</td>
                             <td class="ranking-page-table__column ranking-page-table__column--dimmed">{{ i18n_number_format($row['maps']) }}</td>

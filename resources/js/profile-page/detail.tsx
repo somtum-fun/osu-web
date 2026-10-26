@@ -52,7 +52,7 @@ export default class Detail extends React.Component<Props> {
           <div className='profile-detail'>
             {core.userPreferences.get('profile_detail_v2')
               ? <DetailStatsV2 controller={this.props.controller} />
-              : <DetailStats ppHistoryUrl={this.ppHistoryUrl} user={user} />
+              : <DetailStats custom={this.props.controller.customRuleset != null} ppHistoryUrl={this.ppHistoryUrl} user={user} />
             }
             {this.renderDetailToggle()}
 
@@ -60,7 +60,7 @@ export default class Detail extends React.Component<Props> {
           </div>
         )}
 
-        <DetailBar user={user} />
+        <DetailBar custom={this.props.controller.customRuleset != null} user={user} />
 
         <Links user={user} />
       </>

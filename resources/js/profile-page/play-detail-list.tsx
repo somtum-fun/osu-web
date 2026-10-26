@@ -118,6 +118,8 @@ export default class PlayDetailList extends React.Component<Props> {
       <>
         <ProfilePageExtraSectionTitle
           count={this.scores.count}
+          // TomYum: a custom ruleset's best plays are its best scores (it has no pp).
+          title={this.props.controller.customRuleset != null && this.sectionMap.translationKey === 'top_ranks.best' ? 'Best Scores' : undefined}
           titleKey={`users.show.extra.${this.sectionMap.translationKey}.title`}
         />
 

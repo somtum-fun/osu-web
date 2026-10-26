@@ -7,13 +7,15 @@ import { trans } from 'utils/lang';
 
 interface Props {
   count?: number | null;
+  // TomYum: a title of its own in place of the translated one.
+  title?: string;
   titleKey: string;
 }
 
 export default function ProfilePageExtraSectionTitle(props: Props) {
   return (
     <h3 className='title title--page-extra-small'>
-      {trans(props.titleKey)}
+      {props.title ?? trans(props.titleKey)}
 
       {props.count != null &&
         <span className='title__count'>

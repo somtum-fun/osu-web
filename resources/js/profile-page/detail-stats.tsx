@@ -16,6 +16,8 @@ import RankCount from './rank-count';
 import Stats from './stats';
 
 interface Props {
+  // TomYum: a custom lazer ruleset's profile: by score, no pp, rank graph or play time.
+  custom?: boolean;
   // TomYum: the player's pp history in the mode shown (the chart can show it instead of the rank).
   ppHistoryUrl?: string;
   user: Controller['state']['user'];
@@ -41,7 +43,10 @@ export default class DetailStats extends React.PureComponent<Props> {
           </div>
 
           <div className='profile-detail-stats__chart'>
-            {user.statistics.is_ranked ? (
+            {/* TomYum: a custom lazer ruleset keeps no rank or pp history. */}
+            {this.props.custom ? (
+              <div className='profile-detail-stats__empty-chart'>Ranked by score: no rank history for custom rulesets</div>
+            ) : user.statistics.is_ranked ? (
               <RankChart ppHistoryUrl={this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
             ) : (
               <div className='profile-detail-stats__empty-chart'>{trans('users.show.extra.unranked')}</div>
@@ -50,8 +55,8 @@ export default class DetailStats extends React.PureComponent<Props> {
           <div className='profile-detail-stats__chart-numbers'>
             <div className='profile-detail-stats__values profile-detail-stats__values--grid'>
               <MedalsCount userAchievements={user.user_achievements} />
-              <Pp stats={user.statistics} />
-              <PlayTime stats={user.statistics} />
+              {!this.props.custom && <Pp stats={user.statistics} />}
+              {!this.props.custom && <PlayTime stats={user.statistics} />}
             </div>
             <div className='profile-detail-stats__values'>
               <RankCount stats={user.statistics} />
@@ -61,7 +66,7 @@ export default class DetailStats extends React.PureComponent<Props> {
 
         <div className='profile-detail-stats__separator' />
 
-        <Stats stats={user.statistics} />
+        <Stats custom={this.props.custom} stats={user.statistics} />
       </div>
     );
   }

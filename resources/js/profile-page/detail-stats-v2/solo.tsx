@@ -37,7 +37,8 @@ export default class Solo extends React.PureComponent<Props> {
             <Rank modifiers='rank-small' plainValue stats={user.statistics} type='country' />
           </div>
           <div className='profile-detail-stats-card__values profile-detail-stats-card__values--row'>
-            <Pp stats={user.statistics} />
+            {/* TomYum: a custom lazer ruleset has no pp (or rank graph: below). */}
+            {this.props.controller.customRuleset == null && <Pp stats={user.statistics} />}
             <MedalsCount userAchievements={user.user_achievements} />
           </div>
         </div>
@@ -47,7 +48,7 @@ export default class Solo extends React.PureComponent<Props> {
         </div>
 
         <div className='profile-detail-stats-card__bottom'>
-          {user.statistics.is_ranked
+          {user.statistics.is_ranked && this.props.controller.customRuleset == null
             ? (
               <div className='profile-detail-stats-card__chart'>
                 <RankChart
@@ -58,7 +59,7 @@ export default class Solo extends React.PureComponent<Props> {
               </div>
             ) : (
               <div className='profile-detail-stats-card__empty-chart'>
-                {trans('users.show.extra.unranked')}
+                {this.props.controller.customRuleset != null ? 'Ranked by score: no rank history for custom rulesets' : trans('users.show.extra.unranked')}
               </div>
             )
           }

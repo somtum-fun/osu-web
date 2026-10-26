@@ -14,6 +14,8 @@ import * as React from 'react';
 import { trans } from 'utils/lang';
 
 interface Props {
+  // TomYum: a custom lazer ruleset's profile has no level.
+  custom?: boolean;
   user: UserExtendedJson;
 }
 
@@ -73,7 +75,7 @@ export default class DetailBar extends React.Component<Props> {
 
         {showExtraMenu(this.props.user) && <ExtraMenu user={this.props.user} />}
 
-        {this.props.user.statistics != null &&
+        {this.props.user.statistics != null && !this.props.custom &&
           <div className='profile-detail-bar__level'>
             <div className='profile-detail-bar__level-bar'>
               <Bar
