@@ -291,6 +291,12 @@ class Build extends Model implements CommentableInterface
 
     public function displayVersion()
     {
+        // TomYum: the legacy clients' releases are named like 20261026somtum14; stripped to their digits they read
+        // as a different number, so they're shown whole.
+        if ($this->updateStream?->name === 'legacy') {
+            return $this->version;
+        }
+
         return preg_replace('#[^0-9.]#', '', $this->version);
     }
 }
