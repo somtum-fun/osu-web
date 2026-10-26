@@ -72,7 +72,7 @@
 
     {{-- TomYum: custom lazer rulesets, for the mode bar's "…" menu (they play osu! maps). --}}
     <script id="json-tomyum-custom-rulesets" type="application/json">
-        {!! json_encode(array_values(array_map(fn ($r) => ['slug' => $r->slug, 'name' => $r->name, 'icon' => App\Libraries\TomYumCustomRulesets::toApi($r)['icon']], App\Libraries\TomYumCustomRulesets::enabled()))) !!}
+        {!! json_encode(array_values(array_map(fn ($r) => array_intersect_key(App\Libraries\TomYumCustomRulesets::toApi($r), array_flip(['slug', 'name', 'icon', 'mods', 'variants'])), App\Libraries\TomYumCustomRulesets::enabled()))) !!}
     </script>
 
     @include('beatmapsets._recommended_star_difficulty_all')

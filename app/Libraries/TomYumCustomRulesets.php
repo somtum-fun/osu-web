@@ -192,7 +192,60 @@ class TomYumCustomRulesets
             'download_url' => $ruleset->download_url,
             'sha256' => $ruleset->sha256,
             'size' => $ruleset->size,
+            // The mods a player can pick ([{acronym, name, type}], in the game's order; null when unknown) and the boards it has.
+            'mods' => static::mods($ruleset),
+            'variants' => static::variants($ruleset),
         ];
+    }
+
+    /**
+     * A ruleset's mods ([{acronym, name, type}], the ones a player can pick), read by TomYum from its pinned DLL; kept
+     * for good by the DLL's hash (a pinned release never changes). Null when TomYum can't say.
+     */
+    public static function mods(TomYumCustomRuleset $ruleset): ?array
+    {
+        if ($ruleset->sha256 === null || $ruleset->download_url === null) {
+            return null;
+        }
+        $key = "tomyum:ruleset-mods:{$ruleset->sha256}";
+        $mods = Cache::get($key);
+        if (is_array($mods)) {
+            return $mods;
+        }
+
+        try {
+            $response = (new TomYumAdmin())->withTimeout(30)->get('/custom-rulesets/mods', ['url' => $ruleset->download_url, 'sha256' => $ruleset->sha256]);
+        } catch (\Throwable) {
+            return null;
+        }
+        if (!$response->successful() || !is_array($response->json())) {
+            return null;
+        }
+        $mods = array_values(array_filter(array_map(
+            fn ($mod) => is_array($mod) && is_string($mod['acronym'] ?? null)
+                ? ['acronym' => $mod['acronym'], 'name' => (string) ($mod['name'] ?? $mod['acronym']), 'type' => (string) ($mod['type'] ?? '')]
+                : null,
+            $response->json(),
+        )));
+        Cache::forever($key, $mods);
+
+        return $mods;
+    }
+
+    /** The boards a ruleset has: Normal, and Relax/Autopilot when it has those mods (all three when its mods are unknown). */
+    public static function variants(TomYumCustomRuleset $ruleset): array
+    {
+        $mods = static::mods($ruleset);
+        if ($mods === null) {
+            return ['vanilla', 'relax', 'autopilot'];
+        }
+        $acronyms = array_column($mods, 'acronym');
+
+        return array_values(array_filter([
+            'vanilla',
+            in_array('RX', $acronyms, true) ? 'relax' : null,
+            in_array('AP', $acronyms, true) ? 'autopilot' : null,
+        ]));
     }
 
     /**

@@ -12,6 +12,8 @@ import core from 'osu-core-singleton';
 import * as React from 'react';
 import { shouldShowPp } from 'utils/beatmap-helper';
 import { classWithModifiers } from 'utils/css';
+import { parseJsonNullable } from 'utils/json';
+import { registerCustomMods } from 'utils/score-helper';
 import { trans } from 'utils/lang';
 import { SwitchError } from 'utils/switch-never';
 import Controller, { ScoreboardSort, ScoreboardVariant, sortsFor, variantsByRuleset } from './controller';
@@ -32,6 +34,18 @@ const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K'
 const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
 const sortLabels: Record<ScoreboardSort, string> = { pp: 'pp', score: 'Score' };
 
+// TomYum: the custom lazer rulesets' mods (null: unknown) and boards (the page's mode bar picks one).
+interface CustomRulesetJson {
+  mods: { acronym: string; name: string; type: string }[] | null;
+  slug: string;
+  variants: ('autopilot' | 'relax' | 'vanilla')[];
+}
+const customRulesets = parseJsonNullable<CustomRulesetJson[]>('json-tomyum-custom-rulesets') ?? [];
+for (const ruleset of customRulesets) {
+  registerCustomMods(ruleset.mods ?? []);
+}
+const customVariants: Record<CustomRulesetJson['variants'][number], ScoreboardVariant> = { autopilot: 'ap', relax: 'rx', vanilla: 'vn' };
+
 // TomYum: the custom lazer rulesets staff turned on (they play osu! maps), from the page.
 interface Props {
   beatmap: BeatmapExtendedJson;
@@ -49,8 +63,22 @@ export default class Main extends React.Component<Props> {
   }
 
   @computed
+  // TomYum: the custom ruleset shown, if any.
+  private get customRuleset() {
+    const slug = this.controller.customRuleset;
+
+    return slug == null ? null : customRulesets.find((ruleset) => ruleset.slug === slug) ?? null;
+  }
+
   private get mods() {
     let mods: string[];
+
+    // TomYum: a custom ruleset's own mods (RX and AP are its boards).
+    if (this.controller.customRuleset != null) {
+      const own = this.customRuleset?.mods;
+
+      return own == null ? [] : ['NM', ...own.map((mod) => mod.acronym).filter((acronym) => acronym !== 'RX' && acronym !== 'AP')];
+    }
 
     // TomYum: Relax/Autopilot plays are the game server's, with stable's mods (RX/AP is the board itself).
     if (this.controller.variant !== 'vn') {
@@ -85,9 +113,9 @@ export default class Main extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    // A custom ruleset's mods are its own: start without a filter.
+    // A custom ruleset's mods are its own: start without a filter, on Normal.
     if (prevProps.customRuleset !== this.props.customRuleset) {
-      this.controller.setCurrent({ customRuleset: this.props.customRuleset, resetMods: true });
+      this.controller.setCurrent({ customRuleset: this.props.customRuleset, resetMods: true, variant: 'vn' });
     }
   }
 
@@ -106,7 +134,7 @@ export default class Main extends React.Component<Props> {
 
         {this.renderOptions()}
 
-        {this.controller.beatmap.is_scoreable && this.controller.customRuleset == null &&
+        {this.controller.beatmap.is_scoreable && this.mods.length > 0 &&
           <div className={classWithModifiers('beatmapset-scoreboard__mods', { initial: this.controller.enabledMods.size === 0 })}>
             {this.mods.map((mod) => <Mod key={mod} controller={this.controller} mod={mod} />)}
           </div>
@@ -192,7 +220,12 @@ export default class Main extends React.Component<Props> {
   private renderOptions() {
     if (!this.controller.beatmap.is_scoreable) return null;
 
-    const variants = variantsByRuleset[this.controller.beatmap.mode];
+    // TomYum: a custom ruleset has the boards its mods give it (Relax, Autopilot).
+    const custom = this.customRuleset;
+    const customBoards = custom?.variants.map((variant) => customVariants[variant]);
+    const variants = this.controller.customRuleset != null
+      ? (customBoards != null && customBoards.length > 1 ? customBoards : null)
+      : variantsByRuleset[this.controller.beatmap.mode];
 
     return (
       <div className='sort beatmapset-scoreboard__options'>

@@ -212,6 +212,10 @@ class ScoresController extends Controller
         $score = Score::whereKey(static::parseIdOrFail($scoreId))->whereHas('beatmap')->firstOrFail();
         $beatmap = $score->beatmap;
         $ranked = in_array($beatmap->approved, [Beatmapset::STATES['ranked'], Beatmapset::STATES['approved']], true);
+        // A custom lazer ruleset's play has no pp (its boards are by score).
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($score->ruleset_id)) {
+            return ['pp' => null, 'ranked' => false];
+        }
         $acronyms = array_column($score->data->mods, 'acronym');
         $variant = in_array('RX', $acronyms, true) || in_array('AP', $acronyms, true);
 

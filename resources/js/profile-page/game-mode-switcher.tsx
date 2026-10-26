@@ -79,7 +79,10 @@ export default class GameModeSwitcher extends React.Component<Props> {
 
       return (
         <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {[['Normal', 'vanilla'], ['Relax', 'relax'], ['Autopilot', 'autopilot']].map(([label, variant]) => {
+          {[['Normal', 'vanilla'], ['Relax', 'relax'], ['Autopilot', 'autopilot']]
+            // Only the boards it has (Relax/Autopilot when it has those mods).
+            .filter(([, variant]) => this.props.controller.customRulesets.find((r) => r.slug === custom.slug)?.variants?.includes(variant as 'vanilla') ?? true)
+            .map(([label, variant]) => {
             const active = this.props.controller.customVariant === variant;
             const href = route('users.show', { mode: custom.slug, user }) + (variant === 'vanilla' ? '' : `?variant=${variant}`);
 

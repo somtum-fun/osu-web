@@ -371,9 +371,15 @@ class TomYumCustomRulesetScores
             $filter .= ' AND s.user_id IN ('.implode(',', array_fill(0, count($userIds), '?')).')';
             array_push($bindings, ...$userIds);
         }
-        $mods = array_values(array_unique(array_filter(array_map(fn ($m) => strtoupper((string) $m), $mods), fn ($m) => preg_match('/^[A-Z0-9]{1,8}$/', $m) === 1)));
+        // As the ruleset spells them (Sentakki's are "Ex", "C"...); NM is no mods.
+        $mods = array_values(array_unique(array_filter(array_map(fn ($m) => (string) $m, $mods), fn ($m) => preg_match('/^[A-Za-z0-9]{1,8}$/', $m) === 1)));
         if ($mods !== []) {
             $wanted = array_values(array_diff($mods, ['NM']));
+            // On a Relax/Autopilot board every play has that mod: it's part of the match.
+            $boardMod = ['relax' => 'RX', 'autopilot' => 'AP'][$variant] ?? null;
+            if ($boardMod !== null && !in_array($boardMod, $wanted, true)) {
+                $wanted[] = $boardMod;
+            }
             $filter .= ' AND JSON_LENGTH(JSON_EXTRACT(s.data, \'$.mods\')) = ?';
             $bindings[] = count($wanted);
             foreach ($wanted as $acronym) {

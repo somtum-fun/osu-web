@@ -183,7 +183,7 @@ export default class TopCard extends React.PureComponent<Props> {
                     <ScoreValue score={this.props.score} />
                   </div>
                 </div>
-              ) : shouldShowPp(this.props.beatmap) && (
+              ) : shouldShowPp(this.props.beatmap) && this.props.score.ruleset_id < 10 /* TomYum: custom rulesets (10 and up) have no pp */ && (
                 <div className='beatmap-score-top__stat'>
                   <div className='beatmap-score-top__stat-header'>
                     {trans('beatmapsets.show.scoreboard.headers.pp')}

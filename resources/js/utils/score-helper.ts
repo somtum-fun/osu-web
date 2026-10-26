@@ -59,8 +59,17 @@ export function isPerfectCombo(score: ScoreJson) {
     : score.is_perfect_combo;
 }
 
+// TomYum: custom lazer rulesets' own mods (their names and types), for the ones osu!'s list doesn't have.
+const customModDetails: Partial<Record<string, { acronym: string; index: Partial<Record<number, number>>; name: string; setting_labels: Partial<Record<string, string>>; type: string }>> = {};
+
+export function registerCustomMods(mods: { acronym: string; name: string; type: string }[]) {
+  for (const mod of mods) {
+    customModDetails[mod.acronym] ??= { acronym: mod.acronym, index: {}, name: mod.name, setting_labels: {}, type: mod.type };
+  }
+}
+
 export function modDetails(mod: ScoreModJson) {
-  return modNames[mod.acronym] ?? {
+  return modNames[mod.acronym] ?? customModDetails[mod.acronym] ?? {
     acronym: mod.acronym,
     index: {},
     name: '',
@@ -134,7 +143,19 @@ export const scoreStatisticsMapping: Record<Ruleset, ScoreStatisticMapping[]> = 
 };
 
 export function calculateStatisticsFor(score: ScoreJson, type: ScoreDisplayType): ScoreStatistic[] {
-  return scoreStatisticsMapping[rulesetNames[score.ruleset_id]]
+  // TomYum: a custom lazer ruleset (ruleset 10 and up) has its own judgements: the play's, as lazer names them.
+  const ruleset = rulesetNames[score.ruleset_id] as Ruleset | undefined;
+  if (ruleset == null) {
+    return Object.entries(score.statistics)
+      .filter(([attribute, value]) => value != null && value > 0 && !attribute.startsWith('ignore_'))
+      .map(([attribute, value]) => {
+        const label = attribute.replace(/_/g, ' ');
+
+        return { attribute: attribute as ScoreStatisticsAttribute, basic: true, label: { long: label, short: label }, value: value ?? 0 };
+      });
+  }
+
+  return scoreStatisticsMapping[ruleset]
     .filter((mapping) => mapping.relevantTypes.includes(type))
     .map((mapping) => ({
       attribute: mapping.attributes[0],
@@ -193,7 +214,8 @@ const rankAbsoluteCutoffsBase = {
 export function rankAbsoluteCutoffs(score: ScoreJson) {
   const scoreType = shouldReturnLegacyValue(score) ? 'legacy' : 'current';
 
-  return rankAbsoluteCutoffsBase[scoreType][score.ruleset_id];
+  // TomYum: a custom lazer ruleset's grades are lazer's own (ScoreProcessor's, as osu!'s).
+  return rankAbsoluteCutoffsBase[scoreType][score.ruleset_id] ?? rankAbsoluteCutoffsBase.current[rulesetIds.osu];
 }
 
 export function rankCutoffs(score: ScoreJson): number[] {

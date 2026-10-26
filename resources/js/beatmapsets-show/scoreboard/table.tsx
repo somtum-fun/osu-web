@@ -30,7 +30,8 @@ export default class Table extends React.Component<Props> {
 
   @computed
   get showPp() {
-    return shouldShowPp(this.props.controller.beatmap);
+    // TomYum: a custom lazer ruleset has no pp.
+    return this.props.controller.customRuleset == null && shouldShowPp(this.props.controller.beatmap);
   }
 
   constructor(props: Props) {
