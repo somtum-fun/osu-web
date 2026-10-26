@@ -56,7 +56,7 @@ class TomYumDan
      * (422), and the game shows it under "Score will not be submitted", as it does when the client
      * isn't an official build. The game server only watches osu!(stable) plays for dan rules.
      */
-    const LAZER_REFUSED = 'This beatmap is part of osu!dan, which is only for osu!(stable) for now. Stay tuned!';
+    const LAZER_REFUSED = 'This beatmap is part of osu!dan, which can\'t be played in multiplayer or playlists. Play it on its own instead.';
 
     /** TomYum: a TumThai play of a dan map without Classic (it judges hold notes close to osu!(stable)). */
     const LAZER_NEEDS_CLASSIC = 'This beatmap is part of osu!dan: on TumThai, turn on the Classic (CL) mod to submit your play.';
