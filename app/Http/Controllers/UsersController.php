@@ -687,7 +687,7 @@ class UsersController extends Controller
         $userArray['statistics'] = \App\Libraries\TomYumCustomRulesetScores::profileStatistics($user, $customRuleset, $userArray['statistics'] ?? [], $customVariant);
         // Its rank graph: the daily ranks tomyum:custom-ruleset-ranks keeps (rank only: no pp).
         $history = \App\Libraries\TomYumCustomRulesetScores::rankHistory($user, $customRuleset, $customVariant);
-        $userArray['rank_history'] = $userArray['rankHistory'] = array_sum($history) === 0 ? null : ['mode' => 'osu', 'data' => $history];
+        $userArray['rank_history'] = $userArray['rankHistory'] = array_sum($history) === 0 ? null : ['mode' => 'osu', 'data' => \App\Libraries\TomYumRankHistory::drawable($history)];
         $userArray['rank_highest'] = null;
         foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
             $userArray[$key] = \App\Libraries\TomYumCustomRulesetScores::profileScores($user, $customRuleset, $type, 0, 0, false, $customVariant)['total'];
@@ -799,7 +799,7 @@ class UsersController extends Controller
             $highest = $statistics['rank_highest'] ?? null;
             unset($statistics['rank_history'], $statistics['rank_highest']);
             $userArray['statistics'] = $statistics;
-            $userArray['rank_history'] = $userArray['rankHistory'] = $history === null ? null : ['mode' => $currentMode, 'data' => $history];
+            $userArray['rank_history'] = $userArray['rankHistory'] = $history === null ? null : ['mode' => $currentMode, 'data' => \App\Libraries\TomYumRankHistory::drawable($history)];
             $userArray['rank_highest'] = $highest;
             // The profile's list headings count TomYum's plays in that mode.
             foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
