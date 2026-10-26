@@ -18,6 +18,18 @@ interface Props {
   controller: Controller;
 }
 
+// TomYum: a custom ruleset's judgements, short (as osu!'s columns are): lazer's own names, as few words as they'll take.
+const customShortLabels: Partial<Record<string, string>> = {
+  large_bonus: 'bonus',
+  large_tick_hit: 'tick',
+  large_tick_miss: 'tick miss',
+  slider_tail_hit: 'tail',
+  small_bonus: 'spin',
+  small_tick_hit: 'drop',
+  small_tick_miss: 'drop miss',
+};
+const customShortLabel = (attribute: string) => customShortLabels[attribute] ?? attribute.replace(/_/g, ' ');
+
 @observer
 export default class Table extends React.Component<Props> {
   @observable private readonly activeKeyState = new ActiveKeyState<number>();
@@ -83,7 +95,7 @@ export default class Table extends React.Component<Props> {
                 {/* TomYum: a custom ruleset's board: its plays' own judgements. */}
                 {this.customAttributes != null && this.customAttributes.map((attribute) => (
                   <th key={attribute} className={classWithModifiers(`${bn}__header`, ['hitstat', `hit-${attribute}`])}>
-                    {attribute.replace(/_/g, ' ')}
+                    {customShortLabel(attribute)}
                   </th>
                 ))}
                 {this.customAttributes == null && scoreStatisticsMapping[this.props.controller.beatmap.mode]
