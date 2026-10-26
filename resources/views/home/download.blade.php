@@ -240,6 +240,19 @@
                     </div>
                 </div>
 
+                {{-- TomYum: our downloads aren't code-signed, so Windows and antiviruses may stop them. --}}
+                <div class="download-page__help">
+                    <span class="fas fa-shield-alt"></span>
+                    <strong>Antivirus or Windows blocking a download?</strong>
+                    Our downloads aren't code-signed (that would cost us upwards of 300€ a year), so Windows may say
+                    "Windows protected your PC" (click <strong>More info</strong>, then <strong>Run anyway</strong>),
+                    and antiviruses may block or remove the Launcher, the Patcher, <code>pkms.dll</code>,
+                    {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} or the old clients by mistake.
+                    Add an exception (whitelist) for their folders, or turn real-time protection off just while you install.
+                    Only for files from this page.
+                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#antivirus">How to add an exception</a>
+                </div>
+
                 @if ($GLOBALS['cfg']['services']['enchant']['id'] !== null)
                     <div class="download-page__help">
                         {!! osu_trans('home.download.help._', [
