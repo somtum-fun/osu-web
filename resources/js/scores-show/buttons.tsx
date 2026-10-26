@@ -43,6 +43,18 @@ export default function Buttons(props: Props) {
         <RenderButton scoreId={props.score.id} />
       )}
 
+      {/* TomYum: a custom ruleset's play can't be rendered (o!rdr plays osu! replays only), so say so. */}
+      {props.score.ruleset_id >= 10 && (
+        <button
+          className='btn-osu-big btn-osu-big--rounded'
+          disabled
+          title="o!rdr only renders osu! plays, so custom rulesets' plays can't be rendered."
+          type='button'
+        >
+          <i className='fas fa-film' /> Render not available (custom ruleset)
+        </button>
+      )}
+
       {visibleMenuItems.size > 0 && (
         <div className='score-buttons__menu'>
           <PopupMenuPersistent>
