@@ -24,13 +24,13 @@ const entryKeys = [
 type EntryKey = typeof entryKeys[number];
 
 interface Props {
-  // TomYum: a custom lazer ruleset's (no play time or hit counts kept).
+  // TomYum: a custom lazer ruleset's (no hit counts or replay views kept).
   custom?: boolean;
   stats: UserStatisticsJson;
   v2?: boolean;
 }
 
-const customHidden = new Set(['play_time', 'total_hits', 'hits_per_play', 'replays_watched_by_others']);
+const customHidden = new Set(['total_hits', 'hits_per_play', 'replays_watched_by_others']);
 
 function getHitsPerPlay(stats: UserStatisticsJson) {
   return stats.play_count === 0

@@ -280,7 +280,8 @@ class TomYumCustomRulesetScores
         $standing = static::standing($ruleset, $user, $variant);
         $variantSql = TomYumCustomRulesets::variantSql($variant);
         $all = DB::selectOne(
-            "SELECT COUNT(*) AS plays, CAST(COALESCE(SUM(s.total_score), 0) AS SIGNED) AS total, COALESCE(MAX(s.max_combo), 0) AS combo
+            "SELECT COUNT(*) AS plays, CAST(COALESCE(SUM(s.total_score), 0) AS SIGNED) AS total, COALESCE(MAX(s.max_combo), 0) AS combo,
+              CAST(COALESCE(SUM(LEAST(GREATEST(TIMESTAMPDIFF(SECOND, s.started_at, s.ended_at), 0), 3600)), 0) AS SIGNED) AS seconds
             FROM scores s WHERE s.user_id = ? AND s.ruleset_id = ? AND {$variantSql}",
             [$user->getKey(), $ruleset->id],
         );
@@ -317,7 +318,8 @@ class TomYumCustomRulesetScores
             'level' => ['current' => 0, 'progress' => 0],
             'maximum_combo' => (int) ($all->combo ?? 0),
             'play_count' => (int) ($all->plays ?? 0),
-            'play_time' => 0,
+            // From each play's start to its end (an hour at most: a play left open doesn't count for days).
+            'play_time' => (int) ($all->seconds ?? 0),
             'pp' => 0,
             'pp_exp' => 0,
             'rank' => ['country' => $standing['country_rank']],

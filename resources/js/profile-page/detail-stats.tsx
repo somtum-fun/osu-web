@@ -16,7 +16,7 @@ import RankCount from './rank-count';
 import Stats from './stats';
 
 interface Props {
-  // TomYum: a custom lazer ruleset's profile: by score, no pp, rank graph or play time.
+  // TomYum: a custom lazer ruleset's profile: by score, no pp.
   custom?: boolean;
   // TomYum: the player's pp history in the mode shown (the chart can show it instead of the rank).
   ppHistoryUrl?: string;
@@ -54,7 +54,7 @@ export default class DetailStats extends React.PureComponent<Props> {
             <div className='profile-detail-stats__values profile-detail-stats__values--grid'>
               <MedalsCount userAchievements={user.user_achievements} />
               {!this.props.custom && <Pp stats={user.statistics} />}
-              {!this.props.custom && <PlayTime stats={user.statistics} />}
+              <PlayTime stats={user.statistics} />
             </div>
             <div className='profile-detail-stats__values'>
               <RankCount stats={user.statistics} />
