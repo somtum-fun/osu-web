@@ -31,7 +31,7 @@
                 <div class="sort sort--ranking-header">
                     <div class="sort__items">
                         {{-- Only the boards it has (Relax/Autopilot when it has those mods). --}}
-                        @foreach (array_intersect_key(['vanilla' => 'Normal', 'relax' => 'Relax', 'autopilot' => 'Autopilot'], array_flip(App\Libraries\TomYumCustomRulesets::variants($ruleset))) as $key => $label)
+                        @foreach (array_intersect_key(['vanilla' => 'Vanilla', 'relax' => 'Relax', 'autopilot' => 'Autopilot'], array_flip(App\Libraries\TomYumCustomRulesets::variants($ruleset))) as $key => $label)
                             <a
                                 class="{{ class_with_modifiers('sort__item', 'button', ['active' => $variant === $key]) }}"
                                 href="{{ route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'country' => $country, 'variant' => $key === 'vanilla' ? null : $key])) }}"

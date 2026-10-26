@@ -72,14 +72,14 @@ export default class GameModeSwitcher extends React.Component<Props> {
   // Each pill also carries a star you can click (your own profile only) to pin that mode as a
   // favourite; favourites get a gold border so other players see which modes a user cares about.
   private renderVariants() {
-    // TomYum: a custom ruleset's profile has its own Normal / Relax / Autopilot (by query: ?variant=).
+    // TomYum: a custom ruleset's profile has its own Vanilla / Relax / Autopilot (by query: ?variant=).
     const custom = this.props.controller.customRuleset;
     if (custom != null) {
       const user = this.props.controller.state.user.id;
 
       return (
         <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {[['Normal', 'vanilla'], ['Relax', 'relax'], ['Autopilot', 'autopilot']]
+          {[['Vanilla', 'vanilla'], ['Relax', 'relax'], ['Autopilot', 'autopilot']]
             // Only the boards it has (Relax/Autopilot when it has those mods).
             .filter(([, variant]) => this.props.controller.customRulesets.find((r) => r.slug === custom.slug)?.variants?.includes(variant as 'vanilla') ?? true)
             .map(([label, variant]) => {
