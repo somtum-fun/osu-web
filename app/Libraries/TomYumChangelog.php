@@ -21,6 +21,8 @@ class TomYumChangelog
     /** name => [id, name on the page]. */
     public const STREAMS = [
         'lazer' => [6, 'TumThai'],
+        // TumThai!Next: TumThai's other release stream (in the game: Settings → Updates, ppy's Tachyon).
+        'tachyon' => [15, 'TumThai!Next'],
         'stable40' => [5, 'Stable'],
         'legacy' => [13, 'Legacy clients'],
         'server' => [10, 'Server'],
