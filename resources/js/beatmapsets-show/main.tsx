@@ -285,6 +285,7 @@ export default class Main extends React.Component<Props> {
   };
 
   private readonly setHash = () => {
-    setHash(generate({ beatmap: this.controller.currentBeatmap }));
+    // TomYum: with the custom ruleset shown, so the link opens its board.
+    setHash(generate({ beatmap: this.controller.currentBeatmap, customRuleset: this.customRuleset?.slug }));
   };
 }

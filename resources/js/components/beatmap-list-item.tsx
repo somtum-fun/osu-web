@@ -16,6 +16,8 @@ import StringWithComponent from './string-with-component';
 
 interface BaseProps {
   beatmap: BeatmapJson | BeatmapExtendedJson;
+  // TomYum: another icon in place of the mode's (a custom lazer ruleset's), and no star rating (it isn't its).
+  customIcon?: React.ReactNode;
   beatmapUrl?: string;
   count?: number;
   inline?: boolean;
@@ -40,12 +42,14 @@ export default class BeatmapListItem extends React.PureComponent<Props> {
     return (
       <div className={classWithModifiers('beatmap-list-item', { deleted, inline: this.props.inline }, this.props.modifiers)}>
         <div className='beatmap-list-item__col beatmap-list-item__col--icon'>
-          <span className={`fal fa-extra-mode-${this.props.beatmap.mode}`} />
+          {this.props.customIcon ?? <span className={`fal fa-extra-mode-${this.props.beatmap.mode}`} />}
         </div>
 
-        <div className='beatmap-list-item__col'>
-          <DifficultyBadge rating={this.props.beatmap.difficulty_rating} />
-        </div>
+        {this.props.customIcon == null &&
+          <div className='beatmap-list-item__col'>
+            <DifficultyBadge rating={this.props.beatmap.difficulty_rating} />
+          </div>
+        }
 
         <div className='beatmap-list-item__col beatmap-list-item__col--main'>
           <div className={`beatmap-list-item__version ${this.props.inline ? '' : 'u-ellipsis-overflow'}`}>

@@ -28,7 +28,7 @@ import { apiShowMore } from 'utils/offset-paginator';
 import { SwitchError } from 'utils/switch-never';
 import getPage, { PageSectionJson, PageSectionWithoutCountJson } from './extra-page';
 import { ProfilePageSection, ProfilePageUserJson } from './extra-page-props';
-import { registerCustomMods } from 'utils/score-helper';
+import { registerCustomMods, registerCustomRuleset } from 'utils/score-helper';
 
 const sectionToUrlType = {
   favouriteBeatmapsets: 'favourite',
@@ -106,6 +106,7 @@ interface State {
 // TomYum: a custom lazer ruleset (TomYumCustomRulesets::toApi, or its slug, name and icon).
 export interface CustomRulesetJson {
   icon: string | null;
+  id?: number;
   // Its mods ([{acronym, name, type}], null: unknown) and the boards it has.
   mods?: { acronym: string; name: string; type: string }[] | null;
   name: string;
@@ -199,6 +200,9 @@ export default class Controller {
     // Their mods' names and types, for the score lists.
     for (const ruleset of this.customRulesets) {
       registerCustomMods(ruleset.mods ?? []);
+      if (ruleset.id != null) {
+        registerCustomRuleset(ruleset.id, ruleset.slug);
+      }
     }
     this.customVariant = initialData.tomyum_custom_variant ?? 'vanilla';
     this.scoreProcessingNoticeUrl = initialData.score_processing_notice_url;

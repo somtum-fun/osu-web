@@ -8,19 +8,23 @@ import { currentUrl } from './turbolinks';
 
 export function parse(hash: string) {
   const [mode, id] = hash.slice(1).split('/');
+  const playmode = ensureRuleset(mode);
 
   return {
     beatmapId: getInt(id),
-    playmode: ensureRuleset(mode),
+    // TomYum: a custom lazer ruleset's board (its slug in place of the mode: #tau/123).
+    customRuleset: playmode == null && /^[a-z0-9_-]{1,64}$/i.test(mode ?? '') ? mode : null,
+    playmode,
   };
 }
 
-export function generate({ beatmap, ruleset }: { beatmap?: BeatmapJson; ruleset?: Ruleset }) {
+export function generate({ beatmap, customRuleset, ruleset }: { beatmap?: BeatmapJson; customRuleset?: string | null; ruleset?: Ruleset }) {
   let hash = '';
 
-  ruleset ??= beatmap?.mode;
-  if (ruleset != null) {
-    hash += `#${ruleset}`;
+  // TomYum: a custom lazer ruleset's board is linked by its slug (on an osu! difficulty).
+  const mode = customRuleset ?? ruleset ?? beatmap?.mode;
+  if (mode != null) {
+    hash += `#${mode}`;
 
     if (beatmap != null) {
       hash += `/${beatmap.id}`;

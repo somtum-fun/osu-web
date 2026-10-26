@@ -7,7 +7,9 @@ import BeatmapsetJson from 'interfaces/beatmapset-json';
 import WithBeatmapOwners from 'interfaces/with-beatmap-owners';
 import { route } from 'laroute';
 import * as React from 'react';
+import { CustomRulesetIcon } from 'components/tomyum-custom-ruleset-tabs';
 import { getArtist, getTitle } from 'utils/beatmapset-helper';
+import { parseJsonNullable } from 'utils/json';
 import { trans } from 'utils/lang';
 
 interface Props {
@@ -15,9 +17,19 @@ interface Props {
   beatmapset: BeatmapsetJson;
 }
 
+// TomYum: the custom lazer ruleset a play is in (the page has it then), as the beatmap page links its board.
+interface CustomRulesetJson {
+  icon: string | null;
+  name: string;
+  slug: string;
+}
+
 export default function BeatmapInfo(props: Props) {
   const { beatmap, beatmapset } = props;
-  const beatmapUrl = route('beatmaps.show', { beatmap: beatmap.id, mode: beatmap.mode });
+  const custom = parseJsonNullable<CustomRulesetJson>('json-tomyum-custom-ruleset');
+  const beatmapUrl = custom == null
+    ? route('beatmaps.show', { beatmap: beatmap.id, mode: beatmap.mode })
+    : `${route('beatmapsets.show', { beatmapset: beatmapset.id })}#${custom.slug}/${beatmap.id}`;
 
   return (
     <div className='score-beatmap'>
@@ -37,6 +49,7 @@ export default function BeatmapInfo(props: Props) {
             beatmap={beatmap}
             beatmapUrl={beatmapUrl}
             beatmapset={beatmapset}
+            customIcon={custom == null ? undefined : <CustomRulesetIcon icon={custom.icon} name={custom.name} />}
             inline
             modifiers='score'
             showNonGuestOwner

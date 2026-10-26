@@ -146,7 +146,9 @@ export default class Controller {
       state = {
         beatmapId: optionsHash.beatmapId,
         beatmapset,
-        playmode: optionsHash.playmode,
+        // TomYum: a custom ruleset's board linked (#tau/123): it plays the osu! difficulties.
+        customRuleset: optionsHash.customRuleset,
+        playmode: optionsHash.customRuleset != null ? 'osu' : optionsHash.playmode,
         showingNsfwWarning: beatmapset.nsfw && runInAction(() => !core.userPreferences.get('beatmapset_show_nsfw')),
       };
     }

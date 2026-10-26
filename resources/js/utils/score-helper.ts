@@ -7,6 +7,7 @@ import ScoreJson, { ScoreStatisticsAttribute } from 'interfaces/score-json';
 import ScoreModJson from 'interfaces/score-mod-json';
 import modNames from 'mod-names.json';
 import core from 'osu-core-singleton';
+import { route } from 'laroute';
 import { trans } from './lang';
 import { legacyAccuracyAndRank } from './legacy-score-helper';
 
@@ -61,6 +62,20 @@ export function isPerfectCombo(score: ScoreJson) {
 
 // TomYum: custom lazer rulesets' own mods (their names and types), for the ones osu!'s list doesn't have.
 const customModDetails: Partial<Record<string, { acronym: string; index: Partial<Record<number, number>>; name: string; setting_labels: Partial<Record<string, string>>; type: string }>> = {};
+
+// TomYum: custom lazer rulesets' slugs by the ruleset id their plays have (10 and up).
+const customRulesetSlugs: Partial<Record<number, string>> = {};
+
+export function registerCustomRuleset(id: number, slug: string) {
+  customRulesetSlugs[id] = slug;
+}
+
+/** TomYum: a custom lazer ruleset's play's map: the beatmap page with that ruleset's board (null for osu!'s rulesets). */
+export function customRulesetBeatmapUrl(score: { ruleset_id: number }, beatmap: { beatmapset_id: number; id: number }) {
+  const slug = customRulesetSlugs[score.ruleset_id];
+
+  return slug == null ? null : `${route('beatmapsets.show', { beatmapset: beatmap.beatmapset_id })}#${slug}/${beatmap.id}`;
+}
 
 export function registerCustomMods(mods: { acronym: string; name: string; type: string }[]) {
   for (const mod of mods) {

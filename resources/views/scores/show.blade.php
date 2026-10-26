@@ -21,6 +21,13 @@
         {!! json_encode($scoreJson) !!}
     </script>
 
+    {{-- TomYum: a custom lazer ruleset's play: its ruleset (the header's icon and beatmap link). --}}
+    @if (($customRuleset = App\Libraries\TomYumCustomRulesets::find($score->ruleset_id)) !== null)
+        <script id="json-tomyum-custom-ruleset" type="application/json">
+            {!! json_encode(array_intersect_key(App\Libraries\TomYumCustomRulesets::toApi($customRuleset), array_flip(['slug', 'name', 'icon']))) !!}
+        </script>
+    @endif
+
     <script id="json-raw" type="application/json">
         {!! json_encode($score->getAttributes()) !!}
     </script>

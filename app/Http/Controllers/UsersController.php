@@ -821,7 +821,7 @@ class UsersController extends Controller
                 'tomyum_custom_ruleset' => $customRuleset === null ? null : \App\Libraries\TomYumCustomRulesets::toApi($customRuleset),
                 'tomyum_custom_variant' => $customRuleset === null ? null : \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant'))),
                 'tomyum_custom_rulesets' => array_values(array_map(
-                    fn ($r) => array_intersect_key(\App\Libraries\TomYumCustomRulesets::toApi($r), array_flip(['slug', 'name', 'icon', 'mods', 'variants'])),
+                    fn ($r) => array_intersect_key(\App\Libraries\TomYumCustomRulesets::toApi($r), array_flip(['id', 'slug', 'name', 'icon', 'mods', 'variants'])),
                     \App\Libraries\TomYumCustomRulesets::enabled(),
                 )),
                 'score_processing_notice_url' => $GLOBALS['cfg']['osu']['score']['processing_notice_url'],
