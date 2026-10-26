@@ -65,6 +65,24 @@ class TomYumCustomRulesets
         return $id === null ? null : (static::enabled()[$id] ?? null);
     }
 
+    /**
+     * A score's or user's custom ruleset as the API shows it ({id, slug, name}); null for osu!'s own rulesets. A
+     * ruleset staff have since turned off keeps its id, without a slug or name.
+     */
+    public static function apiRef(mixed $rulesetId): ?array
+    {
+        if (!static::isCustomId($rulesetId)) {
+            return null;
+        }
+        $ruleset = static::find($rulesetId);
+
+        return [
+            'id' => get_int($rulesetId),
+            'slug' => $ruleset?->slug,
+            'name' => $ruleset?->name,
+        ];
+    }
+
     public static function findBySlug(mixed $slug): ?TomYumCustomRuleset
     {
         if (!is_string($slug)) {

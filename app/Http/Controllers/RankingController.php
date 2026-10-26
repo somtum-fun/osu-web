@@ -201,14 +201,14 @@ class RankingController extends Controller
      *
      * Returns [Rankings](#rankings)
      *
-     * @urlParam ruleset string required [Ruleset](#ruleset). Example: mania
+     * @urlParam ruleset string required [Ruleset](#ruleset), or a [custom ruleset](#ruleset-custom-rulesets)'s slug (`type` `score` only). Example: mania
      * @urlParam type string required [RankingType](#rankingtype). Example: global
      *
      * @queryParam country string Filter ranking by country code. Only available for `type` of `global`. Example: JP
      * @queryParam cursor [Cursor](#cursor). No-example
      * @queryParam filter Either `all` (default) or `friends`. Example: all
      * @queryParam spotlight The id of the spotlight if `type` is `charts`. Ranking for latest spotlight will be returned if not specified. No-example
-     * @queryParam variant Filter ranking to specified mode variant. For `ruleset` of `mania`, it's either `4k` or `7k`. Only available for `type` of `global`. Example: 4k
+     * @queryParam variant Filter ranking to specified mode variant. For `ruleset` of `mania`, it's either `4k` or `7k`. Only available for `type` of `global`. For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. Example: 4k
      */
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {

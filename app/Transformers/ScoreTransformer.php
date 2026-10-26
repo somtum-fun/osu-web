@@ -81,6 +81,10 @@ class ScoreTransformer extends TransformerAbstract
         }
 
         if ($score instanceof SoloScore) {
+            // TomYum: a custom lazer ruleset's play says which ruleset ({id, slug, name}).
+            if (($customRuleset = \App\Libraries\TomYumCustomRulesets::apiRef($score->ruleset_id)) !== null) {
+                $extraAttributes['custom_ruleset'] = $customRuleset;
+            }
             $extraAttributes['classic_total_score'] = $score->getClassicTotalScore();
             $extraAttributes['preserve'] = $score->preserve;
             $extraAttributes['processed'] = $score->isProcessed();
@@ -150,7 +154,11 @@ class ScoreTransformer extends TransformerAbstract
             'count_miss' => $score->countmiss,
         ];
 
+        // TomYum: a custom lazer ruleset's play keeps mode osu (the map's) and says which ruleset ({id, slug, name}).
+        $customRuleset = isset($soloScore) ? \App\Libraries\TomYumCustomRulesets::apiRef($soloScore->ruleset_id) : null;
+
         return [
+            ...($customRuleset === null ? [] : ['custom_ruleset' => $customRuleset]),
             'accuracy' => $score->accuracy(),
             'best_id' => $best?->getKey(),
             'created_at' => $score->date_json,

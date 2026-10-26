@@ -9,6 +9,7 @@ beatmap_id               | integer                             | The ID of the b
 best_id                  | integer?                            | No longer used.
 build_id                 | integer?                            | The ID of the game build the score was set on.
 classic_total_score      | integer                             | Total score calculated using lazer's "classic scoring" variant. Only present for `solo_score` type.
+custom_ruleset           | object                              | Only on a [custom ruleset](#ruleset-custom-rulesets)'s score: `{id, slug, name}`.
 ended_at                 | [Timestamp](#timestamp)             | When the user finished playing.
 has_replay               | boolean                             | Whether an online replay exists for this score.
 id                       | integer                             | The ID of this score.
@@ -27,7 +28,7 @@ processed                | boolean                             | Whether or not 
 rank                     | string                              | The letter rank achieved by the score. Notably, this always follows [lazer's updated rank criteria](https://osu.ppy.sh/wiki/en/Client/Release_stream/Lazer/Gameplay_differences_in_osu!(lazer)#differences-in-grading-systems).
 ranked                   | boolean                             | Whether or not this score can be visible on beatmap leaderboards. Notably, presence of unranked mods **does not** influence the value of this flag, and whether a score gives PP **does not** depend on this flag. Only for `solo_score` type.
 room_id                  | integer                             | The ID of the room that the user was in when setting this score. Only present for multiplayer scores.
-ruleset_id               | integer                             | The ID of the ruleset that this score was set on.
+ruleset_id               | integer                             | The ID of the ruleset that this score was set on. 10 and up for a [custom ruleset](#ruleset-custom-rulesets).
 started_at               | [Timestamp](#timestamp)?            | When the user started playing.
 statistics               | [ScoreStatistics](#scorestatistics) | The score statistics achieved in this score,
 total_score              | integer                             | Total score calculated using lazer's "standardised scoring" variant.
@@ -68,6 +69,7 @@ created_at            |         | |
 mode                  |         | |
 mode_int              |         | |
 replay                |         | |
+custom_ruleset        | object  | Only on a [custom ruleset](#ruleset-custom-rulesets)'s score: `{id, slug, name}`. Its `mode` is `osu`.
 
 ### Optional attributes
 

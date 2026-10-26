@@ -48,6 +48,7 @@ beatmap_playcounts_count   | integer | |
 blocks                     | | |
 country                    | | |
 cover                      | | |
+custom_ruleset             | object | Only when the user is shown for a [custom ruleset](#ruleset-custom-rulesets): `{id, slug, name, variant}`.
 favourite_beatmapset_count | integer | |
 follow_user_mapping        | integer[] | |
 follower_count             | integer | |

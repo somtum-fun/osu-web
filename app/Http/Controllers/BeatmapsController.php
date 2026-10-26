@@ -380,24 +380,6 @@ class BeatmapsController extends Controller
     }
 
     /**
-     * Get Beatmap scores
-     *
-     * Returns the top scores for a beatmap. Depending on user preferences, this may only show legacy scores.
-     *
-     * ---
-     *
-     * ### Response Format
-     *
-     * Returns [BeatmapScores](#beatmapscores). `Score` object inside includes `user` and the included `user` includes `country` and `cover`.
-     *
-     * @urlParam beatmap integer required Id of the [Beatmap](#beatmap).
-     *
-     * @queryParam legacy_only integer Whether or not to exclude lazer scores. Defaults to 0. Example: 0
-     * @queryParam mode The [Ruleset](#ruleset) to get scores for.
-     * @queryParam mods An array of matching Mods, or none // TODO.
-     * @queryParam type Beatmap score ranking type // TODO.
-     */
-    /**
      * TomYum: the beatmap page's pp calculator: what a pass would be worth in a ruleset (the map's own, or taiko,
      * catch or mania on an osu! map, converted) with some lazer mods (settings and all), misses and combo, at a few
      * accuracies. TomYum works it out as it does a submitted play.
@@ -420,6 +402,25 @@ class BeatmapsController extends Controller
         return response()->json($response->json(), $response->successful() ? 200 : 422);
     }
 
+    /**
+     * Get Beatmap scores
+     *
+     * Returns the top scores for a beatmap. Depending on user preferences, this may only show legacy scores.
+     *
+     * ---
+     *
+     * ### Response Format
+     *
+     * Returns [BeatmapScores](#beatmapscores). `Score` object inside includes `user` and the included `user` includes `country` and `cover`.
+     *
+     * @urlParam beatmap integer required Id of the [Beatmap](#beatmap).
+     *
+     * @queryParam legacy_only integer Whether or not to exclude lazer scores. Defaults to 0. Example: 0
+     * @queryParam mode The [Ruleset](#ruleset) to get scores for, or a [custom ruleset](#ruleset-custom-rulesets)'s slug (its leaderboard, by score).
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
+     * @queryParam mods An array of matching Mods, or none // TODO.
+     * @queryParam type Beatmap score ranking type // TODO.
+     */
     public function scores($id)
     {
         // TomYum: the Relax/Autopilot leaderboards are the game server's: variant=rx or ap on the

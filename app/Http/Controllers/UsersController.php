@@ -556,7 +556,8 @@ class UsersController extends Controller
      *
      * @queryParam legacy_only integer Whether or not to exclude lazer scores. Defaults to 0. Example: 0
      * @queryParam include_fails Only for recent scores, include scores of failed plays. Set to 1 to include them. Defaults to 0. Example: 0
-     * @queryParam mode [Ruleset](#ruleset) of the scores to be returned. Defaults to the specified `user`'s mode. Example: osu
+     * @queryParam mode [Ruleset](#ruleset) of the scores to be returned, or a [custom ruleset](#ruleset-custom-rulesets)'s slug. Defaults to the specified `user`'s mode. Example: osu
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
      * @queryParam limit Maximum number of results.
      * @queryParam offset Result offset for pagination. Example: 1
      *
@@ -638,14 +639,17 @@ class UsersController extends Controller
      * `session_verified` attribute is included.
      * Additionally, `statistics_rulesets` is included, containing statistics for all rulesets.
      *
-     * @urlParam mode string [Ruleset](#ruleset). User default mode will be used if not specified. Example: osu
+     * @urlParam mode string [Ruleset](#ruleset), or a [custom ruleset](#ruleset-custom-rulesets)'s slug. User default mode will be used if not specified. Example: osu
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
      *
      * @response "See User object section"
      */
     public function me($mode = null)
     {
         $user = \Auth::user();
-        $currentMode = $mode ?? $user->playmode;
+        // TomYum: a custom lazer ruleset's slug as the mode: osu!'s user, with that ruleset's statistics.
+        $customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($mode);
+        $currentMode = $customRuleset !== null ? 'osu' : ($mode ?? $user->playmode);
 
         if (!Beatmap::isModeValid($currentMode)) {
             abort(404);
@@ -653,7 +657,7 @@ class UsersController extends Controller
 
         $user->statistics($currentMode)?->setRelation('user', $user);
 
-        return $this->fillDeprecatedDuplicateFields(json_item(
+        $userArray = $this->fillDeprecatedDuplicateFields(json_item(
             $user,
             (new UserTransformer())->setMode($currentMode),
             [
@@ -668,6 +672,30 @@ class UsersController extends Controller
                 ),
             ],
         ));
+
+        return $customRuleset === null ? $userArray : static::withCustomRuleset($userArray, $user, $customRuleset);
+    }
+
+    /**
+     * TomYum: a user as a custom lazer ruleset shows them (the API's users/{user}/{slug} and me/{slug}, and the
+     * profile page): that ruleset's statistics (by ranked score: no pp), rank graph and list counts, on the board
+     * the variant query asks for (vanilla, relax, autopilot), and which ruleset it is (custom_ruleset).
+     */
+    private static function withCustomRuleset(array $userArray, User $user, \App\Models\TomYumCustomRuleset $customRuleset): array
+    {
+        $customVariant = \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant')));
+        $userArray['statistics'] = \App\Libraries\TomYumCustomRulesetScores::profileStatistics($user, $customRuleset, $userArray['statistics'] ?? [], $customVariant);
+        // Its rank graph: the daily ranks tomyum:custom-ruleset-ranks keeps (rank only: no pp).
+        $history = \App\Libraries\TomYumCustomRulesetScores::rankHistory($user, $customRuleset, $customVariant);
+        $userArray['rank_history'] = $userArray['rankHistory'] = array_sum($history) === 0 ? null : ['mode' => 'osu', 'data' => $history];
+        $userArray['rank_highest'] = null;
+        foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
+            $userArray[$key] = \App\Libraries\TomYumCustomRulesetScores::profileScores($user, $customRuleset, $type, 0, 0, false, $customVariant)['total'];
+        }
+        $userArray['scores_pinned_count'] = 0;
+        $userArray['custom_ruleset'] = [...\App\Libraries\TomYumCustomRulesets::apiRef($customRuleset->id), 'variant' => $customVariant];
+
+        return $userArray;
     }
 
     /**
@@ -715,7 +743,8 @@ class UsersController extends Controller
      * - user_achievements
      *
      * @urlParam user integer required Id or `@`-prefixed username of the user. Previous usernames are also checked in some cases. Example: 1
-     * @urlParam mode string [Ruleset](#ruleset). User default mode will be used if not specified. Example: osu
+     * @urlParam mode string [Ruleset](#ruleset), or a [custom ruleset](#ruleset-custom-rulesets)'s slug. User default mode will be used if not specified. Example: osu
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
      *
      * @queryParam key Type of `user` passed in url parameter. Can be either `id` or `username` to limit lookup by their respective type. Passing empty or invalid value will result in id lookup followed by username lookup if not found. This parameter has been deprecated. Prefix `user` parameter with `@` instead to lookup by username.
      *
@@ -780,16 +809,7 @@ class UsersController extends Controller
         }
 
         if ($customRuleset !== null) {
-            $customVariant = \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant')));
-            $userArray['statistics'] = \App\Libraries\TomYumCustomRulesetScores::profileStatistics($user, $customRuleset, $userArray['statistics'] ?? [], $customVariant);
-            // Its rank graph: the daily ranks tomyum:custom-ruleset-ranks keeps (rank only: no pp).
-            $history = \App\Libraries\TomYumCustomRulesetScores::rankHistory($user, $customRuleset, $customVariant);
-            $userArray['rank_history'] = $userArray['rankHistory'] = array_sum($history) === 0 ? null : ['mode' => 'osu', 'data' => $history];
-            $userArray['rank_highest'] = null;
-            foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
-                $userArray[$key] = \App\Libraries\TomYumCustomRulesetScores::profileScores($user, $customRuleset, $type, 0, 0, false, $customVariant)['total'];
-            }
-            $userArray['scores_pinned_count'] = 0;
+            $userArray = static::withCustomRuleset($userArray, $user, $customRuleset);
         }
 
         if (is_api_request()) {

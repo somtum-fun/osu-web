@@ -13,6 +13,8 @@ use App\Libraries\TomYumCustomRulesets;
 /**
  * TomYum: the custom lazer rulesets staff turned on, with their pinned files (GET /api/v2/tomyum/rulesets). TumThai
  * reads it (signed in) for its Settings list, its downloads and the id a ruleset's plays submit with.
+ *
+ * @group Custom rulesets
  */
 class TomYumRulesetsController extends Controller
 {
@@ -87,7 +89,16 @@ class TomYumRulesetsController extends Controller
         ]);
     }
 
-    /** GET /api/v2/tomyum/rulesets/{slug}/me: the signed-in player's standing in a custom ruleset (TumThai's user card). */
+    /**
+     * Get Own Custom Ruleset Standing
+     *
+     * Your standing in a [custom ruleset](#ruleset-custom-rulesets): your rank (global and country), ranked score,
+     * accuracy and play count there. (TumThai's user card. For the whole user, see [Get Own Data](#get-own-data) with
+     * the ruleset's slug.)
+     *
+     * @urlParam slug string required The custom ruleset's slug. Example: sentakki
+     * @queryParam variant `vanilla` (default), `relax` or `autopilot`. No-example
+     */
     public function me(string $slug)
     {
         $ruleset = TomYumCustomRulesets::findBySlug($slug) ?? abort(404);
@@ -100,6 +111,15 @@ class TomYumRulesetsController extends Controller
         ));
     }
 
+    /**
+     * Get Custom Rulesets
+     *
+     * The [custom rulesets](#ruleset-custom-rulesets) staff have turned on: each one's `id` (the `ruleset_id` its
+     * scores have), `slug` (what endpoints take in place of a ruleset name), `name`, `description`, icon, version,
+     * and the ruleset's DLL (`download_url`, `sha256`, `size`) that TumThai installs.
+     *
+     * @response {"rulesets":[{"id":10,"slug":"sentakki","name":"sentakki","assembly":"osu.Game.Rulesets.Sentakki","description":null,"icon_url":null,"icon":null,"source_url":null,"version":"2026.1020.0","download_url":"https://...","sha256":"...","size":1048576}]}
+     */
     public function index()
     {
         return response()->json([
