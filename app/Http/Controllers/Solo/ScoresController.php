@@ -71,6 +71,12 @@ class ScoresController extends BaseController
             }
 
             $score->queueForProcessing();
+
+            // TomYum: a custom ruleset's ranked pass counts in its rankings straight away (ppy's processor
+            // leaves custom rulesets alone, so nothing else refreshes them).
+            if ($score->passed && $score->ranked && \App\Libraries\TomYumCustomRulesets::isCustomId($score->ruleset_id)) {
+                \App\Libraries\TomYumCustomRulesetScores::rankingsChanged((int) $score->ruleset_id);
+            }
         }
 
         return json_item($score, new ScoreTransformer(false));

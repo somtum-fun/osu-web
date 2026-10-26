@@ -380,10 +380,29 @@ class TomYumCustomRulesetScores
         return $data;
     }
 
+    /**
+     * A custom ruleset's play was just stored: its rankings (and the standings and profiles built from them) are
+     * worked out again on the next look, instead of up to 5 minutes later.
+     */
+    public static function rankingsChanged(int $rulesetId): void
+    {
+        $key = static::generationKey($rulesetId);
+        // Kept a day past the rankings' own 5 minutes: an expired counter just starts again, with fresh keys.
+        Cache::put($key, (int) Cache::get($key, 0) + 1, 86400);
+    }
+
+    private static function generationKey(int $rulesetId): string
+    {
+        return "tomyum:custom-ruleset-rankings-gen:{$rulesetId}";
+    }
+
     private static function allRanked(TomYumCustomRuleset $ruleset, ?string $country, string $variant): array
     {
         $variantSql = TomYumCustomRulesets::variantSql($variant);
-        return Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:{$variant}:".($country ?? ''), 300, function () use ($ruleset, $country, $variantSql) {
+        // The key has the ruleset's generation in it: a new ranked pass bumps it (rankingsChanged), so the next look is fresh.
+        $generation = (int) Cache::get(static::generationKey($ruleset->id), 0);
+
+        return Cache::remember("tomyum:custom-ruleset-rankings:{$ruleset->id}:{$generation}:{$variant}:".($country ?? ''), 300, function () use ($ruleset, $country, $variantSql) {
             $rows = DB::select(
                 'SELECT b.user_id, CAST(SUM(b.best) AS SIGNED) AS ranked_score, COUNT(*) AS maps, CAST(MAX(b.best) AS SIGNED) AS best
                 FROM (
