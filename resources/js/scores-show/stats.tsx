@@ -52,7 +52,8 @@ export default function Stats(props: Props) {
             </div>
           </div>
 
-          {shouldShowPp(props.beatmap) && (
+          {/* TomYum: a custom lazer ruleset's play (ruleset 10 and up) has no pp. */}
+          {shouldShowPp(props.beatmap) && props.score.ruleset_id < 10 && (
             <div className='score-stats__stat'>
               <div className='score-stats__stat-row score-stats__stat-row--label'>
                 {trans('beatmapsets.show.scoreboard.headers.pp')}
@@ -64,7 +65,7 @@ export default function Stats(props: Props) {
           )}
 
           {/* TomYum: a map without pp: what the play would be worth if it were ranked, greyed out. */}
-          {!shouldShowPp(props.beatmap) && props.score.tomyum_pp_if_ranked != null && (
+          {!shouldShowPp(props.beatmap) && props.score.ruleset_id < 10 && props.score.tomyum_pp_if_ranked != null && (
             <div className='score-stats__stat' title='What this play would be worth if the map were ranked. It is not counted.'>
               <div className='score-stats__stat-row score-stats__stat-row--label'>
                 pp if ranked
