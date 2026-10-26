@@ -28,7 +28,9 @@ class TomYumChangelog
         'server' => [10, 'Server'],
         'web' => [1, 'Web / Wiki'],
         'discord' => [11, 'Discord'],
-        'launcher' => [14, 'Somtum Launcher'],
+        // Somtum Launcher: Windows and Linux are released apart, each with its own stream.
+        'launcher' => [14, 'Somtum Launcher (Windows)'],
+        'launcher-linux' => [16, 'Somtum Launcher (Linux)'],
     ];
 
     /** Makes the streams that aren't there yet (names given on the panel are kept). */
