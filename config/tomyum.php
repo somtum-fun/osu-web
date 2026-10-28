@@ -123,6 +123,8 @@ return [
         'logo' => presence(env('BRAND_LOGO')) ?? 'somtum',
         // somtum or osu.
         'favicon' => presence(env('BRAND_FAVICON')) ?? 'somtum',
+        // Accounts registered before this UTC date (YYYY-MM-DD) show "Here since the beginning"; unset: off.
+        'first_members_before' => presence(env('BRAND_FIRST_MEMBERS_BEFORE')),
     ],
 
     // Sign-up rules for accounts made in lazer and stable (App\Libraries\TomYumRegistrationGuard):
