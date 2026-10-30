@@ -253,6 +253,19 @@
                     <a href="{{ wiki_url('Help_centre/Common_problems') }}#antivirus">How to add an exception</a>
                 </div>
 
+                {{-- TomYum: Smart App Control blocks unsigned apps outright, and exceptions don't get past it. --}}
+                <div class="download-page__help">
+                    <span class="fas fa-shield-alt"></span>
+                    <strong>Windows says "Part of this app has been blocked"?</strong>
+                    Recent Windows security updates block unsigned apps by default through Smart App Control, and this
+                    affects every somtum build: {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, the old
+                    clients and stable. To play, search for <strong>Smart App Control</strong> in the Windows search bar and
+                    open the first result (or <strong>Windows Security</strong>, <strong>App &amp; browser control</strong>,
+                    <strong>Smart App Control settings</strong>), then change it from <strong>On</strong> to
+                    <strong>Off</strong>. This may not work on a work or school PC that you don't own.
+                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#smart-app-control">More about Smart App Control</a>
+                </div>
+
                 @if ($GLOBALS['cfg']['services']['enchant']['id'] !== null)
                     <div class="download-page__help">
                         {!! osu_trans('home.download.help._', [
