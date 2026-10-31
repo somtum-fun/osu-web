@@ -1150,6 +1150,8 @@ Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
 // TomYum: what search engines read (TomYumSeo).
 Route::get('robots.txt', 'TomYumSeoController@robots')->name('tomyum.robots');
 Route::get('sitemap.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap');
+// The same sitemap on a second URL, for Search Console: a new URL makes Google read it from scratch.
+Route::get('sitemap-main.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap-main');
 Route::get('indexnow.txt', 'TomYumSeoController@indexNowKey')->name('tomyum.indexnow-key');
 // TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is somtum.fun's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
