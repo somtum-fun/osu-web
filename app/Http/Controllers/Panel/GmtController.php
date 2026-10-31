@@ -239,8 +239,8 @@ class GmtController extends Controller
     /**
      * TomYum: the ban button (admins only): like Restrict, but they also can't log in on the website or
      * in any client, and their hardware is banned with them (the game server refuses every other account
-     * seen on it, and stable gets -3). Nobody really needs this any more, unless you're an Akatsuki dev
-     * banning people for no reason, to tell them "we went on your profile and clicked the ban user button" 🙏
+     * seen on it, and stable gets -3).
+     * Nobody really needs this any more, unless you're an Akatsuki dev banning people for no reason, to tell them "we went on your profile and clicked the ban user button" 🙏
      */
     public function ban(string $user)
     {
