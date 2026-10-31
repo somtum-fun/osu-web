@@ -139,6 +139,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unrestrict', 'GmtController@unrestrict')->name('users.unrestrict');
             // TomYum: restrict the player and every account on the same hardware (admins only).
             Route::post('users/{user}/nuke', 'GmtController@nuke')->name('users.nuke');
+            // TomYum: banned: restricted, no logins anywhere, hardware banned too (admins only).
+            Route::post('users/{user}/ban', 'GmtController@ban')->name('users.ban');
+            Route::post('users/{user}/unban', 'GmtController@unban')->name('users.unban');
             Route::post('users/{user}/silence', 'GmtController@silence')->name('users.silence');
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
@@ -443,6 +446,7 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('p/verify', 'ClientVerificationsController@create')->name('client-verifications.legacy');
     // TomYum: what old stable builds open for "register": how to make an account in the game.
     Route::get('p/register', 'UsersController@create')->name('users.create.legacy');
+    Route::get('register', 'UsersController@create')->name('users.create.short');
 
     Route::resource('comments', 'CommentsController', ['except' => ['create', 'edit']]);
     Route::post('comments/{comment}/pin', 'CommentsController@pinStore')->name('comments.pin');
