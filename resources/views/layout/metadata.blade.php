@@ -11,6 +11,17 @@
     $opengraph['description'] = presence($opengraph['description'] ?? null)
         ?? presence($pageDescription ?? null)
         ?? App\Libraries\TomYumBranding::text('description');
+
+    // TomYum: link embeds (Discord, X, ...) get the page's title and the server's logo when the page sets none.
+    // The tab's title (master's $title, escaped and with text-direction marks), else the section's name.
+    $defaultOpengraphTitle = presence($opengraph['title'] ?? null) === null
+        ? (presence(str_replace(["\u{202c}", "\u{202d}"], '', html_entity_decode($title ?? '', ENT_QUOTES | ENT_HTML5))) ?? page_title())
+        : null;
+    if (presence($opengraph['image'] ?? null) === null) {
+        $opengraphLogo = App\Libraries\TomYumBranding::logo()['image_2x'];
+        $opengraph['image'] = str_starts_with($opengraphLogo, '/') ? $appUrl.$opengraphLogo : $opengraphLogo;
+        $opengraph['card'] ??= 'summary';
+    }
 @endphp
 {{-- TomYum: this server's favicons and logo (Admin panel > Branding). --}}
 <link rel="apple-touch-icon" sizes="180x180" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('apple-touch-icon.png') }}">
@@ -38,6 +49,10 @@
 
 @if (isset($canonicalUrl))
     <meta property="og:url" content="{{ $canonicalUrl }}">
+@endif
+
+@if ($defaultOpengraphTitle !== null)
+    <meta property="og:title" content="{{ $defaultOpengraphTitle }}">
 @endif
 
 @foreach ($opengraph as $key => $value)
