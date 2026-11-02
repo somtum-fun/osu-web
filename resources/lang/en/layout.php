@@ -121,6 +121,7 @@ return [
             'server_status' => 'Server Status',
             'source_code' => 'Source Code',
             'terms' => 'Terms',
+            'takedown' => 'Takedown requests', // TomYum
         ],
     ],
 

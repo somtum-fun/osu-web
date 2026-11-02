@@ -5,7 +5,7 @@
 {{-- TomYum: TumThai's two streams (?stream=next): TumThai!Next is the same game on tumthai-framework. --}}
 @if ($lazerStreams !== [])
     <div class="download-page__text download-page__text--download-portable">
-        Stream:
+        {{ $tyT('streams.label') }}
         @foreach ($lazerStreams as $id => $stream)
             @if ($id === $lazerStream)
                 <strong>{{ $stream['name'] }}</strong>
@@ -18,17 +18,17 @@
         @endforeach
         <br>
         @if ($lazerPlatform === 'android')
-            <strong>TumThai!Next is recommended on Android</strong>: it runs smoother and with less delay on phones.
+            {!! $tyT('streams.android') !!}
         @else
-            <strong>TumThai!Next</strong> is our faster stream: it runs smoother on low-end PCs, and has the newest performance options.
+            {!! $tyT('streams.other') !!}
         @endif
-        Same account, beatmaps and scores.
+        {{ $tyT('streams.same') }}
         @if ($lazerPlatform === 'windows_x64')
-            Switch streams any time in the game (Settings → General → Updates) or the Somtum Launcher.
+            {{ $tyT('streams.switch_windows') }}
         @elseif ($lazerPlatform === 'android')
-            Want the other one? Download it here.
+            {{ $tyT('streams.switch_android') }}
         @else
-            Switch streams any time in the Somtum Launcher, or download the other one here.
+            {{ $tyT('streams.switch_other') }}
         @endif
     </div>
 @endif

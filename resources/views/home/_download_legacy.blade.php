@@ -7,36 +7,36 @@
 <details class="download-page__legacy" id="legacy">
     <summary class="download-page__legacy-head">
         <div>
-            <div class="download-page__text download-page__text--title">Legacy osu! clients (2008-2015)</div>
+            <div class="download-page__text download-page__text--title">{{ $tyT('legacy.title') }}</div>
             <div class="download-page__text download-page__text--description">
-                The Somtum Launcher installs and updates these for you. Download one yourself here.
+                {{ $tyT('legacy.subtitle') }}
             </div>
         </div>
         <span class="download-page__legacy-toggle">
-            <span class="download-page__legacy-toggle-show">Show</span>
-            <span class="download-page__legacy-toggle-hide">Hide</span>
+            <span class="download-page__legacy-toggle-show">{{ $tyT('legacy.show') }}</span>
+            <span class="download-page__legacy-toggle-hide">{{ $tyT('legacy.hide') }}</span>
             <span class="fas fa-chevron-down download-page__legacy-chevron"></span>
         </span>
     </summary>
     <div class="download-page__legacy-body">
     <div class="download-page__text download-page__text--description">
-        Old osu!(stable) builds, rebuilt to play on {{ App\Libraries\TomYumBranding::name() }}: today's beatmaps load, Relax and
-        Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe.
-        They need Windows and .NET Framework 3.5 (a few 2015 builds use .NET Framework 4).
+        {!! $tyT('legacy.text') !!}
     </div>
     {{-- TomYum: no hook any more (unmodified builds can't pass the anti-cheat, pkms); missing builds are asked for. --}}
     <div class="download-page__text download-page__text--description">
-        Can't find the build you want? Ask for it
         @if (osu_url('dev') !== null)
-            in our <a href="{{ osu_url('dev') }}">Discord server</a> or
+            {!! $tyT('legacy.ask_discord', [
+                'discord' => link_to(osu_url('dev'), $tyT('legacy.discord')),
+                'forum' => link_to(route('forum.forums.show', 4), $tyT('legacy.forum')),
+            ]) !!}
+        @else
+            {!! $tyT('legacy.ask', ['forum' => link_to(route('forum.forums.show', 4), $tyT('legacy.forum'))]) !!}
         @endif
-        on the <a href="{{ route('forum.forums.show', 4) }}">forum</a>.
     </div>
 
     @if (count($legacyYears) === 0)
         <div class="download-page__text">
-            The client list isn't available right now. You can find every build on
-            <a href="{{ $dlUrl }}/legacy/">the file host</a>.
+            {!! $tyT('legacy.unavailable', ['link' => link_to($dlUrl.'/legacy/', $tyT('legacy.file_host'))]) !!}
         </div>
     @endif
 
@@ -66,9 +66,10 @@
     @endforeach
 
     <div class="download-page__text download-page__text--description download-page__legacy-footer">
-        The original builds come from <a href="https://osu.titanic.sh/download/">Titanic</a>, as do most of the notes.
-        osu! is a registered trademark of ppy Pty Ltd. These clients are unofficial and unsupported by ppy, and are offered as is.
-        To have something taken down, email <a href="mailto:{{ App\Libraries\TomYumBranding::email('dmca') }}">{{ App\Libraries\TomYumBranding::email('dmca') }}</a>.
+        {!! $tyT('legacy.footer', [
+            'titanic' => link_to('https://osu.titanic.sh/download/', 'Titanic'),
+            'email' => link_to('mailto:'.App\Libraries\TomYumBranding::email('dmca'), App\Libraries\TomYumBranding::email('dmca')),
+        ]) !!}
     </div>
     </div>
 </details>

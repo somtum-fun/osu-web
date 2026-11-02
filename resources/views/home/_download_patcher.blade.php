@@ -4,10 +4,9 @@
 --}}
 {{-- TomYum: the Somtum Patcher for today's osu!(stable), in place of ppy's installer. --}}
 <div class="download-page__text download-page__text--download-stable">
-    Start your own osu!(stable) with the {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }} to play on
-    {{ App\Libraries\TomYumBranding::name() }}.
+    {!! $tyT('patcher.text') !!}
     @if ($launcher !== null || $launcherLinux !== null)
-        The Somtum Launcher does the same and keeps it up to date, so it's the easier way.
+        {{ $tyT('patcher.launcher_easier') }}
     @endif
 </div>
 <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
@@ -17,7 +16,7 @@
                 <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
                     {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }}
                 </div>
-                Windows and Linux (no macOS)
+                {{ $tyT('patcher.platforms') }}
             </div>
         </div>
         <span class="btn-osu-big__icon">

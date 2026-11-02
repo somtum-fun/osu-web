@@ -16,7 +16,7 @@
     @if (present($brandFooter = App\Libraries\TomYumBranding::text('footer')))
         {{-- TomYum: and how ppy or anyone else asks us to take something down. --}}
         <div class="footer__row footer__row--notice">
-            <span>{{ $brandFooter }} <a class="footer__link--notice" href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => 'Copyright']) }}">Takedown requests</a></span>
+            <span>{{ $brandFooter }} <a class="footer__link--notice" href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => 'Copyright']) }}">{{ osu_trans('layout.footer.legal.takedown') }}</a></span>
         </div>
     @endif
 

@@ -2,10 +2,25 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
+@php
+    // TomYum: the page's text is in home.download.tomyum (en and th). Lines with HTML are printed raw, so the
+    // names going into them are escaped here; $tyT is used by the partials too.
+    $tyClientName = App\Libraries\TomYumBranding::text('downloads_client_name');
+    $tyPatcherName = App\Libraries\TomYumBranding::text('downloads_patcher_name');
+    $tyT = fn (string $key, array $replace = []) => osu_trans("home.download.tomyum.{$key}", $replace + [
+        'brand' => e(App\Libraries\TomYumBranding::name()),
+        'client' => e($tyClientName),
+        'patcher' => e($tyPatcherName),
+    ]);
+@endphp
 @extends('master', [
     'canonicalUrl' => route('download'),
-    'titleOverride' => 'Download '.App\Libraries\TomYumBranding::text('downloads_client_name').', the Somtum Launcher and old osu! clients',
-    'pageDescription' => 'Download Somtum Launcher, the '.App\Libraries\TomYumBranding::text('downloads_client_name').' client (lazer), '.App\Libraries\TomYumBranding::text('downloads_patcher_name').' for osu!(stable), and patched 2008–2015 legacy clients for '.App\Libraries\TomYumBranding::name().'!',
+    'titleOverride' => osu_trans('home.download.tomyum.title', ['client' => $tyClientName]),
+    'pageDescription' => osu_trans('home.download.tomyum.description', [
+        'client' => $tyClientName,
+        'patcher' => $tyPatcherName,
+        'brand' => App\Libraries\TomYumBranding::name(),
+    ]),
 ])
 
 @section('content')
@@ -57,20 +72,22 @@
                         </div>
                     </a>
                     <div class="download-page__text download-page__text--download-launcher">
-                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, TumThai!Next, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.
+                        {!! $tyT('launcher.recommended') !!}
                         @if (isset($launcher['portable']['url']))
-                            No install wanted? <a href="{{ $launcher['portable']['url'] }}">Get the portable version</a>
-                            ({{ App\Libraries\TomYumDownloads::size($launcher['portable']['size'] ?? null) }}).
+                            {!! $tyT('launcher.portable', [
+                                'link' => link_to($launcher['portable']['url'], $tyT('launcher.portable_link')),
+                                'size' => e(App\Libraries\TomYumDownloads::size($launcher['portable']['size'] ?? null)),
+                            ]) !!}
                         @endif
                     </div>
                     <div class="download-page__text download-page__text--download-portable">
-                        Just {{ $lazerName }}?
-                        <a href="{{ $lazerUrl }}">Download the installer</a>
+                        {!! $tyT('lazer.just', ['client' => e($lazerName)]) !!}
+                        <a href="{{ $lazerUrl }}">{{ $tyT('lazer.installer') }}</a>
                         @if (isset($lazer['size']))
                             ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
                         @endif
                         @if ($lazerPortable !== null)
-                            or <a href="{{ $lazerPortable['url'] }}">the portable zip</a>
+                            {!! $tyT('lazer.or_zip', ['link' => link_to($lazerPortable['url'], $tyT('lazer.zip'))]) !!}
                             ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size'] ?? null) }})
                         @endif
                     </div>
@@ -103,13 +120,14 @@
                         </div>
                     </a>
                     <div class="download-page__text download-page__text--download-launcher">
-                        Recommended. One app for {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, TumThai!Next, osu!(stable) (through
-                        <a href="https://github.com/NelloKudo/osu-winello">osu-winello</a>) and the 2008-2015 clients.
-                        Download it, then run <code>python3 somtum-linux-{{ $launcherLinux['version'] ?? '' }} install</code>.
+                        {!! $tyT('launcher.recommended_linux', [
+                            'winello' => link_to('https://github.com/NelloKudo/osu-winello', 'osu-winello'),
+                            'command' => '<code>'.e('python3 somtum-linux-'.($launcherLinux['version'] ?? '').' install').'</code>',
+                        ]) !!}
                     </div>
                     <div class="download-page__text download-page__text--download-portable">
-                        Just {{ $lazerName }}?
-                        <a href="{{ $lazerUrl }}">Download the AppImage</a>
+                        {!! $tyT('lazer.just', ['client' => e($lazerName)]) !!}
+                        <a href="{{ $lazerUrl }}">{{ $tyT('lazer.appimage') }}</a>
                         @if (isset($lazer['size']))
                             ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
                         @endif
@@ -146,8 +164,8 @@
                     @if ($perPlatform && $lazerPortable !== null)
                         {{-- TomYum: the same build without installing it. --}}
                         <div class="download-page__text download-page__text--download-portable">
-                            No install needed?
-                            <a href="{{ $lazerPortable['url'] }}">Download the portable zip</a>
+                            {{ $tyT('lazer.no_install') }}
+                            <a href="{{ $lazerPortable['url'] }}">{{ $tyT('lazer.zip_download') }}</a>
                             @if (isset($lazerPortable['size']))
                                 ({{ App\Libraries\TomYumDownloads::size($lazerPortable['size']) }})
                             @endif
@@ -157,10 +175,9 @@
                     @if ($perPlatform && str_starts_with($lazerPlatform, 'macos_'))
                         {{-- TomYum: the Mac app isn't signed with an Apple developer key, so macOS asks once before opening it. --}}
                         <div class="download-page__text download-page__text--download-portable">
-                            Unzip it and move {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} to Applications. The first time, right-click {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} and choose Open
-                            (or System Settings → Privacy &amp; Security → Open Anyway).
+                            {!! $tyT('lazer.macos') !!}
                             @if (!$ownClient)
-                                It doesn't update itself yet: download the new version from here when there is one.
+                                {{ $tyT('lazer.macos_no_update') }}
                             @endif
                         </div>
                     @endif
@@ -170,7 +187,7 @@
                     @if ($showStable && ($lazerPlatform === 'windows_x64' || str_starts_with($lazerPlatform, 'linux_')))
                         <details class="download-page__manual">
                             <summary class="download-page__text download-page__manual-title">
-                                Rather not use the launcher for osu!(stable)?
+                                {{ $tyT('patcher.manual') }}
                                 <span class="fas fa-chevron-down download-page__manual-chevron"></span>
                             </summary>
                             @include('home._download_patcher')
@@ -203,41 +220,38 @@
         <div class="download-page__guide">
             <div class="download-page__guide-content">
                 <div class="download-page__text download-page__text--title download-page__guide-title">
-                    Playing in three steps
+                    {{ $tyT('steps.title') }}
                 </div>
                 <div class="download-page__steps">
                     <div class="download-page__step">
                         <span class="download-page__step-number">1</span>
                         <div class="download-page__text download-page__text--title">
-                            Install
+                            {{ $tyT('steps.install') }}
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            Download the Somtum Launcher above and open it. It installs
-                            {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, osu!(stable) and the old clients for you,
-                            and keeps them up to date. On macOS, download
-                            {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} instead, and on Android, TumThai!Next.
+                            {!! $tyT('steps.install_text') !!}
                         </div>
                     </div>
                     <div class="download-page__step">
                         <span class="download-page__step-number">2</span>
                         <div class="download-page__text download-page__text--title">
-                            Make an account
+                            {{ $tyT('steps.account') }}
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            Sign up in the game, not on this website: start the game and choose to create an account.
-                            Then sign in here with the same name and password.
-                            <a href="{{ wiki_url('FAQ') }}#registration">More about accounts</a>
+                            {!! $tyT('steps.account_text', ['link' => link_to(wiki_url('FAQ').'#registration', $tyT('steps.account_link'))]) !!}
                         </div>
                     </div>
                     <div class="download-page__step">
                         <span class="download-page__step-number">3</span>
                         <div class="download-page__text download-page__text--title">
-                            Get beatmaps
+                            {{ $tyT('steps.beatmaps') }}
                         </div>
                         <div class="download-page__text download-page__text--description">
-                            Download maps in the game, or <a href="{{ route('beatmapsets.index') }}">browse the beatmap listing</a>
-                            here. Stuck? The <a href="{{ wiki_url('FAQ') }}">FAQ</a> and the
-                            <a href="{{ wiki_url('FAQ') }}#errors">list of error messages</a> may help.
+                            {!! $tyT('steps.beatmaps_text', [
+                                'listing' => link_to(route('beatmapsets.index'), $tyT('steps.listing')),
+                                'faq' => link_to(wiki_url('FAQ'), $tyT('steps.faq')),
+                                'errors' => link_to(wiki_url('FAQ').'#errors', $tyT('steps.errors')),
+                            ]) !!}
                         </div>
                     </div>
                 </div>
@@ -245,27 +259,17 @@
                 {{-- TomYum: our downloads aren't code-signed, so Windows and antiviruses may stop them. --}}
                 <div class="download-page__help">
                     <span class="fas fa-shield-alt"></span>
-                    <strong>Antivirus or Windows blocking a download?</strong>
-                    Our downloads aren't code-signed (that would cost us upwards of 300€ a year), so Windows may say
-                    "Windows protected your PC" (click <strong>More info</strong>, then <strong>Run anyway</strong>),
-                    and antiviruses may block or remove the Launcher, the Patcher, <code>pkms.dll</code>,
-                    {{ App\Libraries\TomYumBranding::text('downloads_client_name') }} or the old clients by mistake.
-                    Add an exception (whitelist) for their folders, only for files from this page.
-                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#antivirus">How to add an exception</a>
+                    <strong>{{ $tyT('antivirus.title') }}</strong>
+                    {!! $tyT('antivirus.text') !!}
+                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#antivirus">{{ $tyT('antivirus.link') }}</a>
                 </div>
 
                 {{-- TomYum: Smart App Control blocks unsigned apps outright, and exceptions don't get past it. --}}
                 <div class="download-page__help">
                     <span class="fas fa-shield-alt"></span>
-                    <strong>Windows says "Part of this app has been blocked"?</strong>
-                    Recent Windows security updates block unsigned apps by default through Smart App Control, and this
-                    affects every somtum build: {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}, the old
-                    clients and stable. To play, search for <strong>Smart App Control</strong> in the Windows search bar and
-                    open the first result (or <strong>Windows Security</strong>, <strong>App &amp; browser control</strong>,
-                    <strong>Smart App Control settings</strong>), then change it from <strong>On</strong> to
-                    <strong>Off</strong>. It protects your whole PC, and on some PCs it's hard to turn back on later, so
-                    read the link below first. This may not work on a work or school PC that you don't own.
-                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#smart-app-control">More about Smart App Control</a>
+                    <strong>{{ $tyT('smart_app_control.title') }}</strong>
+                    {!! $tyT('smart_app_control.text') !!}
+                    <a href="{{ wiki_url('Help_centre/Common_problems') }}#smart-app-control">{{ $tyT('smart_app_control.link') }}</a>
                 </div>
 
                 @if ($GLOBALS['cfg']['services']['enchant']['id'] !== null)
