@@ -36,7 +36,7 @@ return [
                 'title' => 'Free and fair',
                 'text' => 'Free to play, always. Our anti-cheat checks every client, and replays are checked after you play, so everyone plays on the same terms.',
             ],
-            'origin' => 'We started in Thailand as the country\'s second well-known osu! private server, after osu!rina, and now we welcome players worldwide. Our community is mainly English-speaking, and our name comes from som tum, the Thai papaya salad.',
+            'origin' => 'We started in Thailand as the country\'s second well-known osu! private server, and now we welcome players worldwide. Our community is mainly English-speaking, and our name comes from som tum, the Thai papaya salad.',
             'links' => [
                 'why' => 'Why :brand?',
                 'history' => 'Our history',
