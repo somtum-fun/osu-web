@@ -196,7 +196,7 @@ return [
 
             'antivirus' => [
                 'title' => 'แอนตี้ไวรัสหรือ Windows บล็อกการดาวน์โหลด?',
-                'text' => 'ไฟล์ของเราไม่ได้เซ็นโค้ด (มีค่าใช้จ่ายมากกว่า 300 ยูโรต่อปี) Windows จึงอาจขึ้นว่า "Windows protected your PC" (คลิก <strong>More info</strong> แล้วคลิก <strong>Run anyway</strong>) และแอนตี้ไวรัสอาจบล็อกหรือลบ Launcher, Patcher, <code>pkms.dll</code>, :client หรือไคลเอนต์รุ่นเก่าโดยเข้าใจผิด ให้เพิ่มข้อยกเว้น (whitelist) ให้โฟลเดอร์ของโปรแกรมเหล่านี้ เฉพาะไฟล์จากหน้านี้เท่านั้น',
+                'text' => 'ไฟล์ของเราไม่ได้เซ็นโค้ด (มีค่าใช้จ่ายมากกว่า 11,000 บาทต่อปี) Windows จึงอาจขึ้นว่า "Windows protected your PC" (คลิก <strong>More info</strong> แล้วคลิก <strong>Run anyway</strong>) และแอนตี้ไวรัสอาจบล็อกหรือลบ Launcher, Patcher, <code>pkms.dll</code>, :client หรือไคลเอนต์รุ่นเก่าโดยเข้าใจผิด ให้เพิ่มข้อยกเว้น (whitelist) ให้โฟลเดอร์ของโปรแกรมเหล่านี้ เฉพาะไฟล์จากหน้านี้เท่านั้น',
                 'link' => 'วิธีเพิ่มข้อยกเว้น',
             ],
 
