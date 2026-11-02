@@ -98,10 +98,13 @@ class HomeController extends Controller
 
         $manifest = TomYumDownloads::manifest();
         // TomYum: TumThai's two streams, TumThai and TumThai!Next (lazer_next: the same game on
-        // tumthai-framework), picked with ?stream=next. Only the file host's builds have TumThai!Next.
+        // tumthai-framework), picked with ?stream=next (or ?stream=tumthai). Only the file host's builds have
+        // TumThai!Next. Phones get TumThai!Next unless they ask: it's the one that runs well there.
         $ownClient = $lazerFiles !== [] || TomYumBranding::downloadsLazerUrl() !== null;
         $hasNext = !$ownClient && isset($manifest['lazer_next'][$platform]);
-        $stream = $hasNext && get_string(request('stream')) === 'next' ? 'next' : 'tumthai';
+        $defaultStream = $platform === 'android' ? 'next' : 'tumthai';
+        $requestedStream = get_string(request('stream'));
+        $stream = $hasNext ? (in_array($requestedStream, ['tumthai', 'next'], true) ? $requestedStream : $defaultStream) : 'tumthai';
         $release = $manifest[$stream === 'next' ? 'lazer_next' : 'lazer'] ?? [];
         $lazer = $release[$platform] ?? null;
         // TomYum: on Windows the main button is the installer; the portable zip is a link under it.
@@ -121,7 +124,7 @@ class HomeController extends Controller
             $lazerPortable = isset($lazerFiles["{$platform}_portable"]) ? ['url' => $lazerFiles["{$platform}_portable"]] : null;
         }
         $streams = $hasNext ? [
-            'tumthai' => ['name' => TomYumBranding::text('downloads_client_name'), 'url' => route('download', ['platform' => $platform])],
+            'tumthai' => ['name' => TomYumBranding::text('downloads_client_name'), 'url' => route('download', ['platform' => $platform, 'stream' => 'tumthai'])],
             'next' => ['name' => 'TumThai!Next', 'url' => route('download', ['platform' => $platform, 'stream' => 'next'])],
         ] : [];
         // TomYum: Somtum Launcher (the manifest's "self"): on Windows it's the main button, with TumThai on its

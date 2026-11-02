@@ -80,7 +80,7 @@ class TomYumBranding
         'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in :country. Nobody here gets paid.',
         // The download page: the lazer build's name, and the stable patcher's.
         'downloads_client_name' => 'TumThai',
-        'downloads_patcher_name' => ':brand patcher',
+        'downloads_patcher_name' => 'Somtum Patcher',
     ];
 
     /** The legal pages (LegalController): their key, path and title. */

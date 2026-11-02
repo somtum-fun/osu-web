@@ -17,15 +17,16 @@
             @endif
         @endforeach
         <br>
-        <strong>TumThai!Next</strong> is TumThai's performance stream, on <code>tumthai-framework</code>:
         @if ($lazerPlatform === 'android')
-            a 60–240 Hz display refresh rate, a 500–8000 Hz input/audio rate, Android's low-latency AAudio output and a latency counter.
+            <strong>TumThai!Next is recommended on Android</strong>: it runs smoother and with less delay on phones.
         @else
-            a 500–8000 Hz input/audio/update rate, display refresh rate control, Vulkan and a latency counter.
+            <strong>TumThai!Next</strong> is our faster stream: it runs smoother on low-end PCs, and has the newest performance options.
         @endif
         Same account, beatmaps and scores.
         @if ($lazerPlatform === 'windows_x64')
             Switch streams any time in the game (Settings → General → Updates) or the Somtum Launcher.
+        @elseif ($lazerPlatform === 'android')
+            Want the other one? Download it here.
         @else
             Switch streams any time in the Somtum Launcher, or download the other one here.
         @endif

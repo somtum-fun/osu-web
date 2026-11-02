@@ -141,7 +141,10 @@
   }
 
   &__tagline {
+    color: inherit; // TomYum: it's the page's h1 now
     display: flex;
+    font-weight: inherit;
+    margin: 0;
     flex-direction: column;
     font-size: @font-size--title;
     line-height: 1; // bring the 2 lines closer but don't go less than 1 otherwise cjk text overlaps
