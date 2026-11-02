@@ -1,14 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-// TomYum: the landing page's "why play here" section, under the hero: four features, where the
-// server comes from, and links to more.
+// TomYum: the landing page's "why play here" section, under the hero: four features with an icon
+// each, where the server comes from, and links to more.
 
 .tomyum-landing-about {
   .default-box-shadow();
   background: hsl(var(--hsl-b4));
   display: grid;
-  gap: 15px;
+  gap: 20px;
   margin-top: 20px;
   padding: 20px @gutter-v2;
 
@@ -17,7 +17,8 @@
   }
 
   &__title {
-    font-size: @font-size--title-small;
+    font-size: @font-size--title;
+    font-weight: 700;
     margin: 0;
   }
 
@@ -34,31 +35,68 @@
   &__feature {
     background: hsl(var(--hsl-b5));
     border-radius: @border-radius--large;
-    padding: 15px;
+    border-top: 3px solid hsl(var(--hsl-h1));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+  }
+
+  &__feature-icon {
+    align-items: center;
+    background: hsla(var(--hsl-h1), 0.15);
+    border-radius: 50%;
+    color: hsl(var(--hsl-h1));
+    display: flex;
+    font-size: @font-size--large;
+    height: 44px;
+    justify-content: center;
+    margin-bottom: 4px;
+    width: 44px;
   }
 
   &__feature-title {
-    color: hsl(var(--hsl-h1));
-    font-size: @font-size--large;
-    margin: 0 0 5px;
+    color: hsl(var(--hsl-c1));
+    font-size: @font-size--title-small-4;
+    font-weight: 700;
+    margin: 0;
   }
 
   &__feature-text {
+    color: hsl(var(--hsl-c2));
     margin: 0;
   }
 
   &__origin {
+    color: hsl(var(--hsl-c2));
     margin: 0;
   }
 
   &__links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 20px;
+    gap: 10px;
   }
 
   &__link {
-    .link-default();
+    .link-plain();
+    .link-white();
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: 10000px;
+    display: inline-flex;
     font-weight: 700;
+    gap: 8px;
+    padding: 8px 16px;
+    transition: background-color 120ms;
+
+    &:hover {
+      background: hsl(var(--hsl-b6));
+    }
+
+    .fas,
+    .fab {
+      color: hsl(var(--hsl-h1));
+    }
   }
 }

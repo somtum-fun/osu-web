@@ -22,19 +22,19 @@ return [
             'title' => 'Why play on :brand?',
             'lazer' => [
                 'title' => 'Lazer support',
-                'text' => 'Play with TumThai, our lazer client for Windows, Linux, macOS and Android. Multiplayer, spectating and replays all work, and it updates itself.',
+                'text' => 'TumThai, our lazer client for Windows, Linux, macOS and Android, with multiplayer, spectating and replays.',
             ],
             'stable' => [
                 'title' => 'Stable and old clients',
-                'text' => 'Play osu!(stable) through the Somtum Launcher or the Somtum Patcher, or pick one of 75 clients from 2008 to 2015. Every client shares one account and one leaderboard.',
+                'text' => 'osu!(stable) through the Somtum Launcher, plus 75 clients from 2008 to 2015. One account, one leaderboard.',
             ],
             'modes' => [
                 'title' => 'Relax, Autopilot and more',
-                'text' => 'Relax and Autopilot with their own pp and rankings, custom rulesets, osu!dan courses, the daily challenge and medals the community asked for.',
+                'text' => 'Relax and Autopilot with their own pp and rankings, plus custom rulesets, osu!dan and the daily challenge.',
             ],
             'fair' => [
                 'title' => 'Free and fair',
-                'text' => 'Free to play, always. Our anti-cheat checks every client, and replays are checked after you play, so everyone plays on the same terms.',
+                'text' => 'Free to play, always. Anti-cheat on every client and replay checks keep the rankings fair.',
             ],
             'origin' => 'We started in Thailand as the country\'s second well-known osu! private server, and now we welcome players worldwide. Our community is mainly English-speaking, and our name comes from som tum, the Thai papaya salad.',
             'links' => [

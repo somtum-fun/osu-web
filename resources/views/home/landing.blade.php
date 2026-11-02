@@ -131,8 +131,9 @@
             <h2 class="tomyum-landing-about__title">{{ osu_trans('home.landing.about.title') }}</h2>
 
             <div class="tomyum-landing-about__features">
-                @foreach (['lazer', 'stable', 'modes', 'fair'] as $feature)
+                @foreach (['lazer' => 'fas fa-bolt', 'stable' => 'fas fa-history', 'modes' => 'fas fa-trophy', 'fair' => 'fas fa-shield-alt'] as $feature => $icon)
                     <div class="tomyum-landing-about__feature">
+                        <span class="tomyum-landing-about__feature-icon"><span class="{{ $icon }}"></span></span>
                         <h3 class="tomyum-landing-about__feature-title">{{ osu_trans("home.landing.about.{$feature}.title") }}</h3>
                         <p class="tomyum-landing-about__feature-text">{{ osu_trans("home.landing.about.{$feature}.text") }}</p>
                     </div>
@@ -142,10 +143,10 @@
             <p class="tomyum-landing-about__origin">{{ osu_trans('home.landing.about.origin') }}</p>
 
             <div class="tomyum-landing-about__links">
-                <a class="tomyum-landing-about__link" href="{{ wiki_url('Why_somtum.fun') }}">{{ osu_trans('home.landing.about.links.why') }}</a>
-                <a class="tomyum-landing-about__link" href="{{ wiki_url('History_of_somtum.fun') }}">{{ osu_trans('home.landing.about.links.history') }}</a>
+                <a class="tomyum-landing-about__link" href="{{ wiki_url('Why_somtum.fun') }}"><span class="fas fa-question-circle"></span> {{ osu_trans('home.landing.about.links.why') }}</a>
+                <a class="tomyum-landing-about__link" href="{{ wiki_url('History_of_somtum.fun') }}"><span class="fas fa-book-open"></span> {{ osu_trans('home.landing.about.links.history') }}</a>
                 @if (osu_url('dev') !== null)
-                    <a class="tomyum-landing-about__link" href="{{ osu_url('dev') }}">{{ osu_trans('home.landing.about.links.discord') }}</a>
+                    <a class="tomyum-landing-about__link" href="{{ osu_url('dev') }}"><span class="fab fa-discord"></span> {{ osu_trans('home.landing.about.links.discord') }}</a>
                 @endif
             </div>
         </section>
