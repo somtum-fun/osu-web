@@ -186,6 +186,17 @@
                     <span class="fab fa-discord"></span>
                 </a>
             @endif
+            {{-- TomYum: our YouTube channel and GitHub organisation (OSU_URL_YOUTUBE, OSU_URL_GITHUB). --}}
+            @if (osu_url('social.youtube') !== null)
+                <a href="{{ osu_url('social.youtube') }}" class="landing-footer-social__icon landing-footer-social__icon--youtube" title="YouTube">
+                    <span class="fab fa-youtube"></span>
+                </a>
+            @endif
+            @if (osu_url('social.github') !== null)
+                <a href="{{ osu_url('social.github') }}" class="landing-footer-social__icon landing-footer-social__icon--github" title="GitHub">
+                    <span class="fab fa-github"></span>
+                </a>
+            @endif
         </div>
 
         @include('layout.footer', ['modifiers' => ['landing'], 'withLinks' => false])
@@ -208,7 +219,7 @@
             $brandName === 'somtum.fun' ? 'somtum' : null,
         ])));
         $organizationId = route('home').'#organization';
-        $sameAs = array_values(array_unique(array_filter([osu_url('dev'), osu_url('social.twitter'), osu_url('source_code')])));
+        $sameAs = array_values(array_unique(array_filter([osu_url('dev'), osu_url('social.twitter'), osu_url('social.youtube'), osu_url('social.github'), osu_url('source_code')])));
         $schema = json_encode([
             chr(64).'context' => 'https://schema.org',
             chr(64).'graph' => [

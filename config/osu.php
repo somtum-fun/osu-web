@@ -264,6 +264,9 @@ return [
         'server_status' => presence(env('OSU_URL_SERVER_STATUS')),
         'smilies' => '/forum/images/smilies',
         'social.twitter' => presence(env('OSU_URL_TWITTER')),
+        // TomYum: our GitHub organisation and YouTube channel (footer icons, schema.org sameAs, llms.txt).
+        'social.github' => presence(env('OSU_URL_GITHUB')),
+        'social.youtube' => presence(env('OSU_URL_YOUTUBE')),
         // TomYum: this site is built on ppy's osu-web (AGPL-3.0).
         // TomYum: the footer's Source Code link is our fork.
         'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/somtum-fun/osu-web',

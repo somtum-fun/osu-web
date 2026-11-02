@@ -135,6 +135,9 @@ class TomYumSeo
                 'News' => route('news.index'),
                 'Rules' => route('legal', ['locale' => 'en', 'path' => 'Rules']),
                 'Discord' => osu_url('dev'),
+                'X (Twitter)' => osu_url('social.twitter'),
+                'YouTube' => osu_url('social.youtube'),
+                'GitHub' => osu_url('social.github'),
                 'Source code' => osu_url('source_code'),
             ];
 
