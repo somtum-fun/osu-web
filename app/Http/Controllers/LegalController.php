@@ -53,7 +53,7 @@ class LegalController extends Controller
                 return ext_view('tomyum-legal.wiki', [
                     'page' => $key,
                     'path' => $name,
-                    'titlePrepend' => $name,
+                    'titlePrepend' => osu_trans("layout.footer.legal.{$key}"), // TomYum: the footer link's name, in the page's language
                     'wikiPage' => $wikiPage,
                 ]);
             }
@@ -65,7 +65,7 @@ class LegalController extends Controller
         return ext_view($text === null ? 'tomyum-legal.'.$key : 'tomyum-legal.custom', [
             'page' => $key,
             'text' => $text,
-            'titlePrepend' => $name,
+            'titlePrepend' => osu_trans("layout.footer.legal.{$key}"), // TomYum: the footer link's name, in the page's language
         ]);
     }
 
