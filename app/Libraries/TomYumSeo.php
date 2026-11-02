@@ -32,6 +32,9 @@ class TomYumSeo
     /** Players in the sitemap, most active first. */
     private const MAX_USERS = 20_000;
 
+    /** Scores a player needs for their profile to be in the sitemap (fewer makes a near-empty page). */
+    private const MIN_USER_SCORES = 10;
+
     /** Whether this request is a page of one of osu.ppy.sh's beatmaps or Featured Artists (kept out of search results). */
     public static function mirrorsOsu(): bool
     {
@@ -112,6 +115,39 @@ class TomYumSeo
     public static function sitemapUrls(): array
     {
         return array_map(fn ($entry) => $entry[0], static::urls());
+    }
+
+    /**
+     * llms.txt (llmstxt.org): what this server is and where to read more, in plain markdown, so AI
+     * assistants describe it from its own words.
+     */
+    public static function llms(): string
+    {
+        return static::onCanonicalHost(function () {
+            $name = TomYumBranding::name();
+            $links = [
+                'Home' => route('home'),
+                'Download' => route('download'),
+                "Why {$name}?" => wiki_url('Why_somtum.fun', 'en'),
+                'FAQ' => wiki_url('FAQ', 'en'),
+                'History' => wiki_url('History_of_somtum.fun', 'en'),
+                'Rankings' => route('rankings', ['mode' => 'osu', 'type' => 'global']),
+                'News' => route('news.index'),
+                'Rules' => route('legal', ['locale' => 'en', 'path' => 'Rules']),
+                'Discord' => osu_url('dev'),
+                'Source code' => osu_url('source_code'),
+            ];
+
+            $text = "# {$name}\n\n> ".TomYumBranding::text('description')."\n\n"
+                .osu_trans('home.landing.about.origin', [], 'en')."\n\n## Links\n\n";
+            foreach ($links as $title => $url) {
+                if ($url !== null) {
+                    $text .= "- [{$title}]({$url})\n";
+                }
+            }
+
+            return $text;
+        });
     }
 
     /** IndexNow's key: made from the app key, so it stays the same and needs no setting. */
@@ -220,9 +256,9 @@ class TomYumSeo
             ->get(['beatmapset_id', 'last_update'])
             ->each(fn ($set) => $add(route('beatmapsets.show', ['beatmapset' => $set->getKey()]), $set->last_update));
 
-        // Players with a score (not restricted, not bots).
+        // Players with a few scores (not restricted, not bots).
         User::default()
-            ->whereExists(fn ($q) => $q->selectRaw('1')->from('scores')->whereColumn('scores.user_id', 'phpbb_users.user_id'))
+            ->whereIn('user_id', fn ($q) => $q->select('user_id')->from('scores')->groupBy('user_id')->havingRaw('count(*) >= ?', [static::MIN_USER_SCORES]))
             ->where('user_id', '!=', $GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id'])
             ->orderBy('user_lastvisit', 'desc')
             ->limit(static::MAX_USERS)

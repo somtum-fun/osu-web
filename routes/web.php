@@ -1153,6 +1153,8 @@ Route::get('sitemap.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap')
 // The same sitemap on a second URL, for Search Console: a new URL makes Google read it from scratch.
 Route::get('sitemap-main.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap-main');
 Route::get('indexnow.txt', 'TomYumSeoController@indexNowKey')->name('tomyum.indexnow-key');
+// What the server is, for AI assistants and their crawlers (llmstxt.org).
+Route::get('llms.txt', 'TomYumSeoController@llms')->name('tomyum.llms');
 // TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is somtum.fun's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).

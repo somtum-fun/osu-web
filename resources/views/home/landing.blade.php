@@ -125,6 +125,32 @@
         </div>
     </div>
 
+    {{-- TomYum: what the server is, in words search engines and players can read (the hero is mostly a video). --}}
+    <div class="osu-page">
+        <section class="tomyum-landing-about">
+            <h2 class="tomyum-landing-about__title">{{ osu_trans('home.landing.about.title') }}</h2>
+
+            <div class="tomyum-landing-about__features">
+                @foreach (['lazer', 'stable', 'modes', 'fair'] as $feature)
+                    <div class="tomyum-landing-about__feature">
+                        <h3 class="tomyum-landing-about__feature-title">{{ osu_trans("home.landing.about.{$feature}.title") }}</h3>
+                        <p class="tomyum-landing-about__feature-text">{{ osu_trans("home.landing.about.{$feature}.text") }}</p>
+                    </div>
+                @endforeach
+            </div>
+
+            <p class="tomyum-landing-about__origin">{{ osu_trans('home.landing.about.origin') }}</p>
+
+            <div class="tomyum-landing-about__links">
+                <a class="tomyum-landing-about__link" href="{{ wiki_url('Why_somtum.fun') }}">{{ osu_trans('home.landing.about.links.why') }}</a>
+                <a class="tomyum-landing-about__link" href="{{ wiki_url('History_of_somtum.fun') }}">{{ osu_trans('home.landing.about.links.history') }}</a>
+                @if (osu_url('dev') !== null)
+                    <a class="tomyum-landing-about__link" href="{{ osu_url('dev') }}">{{ osu_trans('home.landing.about.links.discord') }}</a>
+                @endif
+            </div>
+        </section>
+    </div>
+
     <div class="osu-page js-react" data-react="landing-news">
     </div>
 
@@ -172,21 +198,43 @@
         {!! json_encode($news) !!}
     </script>
 
-    {{-- TomYum: WebSite schema for this server (no VideoGame block claiming ppy's osu!). --}}
+    {{-- TomYum: WebSite and Organization schema for this server (no VideoGame block claiming ppy's osu!):
+        where it started (:country) and that it's open to everyone. --}}
     @php
         $brandName = App\Libraries\TomYumBranding::name();
         $alternateNames = array_values(array_unique(array_filter([
             "{$brandName}!",
             $brandName === 'somtum.fun' ? 'somtum' : null,
         ])));
-        $webSiteSchema = json_encode([
+        $organizationId = route('home').'#organization';
+        $sameAs = array_values(array_unique(array_filter([osu_url('dev'), osu_url('social.twitter'), osu_url('source_code')])));
+        $schema = json_encode([
             chr(64).'context' => 'https://schema.org',
-            chr(64).'type' => 'WebSite',
-            'name' => $brandName,
-            'alternateName' => $alternateNames,
-            'url' => route('home'),
-            'description' => App\Libraries\TomYumBranding::text('description'),
+            chr(64).'graph' => [
+                [
+                    chr(64).'type' => 'WebSite',
+                    'name' => $brandName,
+                    'alternateName' => $alternateNames,
+                    'url' => route('home'),
+                    'description' => App\Libraries\TomYumBranding::text('description'),
+                    'inLanguage' => 'en',
+                    'publisher' => [chr(64).'id' => $organizationId],
+                ],
+                [
+                    chr(64).'type' => 'Organization',
+                    chr(64).'id' => $organizationId,
+                    'name' => $brandName,
+                    'alternateName' => $alternateNames,
+                    'url' => route('home'),
+                    'logo' => $GLOBALS['cfg']['app']['url'].App\Libraries\TomYumBranding::logo()['image_2x'],
+                    'description' => App\Libraries\TomYumBranding::text('description'),
+                    'foundingLocation' => [chr(64).'type' => 'Country', 'name' => App\Libraries\TomYumBranding::country()],
+                    'areaServed' => 'Worldwide',
+                    'knowsLanguage' => ['en', 'th'],
+                    'sameAs' => $sameAs,
+                ],
+            ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     @endphp
-    <script type="application/ld+json">{!! $webSiteSchema !!}</script>
+    <script type="application/ld+json">{!! $schema !!}</script>
 @endsection

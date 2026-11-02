@@ -47,11 +47,6 @@ return [
                 'url' => presence(env('TOMYUM_VOTE_OSL_URL')) ?? 'https://osu-server-list.com/server/somtum/vote',
                 'rewarded' => true,
             ],
-            [
-                'name' => 'find.circles-to.click',
-                'url' => presence(env('TOMYUM_VOTE_CIRCLES_URL')),
-                'rewarded' => false,
-            ],
         ],
     ],
 

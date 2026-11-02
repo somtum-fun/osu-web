@@ -9,12 +9,39 @@ return [
         'online' => '<strong>:players</strong> currently online in <strong>:games</strong> games',
         'peak' => 'Peak, :count online users',
         'players' => '<strong>:count</strong> registered players',
-        'title' => ':brand! — osu! private server (TumThai, Relax, Dan)', // TomYum
+        'title' => ':brand: free osu! private server with lazer and stable support', // TomYum
         'see_more_news' => 'see more news',
 
         'slogan' => [
-            'main' => 'Yet another osu! private server', // TomYum
-            'sub' => 'rhythm is just a click away',
+            'main' => 'A free private server for osu!', // TomYum
+            'sub' => 'lazer, stable and 2008–2015 clients, one leaderboard', // TomYum
+        ],
+
+        // TomYum: the "why play here" section under the hero.
+        'about' => [
+            'title' => 'Why play on :brand?',
+            'lazer' => [
+                'title' => 'Lazer support',
+                'text' => 'Play with TumThai, our lazer client for Windows, Linux, macOS and Android. Multiplayer, spectating and replays all work, and it updates itself.',
+            ],
+            'stable' => [
+                'title' => 'Stable and old clients',
+                'text' => 'Play osu!(stable) through the Somtum Launcher or the Somtum Patcher, or pick one of 75 clients from 2008 to 2015. Every client shares one account and one leaderboard.',
+            ],
+            'modes' => [
+                'title' => 'Relax, Autopilot and more',
+                'text' => 'Relax and Autopilot with their own pp and rankings, custom rulesets, osu!dan courses, the daily challenge and medals the community asked for.',
+            ],
+            'fair' => [
+                'title' => 'Free and fair',
+                'text' => 'Free to play, always. Our anti-cheat checks every client, and replays are checked after you play, so everyone plays on the same terms.',
+            ],
+            'origin' => 'We started in Thailand as the country\'s second well-known osu! private server, after osu!rina, and now we welcome players worldwide. Our community is mainly English-speaking, and our name comes from som tum, the Thai papaya salad.',
+            'links' => [
+                'why' => 'Why :brand?',
+                'history' => 'Our history',
+                'discord' => 'Join our Discord',
+            ],
         ],
     ],
 

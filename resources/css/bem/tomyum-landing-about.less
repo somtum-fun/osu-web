@@ -1,0 +1,64 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the landing page's "why play here" section, under the hero: four features, where the
+// server comes from, and links to more.
+
+.tomyum-landing-about {
+  .default-box-shadow();
+  background: hsl(var(--hsl-b4));
+  display: grid;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 20px @gutter-v2;
+
+  @media @desktop {
+    padding: 30px @gutter-v2-desktop;
+  }
+
+  &__title {
+    font-size: @font-size--title-small;
+    margin: 0;
+  }
+
+  &__features {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: minmax(0, 1fr);
+
+    @media @desktop {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  &__feature {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius--large;
+    padding: 15px;
+  }
+
+  &__feature-title {
+    color: hsl(var(--hsl-h1));
+    font-size: @font-size--large;
+    margin: 0 0 5px;
+  }
+
+  &__feature-text {
+    margin: 0;
+  }
+
+  &__origin {
+    margin: 0;
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+
+  &__link {
+    .link-default();
+    font-weight: 700;
+  }
+}

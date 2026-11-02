@@ -9,7 +9,7 @@ namespace App\Http\Controllers;
 
 use App\Libraries\TomYumSeo;
 
-/** TomYum: robots.txt, sitemap.xml and IndexNow's key file (see TomYumSeo). */
+/** TomYum: robots.txt, sitemap.xml, llms.txt and IndexNow's key file (see TomYumSeo). */
 class TomYumSeoController extends Controller
 {
     public function robots()
@@ -25,6 +25,14 @@ class TomYumSeoController extends Controller
         return response(TomYumSeo::sitemap(), 200, [
             'Content-Type' => 'application/xml; charset=utf-8',
             'Cache-Control' => 'public, max-age=3600',
+        ]);
+    }
+
+    public function llms()
+    {
+        return response(TomYumSeo::llms(), 200, [
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'Cache-Control' => 'public, max-age=86400',
         ]);
     }
 
