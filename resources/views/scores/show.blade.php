@@ -9,6 +9,31 @@
         'title' => $score->beatmap->beatmapset->getDisplayTitle(auth()->user()),
         'version' => $score->beatmap->version,
     ]);
+
+    // TomYum: link embeds (Discord, X, ...) show the play: grade, pp, accuracy, combo, mods, stars and the map's cover.
+    $embedParts = ['Rank '.($scoreJson['rank'] ?? 'F')];
+    if (isset($scoreJson['pp'])) {
+        $embedParts[] = i18n_number_format(round((float) $scoreJson['pp'])).'pp';
+    }
+    $embedParts[] = i18n_number_format(100 * (float) ($scoreJson['accuracy'] ?? 0), null, null, 2).'%';
+    $embedParts[] = i18n_number_format((int) ($scoreJson['max_combo'] ?? 0)).'x';
+    $embedMods = implode('', array_column($scoreJson['mods'] ?? [], 'acronym'));
+    if ($embedMods !== '') {
+        $embedParts[] = '+'.$embedMods;
+    }
+    $embedRuleset = App\Libraries\TomYumCustomRulesets::find($score->ruleset_id)?->name
+        ?? osu_trans('beatmaps.mode.'.(App\Enums\Ruleset::tryFrom((int) $score->ruleset_id)?->legacyName() ?? 'osu'));
+    $embedStars = $scoreJson['beatmap']['difficulty_rating'] ?? null;
+    $embedParts[] = ($embedStars === null ? '' : i18n_number_format((float) $embedStars, null, null, 2).'★ ').$embedRuleset;
+    if (($scoreJson['rank_global'] ?? null) !== null) {
+        $embedParts[] = '#'.i18n_number_format((int) $scoreJson['rank_global']).' on the map';
+    }
+    $embedCovers = $scoreJson['beatmapset']['covers'] ?? [];
+    Request::instance()->attributes->set('opengraph', [
+        'title' => $title,
+        'description' => implode(' · ', $embedParts),
+        'image' => $embedCovers['list@2x'] ?? $embedCovers['card'] ?? null,
+    ]);
 @endphp
 @extends('master', [
     'titlePrepend' => $title,

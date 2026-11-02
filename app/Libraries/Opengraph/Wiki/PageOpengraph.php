@@ -23,7 +23,14 @@ class PageOpengraph implements OpengraphInterface
         }
 
         return [
-            'description' => $this->page->getTextPreview(),
+            // TomYum: the text after the page's heading (the title is already the embed's title).
+            // The preview comes escaped and the layout escapes it again, so it's decoded here.
+            'description' => ltrim(preg_replace(
+                '/^'.preg_quote($this->page->title(), '/').'/u',
+                '',
+                ltrim(html_entity_decode($this->page->getTextPreview(), ENT_QUOTES | ENT_HTML5)),
+                1,
+            )),
             'title' => $this->page->title(),
         ];
     }
