@@ -416,8 +416,8 @@ class BeatmapsController extends Controller
      * @urlParam beatmap integer required Id of the [Beatmap](#beatmap).
      *
      * @queryParam legacy_only integer Whether or not to exclude lazer scores. Defaults to 0. Example: 0
-     * @queryParam mode The [Ruleset](#ruleset) to get scores for, or a [custom ruleset](#ruleset-custom-rulesets)'s slug (its leaderboard, by score).
-     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
+     * @queryParam mode The [Ruleset](#ruleset) to get scores for, a [Relax/Autopilot](#ruleset-relax-and-autopilot) name (`osurx`, ...; by pp), or a [custom ruleset](#ruleset-custom-rulesets)'s slug (its leaderboard, by score).
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. For an osu! ruleset: `rx` or `ap`, its [Relax/Autopilot](#ruleset-relax-and-autopilot) board. No-example
      * @queryParam mods An array of matching Mods, or none // TODO.
      * @queryParam type Beatmap score ranking type // TODO.
      */

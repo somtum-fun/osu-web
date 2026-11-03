@@ -556,8 +556,8 @@ class UsersController extends Controller
      *
      * @queryParam legacy_only integer Whether or not to exclude lazer scores. Defaults to 0. Example: 0
      * @queryParam include_fails Only for recent scores, include scores of failed plays. Set to 1 to include them. Defaults to 0. Example: 0
-     * @queryParam mode [Ruleset](#ruleset) of the scores to be returned, or a [custom ruleset](#ruleset-custom-rulesets)'s slug. Defaults to the specified `user`'s mode. Example: osu
-     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. No-example
+     * @queryParam mode [Ruleset](#ruleset) of the scores to be returned, a [Relax/Autopilot](#ruleset-relax-and-autopilot) name (`osurx`, ...), or a [custom ruleset](#ruleset-custom-rulesets)'s slug. Defaults to the specified `user`'s mode. Example: osu
+     * @queryParam variant For a custom ruleset: `vanilla` (default), `relax` or `autopilot`. For an osu! ruleset: a [Relax/Autopilot](#ruleset-relax-and-autopilot) name (`osurx`, ...). No-example
      * @queryParam limit Maximum number of results.
      * @queryParam offset Result offset for pagination. Example: 1
      *
