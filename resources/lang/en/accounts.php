@@ -123,6 +123,7 @@ return [
         'beatmapset_show_anime_cover' => 'show anime style beatmap covers',
         'beatmapset_show_nsfw' => 'hide warnings for explicit content in beatmaps',
         'beatmapset_title_show_original' => 'show beatmap metadata in original language',
+        'tomyum_show_team_tags' => 'show team tags before names on in-game leaderboards (osu!stable)',
         'title' => 'Options',
 
         'beatmapset_download' => [

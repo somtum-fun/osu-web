@@ -38,6 +38,7 @@ class UserProfileCustomization extends Model
         'scoring_mode' => self::SCORING_MODES[0],
         'tomyum_default_variant' => null, // TomYum: Relax/Autopilot as the default mode (osurx, ...)
         'tomyum_favorite_modes' => [], // TomYum: starred modes (ruleset or variant: osu, osurx, osuap, ...)
+        'tomyum_show_team_tags' => true, // TomYum: "[TAG] name" on in-game (stable) leaderboards, as bancho.py's clans were
         'user_list_filter' => self::USER_LIST['filters']['status']['default'],
         'user_list_relationship_filter' => self::USER_LIST['filters']['relationship']['default'],
         'user_list_sort' => self::USER_LIST['sorts']['default'],
@@ -147,6 +148,7 @@ class UserProfileCustomization extends Model
             'scoring_mode',
             'tomyum_default_variant',
             'tomyum_favorite_modes',
+            'tomyum_show_team_tags',
             'user_list_filter',
             'user_list_relationship_filter',
             'user_list_sort',
@@ -198,6 +200,12 @@ class UserProfileCustomization extends Model
     public function setBeatmapsetShowAnimeCoverAttribute($value)
     {
         $this->setOption('beatmapset_show_anime_cover', get_bool($value));
+    }
+
+    // TomYum: whether stable leaderboards show players' team tags to this player (TomYum reads it).
+    public function setTomyumShowTeamTagsAttribute($value)
+    {
+        $this->setOption('tomyum_show_team_tags', get_bool($value));
     }
 
     public function setBeatmapsetShowNsfwAttribute($value)

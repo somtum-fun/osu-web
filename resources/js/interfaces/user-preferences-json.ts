@@ -19,6 +19,7 @@ export function defaultUserPreferencesJson(): UserPreferencesJson {
     comments_sort: 'new',
     forum_posts_show_deleted: true,
     legacy_score_only: false,
+  tomyum_show_team_tags: true,
     level_colours: 'gems',
     profile_cover_expanded: true,
     profile_detail_v2: true, // TomYum: the new profile cards (with Ranked Play) by default
@@ -43,6 +44,7 @@ export default interface UserPreferencesJson {
   comments_sort: string;
   forum_posts_show_deleted: boolean;
   legacy_score_only: boolean;
+  tomyum_show_team_tags: boolean;
   level_colours: 'gems' | 'tiers'; // TomYum: player cards' level hexagon
   profile_cover_expanded: boolean;
   profile_detail_v2: boolean;
