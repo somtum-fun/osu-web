@@ -6003,25 +6003,13 @@ qjobs@^1.2.0:
   resolved "https://registry.yarnpkg.com/qjobs/-/qjobs-1.2.0.tgz#c45e9c61800bd087ef88d7e256423bdd49e5d071"
   integrity sha512-8YOJEHtxpySA3fFDyCRxA+UUV+fA+rTWnuWvylOK/NCjhY+b4ocCtmu8TtsWb+mYeU+GCHf/S66KZF/AsteKHg==
 
-qs@^6.12.3:
+qs@^6.12.3, qs@^6.17.1, qs@~6.14.0, qs@~6.9.7:
   version "6.17.1"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.17.1.tgz#43ac71d29ca0e9d0eed16a218e35b6cde5628e81"
   integrity sha512-jd3COkaKVgGUW+ZHyEHCG9bH7RoaaiWuMgzsIBjUMVjLAaWGWpoUAVwljVvBHxRu/2qEHnadLGZrkutYUBPQJA==
   dependencies:
     es-define-property "^1.0.1"
     side-channel "^1.1.1"
-
-qs@~6.14.0:
-  version "6.14.3"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.14.3.tgz#5dfd93afa8db8a5bcbc1bc49494d43f4a01232c8"
-  integrity sha512-rQNAwFzg3KZjjfANpCQOAoZwHQvcpWuabal4khEuSStXNnVh6iLM+yscBqdSZuj+dRNl99Cgq5OuVyDBJZWq6Q==
-  dependencies:
-    side-channel "^1.1.1"
-
-qs@~6.9.7:
-  version "6.9.9"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.9.tgz#29468f752624b774b8366d019fce436a1fe2aebb"
-  integrity sha512-4mp+ySf3n7scxSqU6LIO9jjYCJWIdbXh3EQ8uvEc1uXiZm8sLI7moRTOvZb66c8zEHelBGEVRkSW6e9JCaayTw==
 
 "qtip2@https://github.com/notbakaneko/qTip2.git#cd5f038667d2b23a44f4274c46de01834d704ce6":
   version "3.0.3-jquery3"

@@ -50,6 +50,7 @@
             ['Menu banners', 'panel.admin.menu-banners.index', ['panel.admin.menu-banners.']],
             ['Branding', 'panel.admin.branding.index', ['panel.admin.branding.']],
             ['Staff log', 'panel.admin.log', ['panel.admin.log']],
+            ['Servers', 'panel.admin.servers', ['panel.admin.servers']], // TomYum
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
             ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],

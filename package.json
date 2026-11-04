@@ -125,6 +125,7 @@
   },
   "resolutions": {
     "is-plain-object": "^5.0.0",
+    "qs": "^6.17.1",
     "serialize-javascript": "^7.0.5"
   }
 }

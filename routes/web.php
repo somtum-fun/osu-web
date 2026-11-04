@@ -196,6 +196,8 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('log', 'AdminController@staffLogPage')->name('log');
+            // TomYum: the game server's nodes (machine, load, plugins, version, latency).
+            Route::get('servers', 'AdminController@servers')->name('servers');
             Route::get('branding', 'BrandingController@index')->name('branding.index');
             Route::post('branding', 'BrandingController@update')->name('branding.update');
             Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');

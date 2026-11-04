@@ -426,6 +426,19 @@ class AdminController extends Controller
     ];
 
     /** The whole staff log: by kind, about a player, by a staff member, 50 at a time (older with "before"). */
+    /**
+     * TomYum: the game server's nodes (TomYum /_admin/cluster): each node's machine, load, plugins, version and
+     * latency. One node unless TomYum runs as a cluster.
+     */
+    public function servers()
+    {
+        $response = $this->tomyum()->get('/cluster');
+
+        return ext_view('panel.admin.servers', [
+            'cluster' => $response->successful() ? $response->json() : null,
+        ]);
+    }
+
     public function staffLogPage()
     {
         $kind = (string) Request::input('kind');
