@@ -359,6 +359,7 @@
         "Settings": [],
         "IncompatibleMods": [
           "TP",
+          "DR",
           "CL"
         ],
         "RequiresConfiguration": false,
@@ -430,6 +431,7 @@
           "TC",
           "ST",
           "DA",
+          "DR",
           "RD",
           "SO",
           "AD",
@@ -492,6 +494,38 @@
         "AlwaysValidForSubmission": false
       },
       {
+        "Acronym": "DR",
+        "Name": "osu!droid",
+        "Description": "osu!droid circle size, hit windows, and 3-cursor multi-touch controls.",
+        "Type": "Conversion",
+        "Settings": [
+          {
+            "Name": "precise_timing",
+            "Type": "boolean",
+            "Label": "Precise timing",
+            "Description": "Use osu!droid Precise (PR) hit windows."
+          }
+        ],
+        "IncompatibleMods": [
+          "ST",
+          "TP",
+          "CL",
+          "AL",
+          "SG",
+          "AT",
+          "CN",
+          "AP",
+          "BM",
+          "TD"
+        ],
+        "RequiresConfiguration": false,
+        "UserPlayable": true,
+        "ValidForMultiplayer": true,
+        "ValidForFreestyleAsRequiredMod": false,
+        "ValidForMultiplayerAsFreeMod": true,
+        "AlwaysValidForSubmission": false
+      },
+      {
         "Acronym": "CL",
         "Name": "Classic",
         "Description": "Feeling nostalgic?",
@@ -529,7 +563,8 @@
           }
         ],
         "IncompatibleMods": [
-          "ST"
+          "ST",
+          "DR"
         ],
         "RequiresConfiguration": false,
         "UserPlayable": true,
@@ -597,6 +632,7 @@
         "Type": "Conversion",
         "Settings": [],
         "IncompatibleMods": [
+          "DR",
           "SG",
           "AT",
           "CN",
@@ -616,6 +652,7 @@
         "Type": "Conversion",
         "Settings": [],
         "IncompatibleMods": [
+          "DR",
           "AL",
           "AT",
           "CN",
@@ -635,6 +672,7 @@
         "Type": "Automation",
         "Settings": [],
         "IncompatibleMods": [
+          "DR",
           "AL",
           "SG",
           "CN",
@@ -666,6 +704,7 @@
           "SD",
           "PF",
           "AC",
+          "DR",
           "AL",
           "SG",
           "AT",
@@ -713,6 +752,7 @@
         "Type": "Automation",
         "Settings": [],
         "IncompatibleMods": [
+          "DR",
           "AT",
           "CN",
           "RX",
@@ -1286,6 +1326,7 @@
         ],
         "IncompatibleMods": [
           "FL",
+          "DR",
           "NS",
           "TD"
         ],
@@ -1303,6 +1344,7 @@
         "Type": "System",
         "Settings": [],
         "IncompatibleMods": [
+          "DR",
           "AT",
           "CN",
           "AP",
