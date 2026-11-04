@@ -109,6 +109,9 @@ export function getExtendedContent(scoreModJson: ScoreModJson): string {
       return '';
     }
 
+    case 'DR':
+      return scoreModJson.settings?.precise_timing === true ? 'PR' : '';
+
     default:
       return '';
   }
