@@ -107,6 +107,12 @@ class Mods
     {
         $this->validateSelection($rulesetId, $ids);
 
+        // TomYum: a custom ruleset's mods were checked against its own list (validateSelection); osu!'s multiplayer
+        // rules for each mod don't exist for it, and the spectator server checks the combination with the ruleset.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            return;
+        }
+
         if ($realtime) {
             $attr = $required ? 'ValidForMultiplayer' : 'ValidForMultiplayerAsFreeMod';
         } else {
@@ -129,6 +135,11 @@ class Mods
 
     public function excludeModsAlwaysValidForSubmission(int $rulesetId, array $modIds): array
     {
+        // TomYum: a custom ruleset has no such list (none of its mods are always valid).
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            return array_values($modIds);
+        }
+
         return array_values(array_filter($modIds, fn ($modId) => !$this->mods[$rulesetId][$modId]['AlwaysValidForSubmission']));
     }
 
@@ -167,6 +178,11 @@ class Mods
 
     public function assertValidMultiplayerExclusivity(int $rulesetId, array $requiredIds, array $allowedIds): void
     {
+        // TomYum: a custom ruleset's mod combinations are checked by the spectator server, which loads the ruleset.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            return;
+        }
+
         $this->assertValidExclusivity($rulesetId, $requiredIds);
 
         $disallowedIds = new Set();
@@ -246,6 +262,28 @@ class Mods
 
     public function validateSelection(int $rulesetId, array $ids): bool
     {
+        // TomYum: a custom ruleset's mods are the ones its pinned DLL has (TomYumCustomRulesets::mods); when TomYum
+        // can't say, any mod is let through here and the spectator server checks it with the ruleset.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            $ruleset = \App\Libraries\TomYumCustomRulesets::find($rulesetId);
+            if ($ruleset === null) {
+                throw new InvariantException('invalid ruleset');
+            }
+            $known = \App\Libraries\TomYumCustomRulesets::mods($ruleset);
+            $checkedIds = new Set();
+            foreach ($ids as $id) {
+                if ($known !== null && !in_array($id, array_column($known, 'acronym'), true)) {
+                    throw new InvariantException("invalid mod for ruleset: {$id}");
+                }
+                if ($checkedIds->contains($id)) {
+                    throw new InvariantException("duplicate mod for ruleset: {$id}");
+                }
+                $checkedIds->add($id);
+            }
+
+            return true;
+        }
+
         $validMods = $this->mods[$rulesetId] ?? null;
 
         if ($validMods === null) {
