@@ -1194,27 +1194,79 @@
       padding: 6px 0;
     }
 
+    // The cell's content flows as text (a flex row made each piece of it a column: an id, a version
+    // and a hash side by side, off the screen), with the column's name floated at its left.
     td {
       background: none;
       border-radius: 0 !important;
-      display: flex;
-      gap: 10px;
+      display: flow-root;
+      overflow-wrap: anywhere;
       padding: 4px 12px;
       text-align: left !important;
       white-space: normal;
 
+      &[data-label] {
+        padding-left: 112px;
+      }
+
       &[data-label]::before {
         color: hsl(var(--hsl-c2));
         content: attr(data-label);
-        flex: 0 0 90px;
+        float: left;
         font-size: 11px;
         font-weight: 600;
+        margin-left: -100px;
         padding-top: 2px;
+        width: 90px;
       }
 
       &:empty {
         display: none;
       }
+    }
+  }
+}
+
+// The ranked mods table (no heading row, so not a labelled one) on phones: each mod is a card, its icon on the
+// left and its name, osu!'s status and the switch stacked beside it (the desktop table was 640px wide, cut off).
+@media @mobile {
+  .tomyum-panel__table--mods {
+    display: block;
+    min-width: 0;
+
+    colgroup {
+      display: none;
+    }
+
+    tbody {
+      display: block;
+    }
+
+    tr {
+      align-items: center;
+      background: hsl(var(--hsl-b5));
+      border-radius: @border-radius-large;
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      margin-bottom: 6px;
+      padding: 4px 0;
+    }
+
+    td {
+      background: none;
+      border-radius: 0 !important;
+      display: block;
+      padding: 3px 10px;
+      width: auto !important;
+    }
+
+    td:first-child {
+      grid-row: span 3;
+    }
+
+    td:nth-child(n + 3) {
+      text-align: left !important;
+      white-space: normal;
     }
   }
 }

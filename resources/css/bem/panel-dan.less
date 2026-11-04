@@ -67,6 +67,11 @@
     font-size: @font-size--normal;
     gap: 2px;
     white-space: nowrap;
+
+    // Long map names wrap on phones instead of running off the screen.
+    @media @mobile {
+      white-space: normal;
+    }
   }
 
   &__course {

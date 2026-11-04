@@ -162,7 +162,10 @@
 </dialog>
 <script>
     // On phones a table row is a card (tomyum-panel.less): each cell gets its column's heading as a label.
-    document.querySelectorAll('.tomyum-panel__table').forEach(function (table) {
+    // This script is above the page's tables, so on a fresh load it waits for them (else it found none, and
+    // phones got the desktop tables); on a Turbo visit the page is already there.
+    function tomyumLabelPanelTables() {
+    document.querySelectorAll('.tomyum-panel__table:not(.tomyum-panel__table--labelled)').forEach(function (table) {
         var headings = [];
         var headRow = table.querySelector('tr');
         if (headRow === null || headRow.querySelector('th') === null) return;
@@ -178,6 +181,12 @@
             });
         });
     });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tomyumLabelPanelTables, { once: true });
+    } else {
+        tomyumLabelPanelTables();
+    }
 
     // Registered once per page load (Turbo runs this again on every visit; the listener stays).
     if (!window.tomyumPanelDialog) {
