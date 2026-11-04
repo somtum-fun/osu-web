@@ -13,7 +13,7 @@ return [
         'see_more_news' => 'see more news',
 
         'slogan' => [
-            'main' => 'A free private server for osu!', // TomYum
+            'main' => 'Yet another osu! private server', // TomYum
             'sub' => 'lazer, stable and 2008–2015 clients, one leaderboard', // TomYum
         ],
 
