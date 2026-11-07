@@ -77,6 +77,10 @@ class AdminController extends Controller
             'tumthai' => static::tumthaiSettings(),
             'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
             'pkmsFindingPolicy' => \App\Libraries\TomYumPkmsFindingPolicy::all(),
+            'pkmsWave' => [
+                'state' => $this->tomyum()->get('/pkms/wave')->json(),
+                'queue' => $this->tomyum()->get('/pkms/wave/queue')->json(),
+            ],
             'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
@@ -404,6 +408,84 @@ class AdminController extends Controller
     private function backToIndex(string $type, string $message)
     {
         return redirect(route('panel.admin.index'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
+    }
+
+    /**
+     * TomYum: the pkms ban wave's switch and time. While it's on, a score whose pkms findings ask for a
+     * restriction but were only what the client reported queues the player instead of restricting them;
+     * the wave restricts whoever is still queued at its time.
+     */
+    public function pkmsWave()
+    {
+        $enabled = Request::boolean('enabled');
+        $nextAt = trim((string) Request::input('next_at', ''));
+        $when = null;
+        if ($nextAt !== '') {
+            try {
+                $when = Carbon::parse($nextAt, 'UTC');
+            } catch (\Throwable) {
+                return $this->backToIndex('error', 'The wave time must be a date and time (YYYY-MM-DD HH:MM, UTC).');
+            }
+            if ($when->year < 2000) {
+                return $this->backToIndex('error', 'Pick a real wave time.');
+            }
+        }
+
+        $response = $this->tomyum()->post('/pkms/wave', [
+            'enabled' => $enabled,
+            'nextAt' => $when?->toIso8601ZuluString(),
+        ]);
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+
+        $summary = $enabled
+            ? 'pkms ban wave on'.($when === null ? ', no time set yet' : ', next '.$when->toDateTimeString().' UTC').'.'
+            : 'pkms ban wave off.';
+        $this->staffLog('pkms.wave_settings', null, $summary);
+
+        return $this->backToIndex('success', $enabled
+            ? 'The pkms ban wave is on'.($when === null ? '; set its time when you\'re ready.' : ', next '.$when->toDateTimeString().' UTC.').' Client-only findings wait in the queue until then.'
+            : 'The pkms ban wave is off: client-only restrict findings restrict at once again.');
+    }
+
+    /** TomYum: take one player off the pkms ban wave queue (staff judged them fine). */
+    public function pkmsWaveRemove()
+    {
+        $userId = (int) Request::input('user_id');
+        $response = $this->tomyum()->delete("/pkms/wave/queue/{$userId}");
+        if (!$response->successful()) {
+            return $this->backToIndex('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+        $this->staffLog('pkms.wave_removed', $userId, "Removed user {$userId} from the pkms ban wave queue.");
+
+        return $this->backToIndex('success', 'Removed from the pkms ban wave queue.');
+    }
+
+    /** TomYum: restrict one queued player now, without waiting for the wave. */
+    public function pkmsWaveRestrict()
+    {
+        $userId = (int) Request::input('user_id');
+        $response = $this->tomyum()->post("/pkms/wave/queue/{$userId}/restrict");
+        if (!$response->successful()) {
+            return $this->backToIndex('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+        $this->staffLog('pkms.wave_restrict', $userId, "Restricted user {$userId} from the pkms ban wave queue.");
+
+        return $this->backToIndex('success', 'Player restricted; the rest of the queue is unchanged.');
+    }
+
+    /** TomYum: restrict everyone still queued now. */
+    public function pkmsWaveRun()
+    {
+        $response = $this->tomyum()->post('/pkms/wave/run');
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+        $restricted = count((array) $response->json('restricted', []));
+        $this->staffLog('pkms.wave_run', null, "Ran the pkms ban wave: restricted {$restricted} player(s).");
+
+        return $this->backToIndex('success', "Ran the pkms ban wave: restricted {$restricted} player(s).");
     }
 
     /** The kinds of staff action the log can show alone (TomYum's log takes a prefix ending in "."). */

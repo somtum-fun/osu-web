@@ -217,6 +217,12 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('pkms-versions', 'AdminController@pkmsVersions')->name('pkms-versions');
             // TomYum: what each pkms finding does (log / refuse / restrict), ordinary and whitelisted players.
             Route::post('pkms-finding-policy', 'AdminController@pkmsFindingPolicy')->name('pkms-finding-policy');
+            // TomYum: the pkms ban wave (client-only restrict findings wait in a queue; staff remove,
+            // restrict now, or set the wave time at which everyone still queued is restricted).
+            Route::post('pkms-wave', 'AdminController@pkmsWave')->name('pkms-wave');
+            Route::post('pkms-wave/remove', 'AdminController@pkmsWaveRemove')->name('pkms-wave-remove');
+            Route::post('pkms-wave/restrict', 'AdminController@pkmsWaveRestrict')->name('pkms-wave-restrict');
+            Route::post('pkms-wave/run', 'AdminController@pkmsWaveRun')->name('pkms-wave-run');
             // TomYum: pkms handle-requester allowlist (basename + sha256 of each approved external VM_READer).
             Route::post('handle-requesters', 'AdminController@handleRequesters')->name('handle-requesters');
             // TomYum: operator kill switch for the client-side AC.

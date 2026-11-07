@@ -375,6 +375,97 @@
             </form>
         </div>
 
+        {{-- TomYum: the pkms ban wave (AdminController@pkmsWave*); TomYum queues client-only restrict findings. --}}
+        <div class="tomyum-panel__card" id="pkms-wave">
+            <h2>
+                <i class="fas fa-water"></i>pkms ban wave
+                @if (!empty($pkmsWave['state']['enabled']))
+                    <span class="tomyum-panel__badge tomyum-panel__badge--warn">ON</span>
+                @else
+                    <span class="tomyum-panel__badge">OFF</span>
+                @endif
+                @if (count($pkmsWave['queue'] ?? []) > 0)
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($pkmsWave['queue']) }} QUEUED</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                A restriction that only the client's own findings ask for (the server detected nothing itself) can be a false positive or a client that lies.
+                While the wave is <strong>on</strong>, those players go into the queue instead of being restricted: no message, no visible change, so a cheat maker can't tell what the server noticed.
+                <strong>Remove</strong> drops someone staff judged fine, <strong>restrict now</strong> acts on one player, and at the wave time everyone still queued is restricted at once.
+                Findings the server confirmed itself (a memory-challenge mismatch, a missing scan set) always restrict at once. Changes apply within a minute.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pkms-wave') }}" class="tomyum-panel__row" style="gap: 10px; align-items: end; flex-wrap: wrap">
+                @csrf
+                <label><input type="checkbox" name="enabled" value="1" @if (!empty($pkmsWave['state']['enabled'])) checked @endif> wave on</label>
+                <label>
+                    wave time (UTC)
+                    <input class="input-text" type="datetime-local" name="next_at"
+                           value="{{ !empty($pkmsWave['state']['nextAt']) ? \Carbon\Carbon::parse($pkmsWave['state']['nextAt'])->utc()->format('Y-m-d\TH:i') : '' }}">
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+            <p class="tomyum-panel__hint" style="margin-top: 6px">
+                @if (!empty($pkmsWave['state']['lastRunAt']))
+                    Last ran {{ \Carbon\Carbon::parse($pkmsWave['state']['lastRunAt'])->utc()->toDateTimeString() }} UTC.
+                @else
+                    Never ran.
+                @endif
+            </p>
+            @if (count($pkmsWave['queue'] ?? []) > 0)
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th>player</th>
+                            <th>findings</th>
+                            <th>build</th>
+                            <th>queued</th>
+                            <th style="width: 200px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pkmsWave['queue'] as $entry)
+                            <tr>
+                                <td>
+                                    <a href="{{ route('users.show', $entry['userId']) }}">{{ $entry['username'] !== '' ? $entry['username'] : '#'.$entry['userId'] }}</a>
+                                    @if ($entry['scores'] > 1)
+                                        <span class="tomyum-panel__hint">({{ $entry['scores'] }} scores)</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <code>0x{{ dechex((int) $entry['findings']) }}</code>
+                                    @if (!empty($entry['details']))
+                                        <br><span class="tomyum-panel__hint" style="margin: 0">{{ \Illuminate\Support\Str::limit($entry['details'], 120) }}</span>
+                                    @endif
+                                </td>
+                                <td><code>{{ $entry['buildId'] }}</code></td>
+                                <td>{{ \Carbon\Carbon::parse($entry['queuedAt'])->utc()->format('Y-m-d H:i') }}</td>
+                                <td>
+                                    <div class="tomyum-panel__row" style="gap: 6px">
+                                        <form method="POST" action="{{ route('panel.admin.pkms-wave-remove') }}">
+                                            @csrf
+                                            <input type="hidden" name="user_id" value="{{ $entry['userId'] }}">
+                                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit"><i class="fas fa-user-check"></i>Remove</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('panel.admin.pkms-wave-restrict') }}" onsubmit="return confirm('Restrict {{ $entry['username'] !== '' ? $entry['username'] : 'this player' }} now?')">
+                                            @csrf
+                                            <input type="hidden" name="user_id" value="{{ $entry['userId'] }}">
+                                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-gavel"></i>Restrict now</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <form method="POST" action="{{ route('panel.admin.pkms-wave-run') }}" onsubmit="return confirm('Restrict everyone still queued now ({{ count($pkmsWave['queue']) }} player(s))?')">
+                    @csrf
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-water"></i>Restrict the queue now</button>
+                </form>
+            @else
+                <p class="tomyum-panel__hint">Nobody is queued.</p>
+            @endif
+        </div>
+
         {{-- TomYum: which staff log actions go to Discord (AdminController@discordLog); TomYum's Discord plugin reads it. --}}
         <div class="tomyum-panel__card" id="discord-log">
             <h2>
