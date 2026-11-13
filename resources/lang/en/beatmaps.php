@@ -389,6 +389,9 @@ return [
             'all' => 'Vanilla',
             'ap' => 'Autopilot',
             'rx' => 'Relax',
+            'ez' => 'Easy', // TomYum: EZ/FL/TD rankings
+            'fl' => 'Flashlight',
+            'td' => 'Touch Device',
         ],
         'taiko' => [
             'all' => 'Vanilla',

@@ -17,6 +17,11 @@
                     ?? (isset(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$params['mode']])
                         ? array_keys(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$params['mode']])
                         : null);
+                // TomYum: and the EZ/FL/TD rankings (osu!).
+                $modVariants = array_keys(App\Libraries\TomYumModRankings::VARIANTS[$params['mode']] ?? []);
+                if ($modVariants !== []) {
+                    $variants = [...($variants ?? []), ...$modVariants];
+                }
                 if ($variants !== null) {
                     array_unshift($variants, 'all');
                 }

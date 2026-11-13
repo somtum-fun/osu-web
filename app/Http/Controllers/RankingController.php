@@ -118,7 +118,7 @@ class RankingController extends Controller
     ];
 
     /** TomYum: a Relax/Autopilot ranking page, with the website's table (its stats built from TomYum's). */
-    private function tomyumRanking(int $tomyumMode, array $params, array $rawParams, bool $isApi)
+    private function tomyumRanking(?int $tomyumMode, array $params, array $rawParams, bool $isApi, ?string $modAcronym = null)
     {
         $page = max(1, get_int(cursor_from_params($rawParams)['page'] ?? null) ?? get_int($rawParams['page'] ?? null) ?? 1);
         $query = [
@@ -133,8 +133,21 @@ class RankingController extends Controller
             $query['friendsOf'] = \Auth::id();
         }
 
-        $response = (new \App\Libraries\TomYumAdmin(\Auth::user()))->get("/rankings/{$tomyumMode}", $query);
-        $data = $response->successful() ? $response->json() : ['total' => 0, 'rows' => []];
+        // TomYum: an EZ/FL/TD ranking is built here (TomYumModRankings), in the same shape.
+        if ($modAcronym !== null) {
+            $data = \App\Libraries\TomYumModRankings::ranking(
+                $params['mode'],
+                $modAcronym,
+                $params['sort'],
+                $query['country'] ?? null,
+                isset($query['friendsOf']) ? \Auth::user() : null,
+                $query['offset'],
+                $query['limit'],
+            );
+        } else {
+            $response = (new \App\Libraries\TomYumAdmin(\Auth::user()))->get("/rankings/{$tomyumMode}", $query);
+            $data = $response->successful() ? $response->json() : ['total' => 0, 'rows' => []];
+        }
         $users = User::with(['country', 'team'])->whereIn('user_id', array_column($data['rows'], 'userId'))->get()->keyBy('user_id');
 
         $class = UserStatistics\Model::getClass($params['mode']);
@@ -310,6 +323,14 @@ class RankingController extends Controller
                     $params['variant'] = $rawParams['variant'];
 
                     return $this->tomyumRanking($tomyumMode, $params, $rawParams, $isApi);
+                }
+
+                // TomYum: EZ/FL/TD rankings (osu!), from the website's scores.
+                $modAcronym = \App\Libraries\TomYumModRankings::acronym($mode, $rawParams['variant'] ?? null);
+                if ($modAcronym !== null) {
+                    $params['variant'] = $rawParams['variant'];
+
+                    return $this->tomyumRanking(null, $params, $rawParams, $isApi, $modAcronym);
                 }
 
                 $params['variant'] = static::getVariant($rawParams['variant'] ?? null, $mode);
