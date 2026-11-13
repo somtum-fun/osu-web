@@ -100,11 +100,14 @@ class UserStatisticsTransformer extends TransformerAbstract
 
         $mode = $stats->getMode();
         $variants = Beatmap::VARIANTS[$mode] ?? null;
+        // TomYum: the EZ/FL/TD ranks too, on the website only (lazer reads `variant` as 4k/7k and nothing else).
+        $modVariants = is_api_request() || $stats->user === null ? [] : \App\Libraries\TomYumModRankings::VARIANTS[$mode] ?? [];
 
-        if ($variants === null) {
+        if ($variants === null && $modVariants === []) {
             return;
         }
 
+        $variants ??= [];
         $data = [];
 
         foreach ($variants as $variant) {
@@ -119,6 +122,13 @@ class UserStatisticsTransformer extends TransformerAbstract
                 'global_rank' => $entry->globalRank(),
                 'pp' => $entry->rank_score,
             ];
+        }
+
+        foreach ($modVariants as $variant => $acronym) {
+            $rank = \App\Libraries\TomYumModRankings::rankOf($mode, $acronym, $stats->user);
+            if ($rank !== null) {
+                $data[] = ['mode' => $mode, 'variant' => $variant, ...$rank];
+            }
         }
 
         return $this->primitive($data);

@@ -13,7 +13,7 @@ interface Variant {
   global_rank: number | null;
   mode: Ruleset;
   pp: number;
-  variant: '4k' | '7k';
+  variant: '4k' | '7k' | 'ez' | 'fl' | 'td' | 'dr'; // TomYum: EZ/FL/TD/DR (website only)
 }
 
 interface UserStatisticsBaseJson {

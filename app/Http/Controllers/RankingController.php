@@ -325,7 +325,7 @@ class RankingController extends Controller
                     return $this->tomyumRanking($tomyumMode, $params, $rawParams, $isApi);
                 }
 
-                // TomYum: EZ/FL/TD rankings (osu!), from the website's scores.
+                // TomYum: EZ/FL/TD/DR rankings (osu!), from the website's scores.
                 $modAcronym = \App\Libraries\TomYumModRankings::acronym($mode, $rawParams['variant'] ?? null);
                 if ($modAcronym !== null) {
                     $params['variant'] = $rawParams['variant'];

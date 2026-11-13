@@ -13,7 +13,7 @@ use App\Models\User;
 use Cache;
 
 /**
- * TomYum: rankings of plays with one mod (EZ, FL, TD): each player's best pp per map among their
+ * TomYum: rankings of plays with one mod (EZ, FL, TD, DR): each player's best pp per map among their
  * passed plays that include the mod (EZ+HD counts for EZ), weighted the way TomYum weights pp
  * (0.95^n plus bonus pp). Built from osu-web's `scores`, which holds stable plays (copied from
  * TomYum) and lazer's own, so both clients count. Kept for a few minutes rather than stored.
@@ -22,7 +22,7 @@ class TomYumModRankings
 {
     /** Ruleset → variant (the rankings' `variant` parameter) → mod acronym. */
     const VARIANTS = [
-        'osu' => ['ez' => 'EZ', 'fl' => 'FL', 'td' => 'TD'],
+        'osu' => ['ez' => 'EZ', 'fl' => 'FL', 'td' => 'TD', 'dr' => 'DR'],
     ];
 
     const CACHE_SECONDS = 300;
@@ -63,6 +63,33 @@ class TomYumModRankings
         ];
     }
 
+    /**
+     * A player's place on the mod's ranking (by pp), worldwide and in their country, for the profile's rank
+     * tooltip; null when they're not on it.
+     */
+    public static function rankOf(string $mode, string $acronym, User $user): ?array
+    {
+        $rows = array_filter(static::all($mode, $acronym), fn ($row) => $row['pp'] > 0);
+        usort($rows, fn ($a, $b) => $b['pp'] <=> $a['pp']);
+
+        $global = null;
+        $country = 0;
+        $countryRank = null;
+        foreach ($rows as $i => $row) {
+            if ($row['country'] === $user->country_acronym) {
+                $country++;
+            }
+            if ($row['userId'] === $user->getKey()) {
+                $global = $i + 1;
+                $countryRank = $country;
+                $pp = $row['pp'];
+                break;
+            }
+        }
+
+        return $global === null ? null : ['global_rank' => $global, 'country_rank' => $countryRank, 'pp' => $pp];
+    }
+
     /** Every ranked player's row for the mod, unsorted (cached). */
     private static function all(string $mode, string $acronym): array
     {
@@ -89,7 +116,7 @@ class TomYumModRankings
                 $weightedPp = 0.0;
                 $weightedAcc = 0.0;
                 foreach ($bests as $i => $best) {
-                    $weightedPp += $best->pp * 0.95 ** $i;
+                    $weightedPp += ($best->pp ?? 0) * 0.95 ** $i;
                     $weightedAcc += $best->accuracy * 0.95 ** $i;
                 }
                 $n = count($bests);
@@ -98,7 +125,7 @@ class TomYumModRankings
                 $rows[] = [
                     'userId' => (int) $userId,
                     'country' => $users[$userId],
-                    'pp' => $weightedPp + 416.6667 * (1 - 0.9994 ** $n),
+                    'pp' => $weightedPp > 0 ? $weightedPp + 416.6667 * (1 - 0.9994 ** $n) : 0,
                     'accuracy' => $weightedAcc / (20 * (1 - 0.95 ** $n)),
                     'playCount' => count($plays),
                     // Highest classic score on each map (stable plays keep their own score).
