@@ -270,6 +270,8 @@ return [
         // TomYum: this site is built on ppy's osu-web (AGPL-3.0).
         // TomYum: the footer's Source Code link is our fork.
         'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/somtum-fun/osu-web',
+        // TomYum: and its mirror, offered beside GitHub (empty OSU_URL_SOURCE_CODE_MIRROR = GitHub only).
+        'source_code_mirror' => presence(env('OSU_URL_SOURCE_CODE_MIRROR', 'https://forge.techtransthai.org/somtum-fun/osu-web')),
         'testflight.public' => env('TESTFLIGHT_LINK'),
         'testflight.supporter' => env('TESTFLIGHT_LINK_SUPPORTER'),
         'user.recover' => '/wiki/Help_centre/Account#sign-in',

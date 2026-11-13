@@ -6,9 +6,26 @@
     @if ($withLinks ?? true)
         <div class="footer__row">
             @foreach (footer_legal_links() as $action => $link)
-                <a class="footer__link" href="{{ $link }}">
-                    {{ osu_trans("layout.footer.legal.{$action}") }}
-                </a>
+                @if ($action === 'source_code' && ($mirror = osu_url('source_code_mirror')) !== null)
+                    {{-- TomYum: Source Code asks where to look: GitHub or our mirror. --}}
+                    <details class="footer__source">
+                        <summary class="footer__link footer__link--summary">
+                            {{ osu_trans('layout.footer.legal.source_code') }}
+                        </summary>
+                        <div class="footer__source-menu">
+                            <a class="footer__source-item" href="{{ $link }}" rel="noopener">
+                                {{ osu_trans('layout.footer.legal.source_code_github') }}
+                            </a>
+                            <a class="footer__source-item" href="{{ $mirror }}" rel="noopener">
+                                {{ osu_trans('layout.footer.legal.source_code_mirror') }}
+                            </a>
+                        </div>
+                    </details>
+                @else
+                    <a class="footer__link" href="{{ $link }}">
+                        {{ osu_trans("layout.footer.legal.{$action}") }}
+                    </a>
+                @endif
             @endforeach
         </div>
     @endif

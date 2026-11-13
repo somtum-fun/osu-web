@@ -120,6 +120,8 @@ return [
             'rules' => 'Rules',
             'server_status' => 'Server Status',
             'source_code' => 'Source Code',
+            'source_code_github' => 'GitHub', // TomYum
+            'source_code_mirror' => 'Mirror (forge.techtransthai.org)', // TomYum
             'terms' => 'Terms',
             'takedown' => 'Takedown requests', // TomYum
         ],

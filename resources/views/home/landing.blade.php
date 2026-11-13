@@ -164,7 +164,18 @@
                             <div class="landing-sitemap__header">{{ osu_trans("layout.footer.$section._") }}</div>
                         </li>
                         @foreach ($links as $action => $link)
-                            <li class="landing-sitemap__item"><a href="{{ $link }}" class="landing-sitemap__link">{{ osu_trans("layout.footer.$section.$action") }}</a></li>
+                            @if ($action === 'source_code' && ($mirror = osu_url('source_code_mirror')) !== null)
+                                {{-- TomYum: Source Code asks where to look: GitHub or our mirror. --}}
+                                <li class="landing-sitemap__item">
+                                    <details class="landing-sitemap__source">
+                                        <summary class="landing-sitemap__link landing-sitemap__link--summary">{{ osu_trans("layout.footer.$section.$action") }}</summary>
+                                        <a href="{{ $link }}" rel="noopener" class="landing-sitemap__link landing-sitemap__link--sub">{{ osu_trans("layout.footer.$section.source_code_github") }}</a>
+                                        <a href="{{ $mirror }}" rel="noopener" class="landing-sitemap__link landing-sitemap__link--sub">{{ osu_trans("layout.footer.$section.source_code_mirror") }}</a>
+                                    </details>
+                                </li>
+                            @else
+                                <li class="landing-sitemap__item"><a href="{{ $link }}" class="landing-sitemap__link">{{ osu_trans("layout.footer.$section.$action") }}</a></li>
+                            @endif
                         @endforeach
                     </ul>
                 @endforeach

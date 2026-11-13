@@ -38,6 +38,56 @@
     text-decoration: underline;
   }
 
+  // TomYum: Source Code → GitHub or mirror, opening upwards from the footer.
+  &__source {
+    position: relative;
+
+    &[open] .footer__link--summary {
+      color: @osu-colour-l1;
+    }
+  }
+
+  &__link--summary {
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__source-menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: max-content;
+    padding: 5px;
+    border-radius: 6px;
+    background-color: @osu-colour-b6;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    font-size: 12px;
+  }
+
+  &__source-item {
+    .link-plain();
+    color: white;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus {
+      color: white;
+      background-color: @osu-colour-b3;
+    }
+  }
+
   &__link {
     .link-plain();
     font-weight: bold;

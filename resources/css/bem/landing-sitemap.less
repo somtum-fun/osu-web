@@ -32,6 +32,43 @@
     }
   }
 
+  // TomYum: Source Code opens GitHub / mirror right under it.
+  &__link--summary,
+  &__link--sub {
+    line-height: 20px;
+  }
+
+  &__link--summary {
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: " \25BE";
+    }
+
+    .landing-sitemap__source[open] > & {
+      color: #fff;
+    }
+  }
+
+  &__link--sub {
+    display: block;
+    padding-left: 10px;
+
+    @media @mobile {
+      padding-left: 0;
+    }
+
+    &::before {
+      content: "\203A  ";
+    }
+  }
+
   &__list {
     list-style-type: none;
     padding: 0;
