@@ -119,12 +119,36 @@
                             </span>
                         </div>
                     </a>
+                    @if (isset($launcherLinux['install']))
+                    {{-- TomYum: the 2.x launcher: one command installs it; the download itself runs as it is (portable). --}}
+                    <div class="download-page__text download-page__text--download-launcher">
+                        {!! $tyT('launcher.recommended_linux_native', [
+                            'winello' => link_to('https://github.com/NelloKudo/osu-winello', 'osu-winello'),
+                        ]) !!}
+                    </div>
+                    <div class="download-page__text download-page__text--download-launcher">
+                        {!! $tyT('launcher.linux_install', [
+                            'command' => '<code class="download-page__command">'.e('curl -fsSL '.$launcherLinux['install'].' | sh').'</code>',
+                        ]) !!}
+                    </div>
+                    <div class="download-page__text download-page__text--download-launcher">
+                        {!! $tyT('launcher.linux_portable', [
+                            'command' => '<code class="download-page__command">'.e('chmod +x '.$launcherLinux['file'].' && ./'.$launcherLinux['file']).'</code>',
+                        ]) !!}
+                        @if (isset($launcherLinux['arm']['url']))
+                            {!! $tyT('launcher.linux_arm', [
+                                'link' => link_to($launcherLinux['arm']['url'], $tyT('launcher.linux_arm_link')),
+                            ]) !!}
+                        @endif
+                    </div>
+                    @else
                     <div class="download-page__text download-page__text--download-launcher">
                         {!! $tyT('launcher.recommended_linux', [
                             'winello' => link_to('https://github.com/NelloKudo/osu-winello', 'osu-winello'),
                             'command' => '<code>'.e('python3 somtum-linux-'.($launcherLinux['version'] ?? '').' install').'</code>',
                         ]) !!}
                     </div>
+                    @endif
                     <div class="download-page__text download-page__text--download-portable">
                         {!! $tyT('lazer.just', ['client' => e($lazerName)]) !!}
                         <a href="{{ $lazerUrl }}">{{ $tyT('lazer.appimage') }}</a>

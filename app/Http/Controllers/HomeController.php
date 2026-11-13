@@ -134,10 +134,23 @@ class HomeController extends Controller
         $launcher = $platform === 'windows_x64' && !$ownClient && isset($launcherSelf['url'])
             ? [...$launcherSelf, 'version' => $manifest['self']['version'] ?? null, 'portable' => $manifest['self']['windows_x64_portable'] ?? null]
             : null;
-        // TomYum: the Linux launcher, a line under TumThai's Linux button.
-        $launcherLinux = $platform === 'linux_x64' && !$ownClient
-            ? ($manifest['self']['linux_x64'] ?? null)
-            : null;
+        // TomYum: the Linux launcher, a line under TumThai's Linux button. The 2.x launcher (one program per
+        // architecture, which installs itself) when the host has it; the 1.x Python script before that.
+        $launcherLinux = null;
+        if ($platform === 'linux_x64' && !$ownClient) {
+            $native = $manifest['self']['linux_x86_64'] ?? null;
+            if (isset($native['url'])) {
+                $launcherLinux = [
+                    ...$native,
+                    'version' => $native['version'] ?? $manifest['self']['version'] ?? null,
+                    'file' => basename(parse_url($native['url'], PHP_URL_PATH) ?? ''),
+                    'install' => TomYumDownloads::baseUrl().'/launcher/install.sh',
+                    'arm' => $manifest['self']['linux_aarch64'] ?? null,
+                ];
+            } else {
+                $launcherLinux = $manifest['self']['linux_x64'] ?? null;
+            }
+        }
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {

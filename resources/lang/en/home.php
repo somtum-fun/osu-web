@@ -133,6 +133,11 @@ return [
             'launcher' => [
                 'recommended' => 'Recommended. One app for :client, TumThai!Next, osu!(stable) and the 2008-2015 clients, and it keeps them up to date.',
                 'recommended_linux' => 'Recommended. One app for :client, TumThai!Next, osu!(stable) (through :winello) and the 2008-2015 clients. Download it, then run :command.',
+                'recommended_linux_native' => 'Recommended. One app for :client, TumThai!Next, osu!(stable) (through :winello) and the 2008-2015 clients, and it keeps them up to date.',
+                'linux_install' => 'Install it (to your app menu, no root needed) with one command in a terminal: :command',
+                'linux_portable' => 'Or run the download as it is, no install: :command',
+                'linux_arm' => 'On an ARM computer (aarch64)? :link.',
+                'linux_arm_link' => 'Get the ARM version',
                 'portable' => 'No install wanted? :link (:size).',
                 'portable_link' => 'Get the portable version',
             ],
