@@ -286,6 +286,11 @@ class TomYumInterOpController extends Controller
         ], ['null_missing' => true]);
         abort_unless(present($params['ip']), 422, 'ip is required');
 
+        // TomYum: in-client registration closed (REGISTRATION_MODE_CLIENT=false) closes stable's sign-up too, as lazer's.
+        if (!$GLOBALS['cfg']['osu']['user']['registration_mode']['client']) {
+            return ['ok' => false, 'code' => 'registration_disabled', 'message' => 'Registration is closed on this server.'];
+        }
+
         // TomYum: blacklisted usernames (staff panel), as the website's and lazer's sign-ups refuse them.
         if (present($params['username']) && !\App\Libraries\UsernameValidation::allowedName($params['username'])) {
             return ['ok' => false, 'code' => 'blocked_username', 'message' => osu_trans('model_validation.user.username_not_allowed')];

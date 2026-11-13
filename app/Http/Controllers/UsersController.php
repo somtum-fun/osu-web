@@ -249,8 +249,14 @@ class UsersController extends Controller
     public function store()
     {
         if (!$GLOBALS['cfg']['osu']['user']['registration_mode']['client']) {
+            // TomYum: the website only when it takes sign-ups; with both closed, lazer is told so (no url: it
+            // opens no browser).
+            if (!$GLOBALS['cfg']['osu']['user']['registration_mode']['web']) {
+                return response(['error' => osu_trans('users.store.closed')], 403);
+            }
+
             return response([
-                'error' => osu_trans('users.store.from_web'),
+                'error' => osu_trans('users.store.tomyum_from_web', ['site' => \App\Libraries\TomYumBranding::name()]),
                 'url' => route('users.create'),
             ], 403);
         }
@@ -267,7 +273,8 @@ class UsersController extends Controller
     public function storeWeb()
     {
         if (!$GLOBALS['cfg']['osu']['user']['registration_mode']['web']) {
-            return error_popup(osu_trans('users.store.from_client'), 403);
+            // TomYum: "make it in the game" only when the game takes sign-ups.
+            return error_popup(osu_trans($GLOBALS['cfg']['osu']['user']['registration_mode']['client'] ? 'users.store.from_client' : 'users.store.closed'), 403);
         }
 
         $rawParams = request()->all();

@@ -14,6 +14,7 @@
     {{-- TomYum: laid out like the Rules pages (tomyum-legal). --}}
     <div class="osu-page osu-page--generic">
         <div class="tomyum-legal">
+            @if ($GLOBALS['cfg']['osu']['user']['registration_mode']['client'])
             <h1 class="tomyum-legal__title">Accounts can't be made on the website</h1>
 
             <div class="tomyum-legal__body tomyum-legal__body--spaced">
@@ -22,6 +23,14 @@
                     <a href="{{ $faqUrl }}">How do I make an account?</a> in the FAQ.
                 </p>
             </div>
+            @else
+            {{-- TomYum: sign-up closed in the game too: nowhere else to send them. --}}
+            <h1 class="tomyum-legal__title">Registration is closed</h1>
+
+            <div class="tomyum-legal__body tomyum-legal__body--spaced">
+                <p>{{ osu_trans('users.store.closed') }}</p>
+            </div>
+            @endif
         </div>
     </div>
 @endsection

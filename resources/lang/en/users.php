@@ -591,6 +591,8 @@ return [
         // TomYum: accounts are made in the game (lazer or stable).
         'from_client' => 'Please make your account in the game instead: osu!lazer or the osu! stable client.',
         'from_web' => 'please complete registration using the osu! website',
+        'tomyum_from_web' => 'Please complete registration on the :site website.', // TomYum (English only: other languages say osu!'s)
+        'closed' => 'Registration is closed on this server.', // TomYum
         'saved' => 'User created',
     ],
     'verify' => [
