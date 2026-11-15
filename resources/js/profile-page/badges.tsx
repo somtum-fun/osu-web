@@ -1,13 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import Img2x from 'components/img2x';
 import UserBadgeJson from 'interfaces/user-badge-json';
-import * as moment from 'moment';
 import * as React from 'react';
 import { Modifiers, classWithModifiers } from 'utils/css';
 import { formatNumber } from 'utils/html';
-import { present } from 'utils/string';
+import Badge from './badge';
 import Controller from './controller';
 
 interface Props {
@@ -23,6 +21,7 @@ interface State {
 
 // TomYum: the profile page proposal's badge row: how many badges, fixed at the start, then the
 // badges in one row that scrolls sideways, with arrows at the ends while there's more that way.
+// Each badge is ppy's (profile-page/badge.tsx), with its pin button on your own profile.
 export default class Badges extends React.PureComponent<Props, State> {
   static defaultProps = { badges: [] };
 
@@ -57,30 +56,12 @@ export default class Badges extends React.PureComponent<Props, State> {
 
         <div className='profile-badges__row'>
           <div ref={this.scrollerRef} className='profile-badges__scroller' onScroll={this.updateArrows}>
-            {this.props.badges.map((badge) => {
-              const hasDate = present(badge.awarded_at);
-              const htmlTitle = hasDate ? `<div>${badge.description}</div>
-                <div class='profile-badges__date'>${moment(badge.awarded_at).format('LL')}</div>` : null;
-
-              const img = (
-                <Img2x
-                  className='profile-badges__badge'
-                  data-html-title={htmlTitle}
-                  src={badge.image_url}
-                  title={badge.description}
-                />
-              );
-
-              return present(badge.url) ? (
-                <a key={badge.image_url} className='profile-badges__item' href={badge.url}>
-                  {img}
-                </a>
-              ) : (
-                <span key={badge.image_url} className='profile-badges__item'>
-                  {img}
-                </span>
-              );
-            })}
+            {this.props.badges.map((badge) => (
+              <div key={badge.image_url} className='profile-badges__item'>
+                {/* ppy's badge: its pin button (for the pinned badge card) shows on your own profile. */}
+                <Badge badge={badge} controller={this.props.controller?.withEdit ? this.props.controller : undefined} />
+              </div>
+            ))}
           </div>
 
           {this.state.canScrollLeft && (
