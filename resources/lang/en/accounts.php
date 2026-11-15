@@ -124,6 +124,7 @@ return [
         'beatmapset_show_nsfw' => 'hide warnings for explicit content in beatmaps',
         'beatmapset_title_show_original' => 'show beatmap metadata in original language',
         'tomyum_show_team_tags' => 'show team tags before names on in-game leaderboards (osu!stable)',
+        'tomyum_stable_lazer_spectate' => 'let osu!lazer players see me online and watch my osu!(stable) plays (experimental; the server\'s bot joins as a spectator while they watch)',
         'title' => 'Options',
 
         'beatmapset_download' => [

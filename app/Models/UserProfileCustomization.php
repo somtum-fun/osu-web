@@ -40,6 +40,7 @@ class UserProfileCustomization extends Model
         'tomyum_default_variant' => null, // TomYum: Relax/Autopilot as the default mode (osurx, ...)
         'tomyum_favorite_modes' => [], // TomYum: starred modes (ruleset or variant: osu, osurx, osuap, ...)
         'tomyum_show_team_tags' => true, // TomYum: "[TAG] name" on in-game (stable) leaderboards, as bancho.py's clans were
+        'tomyum_stable_lazer_spectate' => false, // TomYum (experimental): osu!lazer players can watch this player's osu!(stable) plays
         'user_list_filter' => self::USER_LIST['filters']['status']['default'],
         'user_list_relationship_filter' => self::USER_LIST['filters']['relationship']['default'],
         'user_list_sort' => self::USER_LIST['sorts']['default'],
@@ -151,6 +152,7 @@ class UserProfileCustomization extends Model
             'tomyum_default_variant',
             'tomyum_favorite_modes',
             'tomyum_show_team_tags',
+            'tomyum_stable_lazer_spectate',
             'user_list_filter',
             'user_list_relationship_filter',
             'user_list_sort',
@@ -208,6 +210,13 @@ class UserProfileCustomization extends Model
     public function setTomyumShowTeamTagsAttribute($value)
     {
         $this->setOption('tomyum_show_team_tags', get_bool($value));
+    }
+
+    // TomYum (experimental): osu!lazer players may watch this player's osu!(stable) plays. TomYum's
+    // tomyum.stable-spectate plugin reads it; off unless the player turns it on.
+    public function setTomyumStableLazerSpectateAttribute($value)
+    {
+        $this->setOption('tomyum_stable_lazer_spectate', get_bool($value));
     }
 
     public function setBeatmapsetShowNsfwAttribute($value)

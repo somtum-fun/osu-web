@@ -152,6 +152,30 @@
                     </div>
                 </label>
             </div>
+
+            {{-- TomYum (experimental): osu!lazer players can watch this player's osu!(stable) plays. --}}
+            <div
+                class="account-edit-entry account-edit-entry--no-label js-account-edit js-account-edit-auto-submit"
+                data-url="{{ route('account.options') }}"
+                data-skip-ajax-error-popup="1"
+                data-user-preferences-update="1"
+            >
+                <label class="account-edit-entry__checkbox">
+                    @include('objects._switch', ['locals' => [
+                        'additionalClass'=> 'js-account-edit__input',
+                        'checked' => $customization['tomyum_stable_lazer_spectate'],
+                        'name' => 'user_profile_customization[tomyum_stable_lazer_spectate]',
+                    ]])
+
+                    <span class="account-edit-entry__checkbox-label">
+                        {{ osu_trans('accounts.options.tomyum_stable_lazer_spectate') }}
+                    </span>
+
+                    <div class="account-edit-entry__checkbox-status">
+                        @include('accounts._edit_entry_status', ['modifiers' => ['left']])
+                    </div>
+                </label>
+            </div>
         </div>
     </div>
 </div>
