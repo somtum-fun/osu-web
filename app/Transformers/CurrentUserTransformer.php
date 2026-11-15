@@ -23,7 +23,7 @@ class CurrentUserTransformer extends UserTransformer
     }
 
     // TomYum: osu!direct for supporters and voters with time left (TomYumVotes), for its download buttons.
-    public function transform(\App\Models\User $user)
+    public function transform(\App\Models\User $user): array
     {
         $json = parent::transform($user);
         $json['osu_direct'] = \App\Libraries\TomYumVotes::hasDirect($user);
