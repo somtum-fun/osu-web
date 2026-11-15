@@ -22,6 +22,15 @@ class ScoresController extends BaseController
     public function store($beatmapId, $tokenId)
     {
         $request = \Request::instance();
+
+        // TomYum score-sig: verify the X-Somtum-Sig header the TumThai / TumThai-next client
+        // attached. In grace mode (default) a bad or missing sig is logged and the submit proceeds;
+        // when TOMYUM_SCORE_SIG_REQUIRED=true it aborts(403).
+        $sigReason = \App\Libraries\TomYumScoreSig::verify($request);
+        if ($sigReason !== null) {
+            abort(403, $sigReason);
+        }
+
         $clientTokenData = ClientCheck::parseToken($request);
         $score = DB::transaction(function () use ($beatmapId, $request, $tokenId) {
             $user = auth()->user();
