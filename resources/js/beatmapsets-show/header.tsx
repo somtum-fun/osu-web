@@ -537,6 +537,7 @@ export default class Header extends React.Component<Props> {
   private renderFooter() {
     const currentUser = core.currentUser;
     const canDownload = currentUser != null && !this.beatmapset.availability.download_disabled;
+    const legacyScoreOnly = core.userPreferences.get('legacy_score_only');
 
     return (
       <div className='beatmapset-header-v2__footer'>
@@ -591,10 +592,10 @@ export default class Header extends React.Component<Props> {
 
               <a
                 className='beatmapset-header-v2__button beatmapset-header-v2__button--wide'
-                // TomYum: osu_direct is supporters and voters with time left.
-                href={currentUser.osu_direct ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
+                // TomYum: osu_direct is supporters and voters with time left; lazer downloads in-game for everyone.
+                href={currentUser.osu_direct || !legacyScoreOnly ? beatmapDownloadDirect(this.controller.currentBeatmap.id) : route('support-the-game')}
               >
-                {trans('beatmapsets.show.details.download.direct')}
+                {trans(`beatmapsets.show.details.download.${legacyScoreOnly ? 'direct' : 'lazer'}`)}
               </a>
             </>
           )}

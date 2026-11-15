@@ -146,9 +146,11 @@ export default class BeatmapsetPanel extends React.Component<Props> {
       return { title: trans('beatmapsets.availability.disabled') };
     }
 
+    const legacyScoreOnly = core.userPreferences.get('legacy_score_only');
+
     let type = core.userPreferences.get('beatmapset_download');
-    // TomYum: osu_direct is supporters and voters with time left.
-    if (type === 'direct' && !core.currentUser.osu_direct) {
+    // TomYum: osu_direct is supporters and voters with time left; lazer downloads in-game for everyone.
+    if (type === 'direct' && !core.currentUser.osu_direct && legacyScoreOnly) {
       type = 'all';
     }
 
@@ -157,7 +159,7 @@ export default class BeatmapsetPanel extends React.Component<Props> {
 
     if (type === 'direct') {
       url = beatmapsetDownloadDirect(this.props.beatmapset.id);
-      titleVariant = 'direct';
+      titleVariant = legacyScoreOnly ? 'direct' : 'lazer';
     } else {
       const params: Record<string, string|number> = {
         beatmapset: this.props.beatmapset.id,

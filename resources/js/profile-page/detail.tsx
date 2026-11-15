@@ -46,7 +46,7 @@ export default class Detail extends React.Component<Props> {
           <ProfileTournamentBanner key={banner.id} banner={banner} />
         ))}
 
-        <Badges badges={user.badges} />
+        <Badges badges={user.badges} controller={this.props.controller} />
 
         {!user.is_bot && (
           <div className='profile-detail'>
@@ -72,8 +72,6 @@ export default class Detail extends React.Component<Props> {
   }
 
   private renderDetailToggle() {
-    return null;
-
     const activated = core.userPreferences.get('profile_detail_v2');
 
     const title = activated

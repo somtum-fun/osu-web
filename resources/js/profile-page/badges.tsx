@@ -8,9 +8,11 @@ import * as React from 'react';
 import { Modifiers, classWithModifiers } from 'utils/css';
 import { formatNumber } from 'utils/html';
 import { present } from 'utils/string';
+import Controller from './controller';
 
 interface Props {
   badges: UserBadgeJson[];
+  controller?: Controller;
   modifiers?: Modifiers;
 }
 

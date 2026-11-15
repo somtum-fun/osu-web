@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import { BeatmapsetStatus } from 'interfaces/beatmapset-json';
 import CountryJson from './country-json';
 import DailyChallengeUserStatsJson from './daily-challenge-user-stats-json';
 import MatchmakingUserStatsJson from './matchmaking-user-stats-json';
@@ -22,12 +23,16 @@ import UserReplaysWatchedCountJson from './user-replays-watched-count-json';
 import UserStatisticsJson from './user-statistics-json';
 import UserStatisticsRulesetsJson from './user-statistics-rulesets-json';
 
+type BeatmapsetStatusCountsJson = Partial<Record<BeatmapsetStatus, number>>;
+
 interface UserJsonAvailableIncludes {
   account_history: UserAccountHistoryJson[];
   active_tournament_banner: ProfileBannerJson | null;
   active_tournament_banners: ProfileBannerJson[];
   badges: UserBadgeJson[];
   beatmap_playcounts_count: number;
+  beatmaps_modded_count: number;
+  beatmapset_status_counts: BeatmapsetStatusCountsJson;
   blocks: UserRelationJson[];
   // TomYum: the hover card's numbers, in their default ruleset.
   card_statistics: UserStatisticsJson & { medal_count: number; ruleset: Ruleset };
@@ -55,6 +60,7 @@ interface UserJsonAvailableIncludes {
   is_nat: boolean;
   is_restricted: boolean;
   is_silenced: boolean;
+  issues_resolved_count: number;
   loved_beatmapset_count: number;
   mapping_follower_count: number;
   matchmaking_stats: MatchmakingUserStatsJson[];
@@ -98,6 +104,7 @@ interface UserJsonDefaultAttributes {
   last_visit: string | null;
   pm_friends_only: boolean;
   profile_colour: string | null;
+  profile_hue: number | null;
   username: string;
 }
 

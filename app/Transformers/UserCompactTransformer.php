@@ -9,7 +9,6 @@ use App\Libraries\MorphMap;
 use App\Libraries\SessionVerification;
 use App\Libraries\User\SeasonStats;
 use App\Models\Beatmap;
-use App\Models\Season;
 use App\Models\User;
 use App\Models\UserProfileCustomization;
 use Illuminate\Support\Arr;
@@ -75,6 +74,8 @@ class UserCompactTransformer extends TransformerAbstract
         'active_tournament_banners',
         'badges',
         'beatmap_playcounts_count',
+        'beatmaps_modded_count',
+        'beatmapset_status_counts',
         'blocks',
         'card_statistics',
         'comments_count',
@@ -100,6 +101,7 @@ class UserCompactTransformer extends TransformerAbstract
         'is_nat',
         'is_restricted',
         'is_silenced',
+        'issues_resolved_count',
         'kudosu',
         'loved_beatmapset_count',
         'mapping_follower_count',
@@ -166,9 +168,10 @@ class UserCompactTransformer extends TransformerAbstract
             'is_deleted' => $user->trashed(),
             'is_online' => $user->isOnline(),
             'is_supporter' => $user->isSupporter(),
-            'last_visit' => json_time($user->displayed_last_visit),
+            'last_visit' => $user->getDisplayedLastVisit(),
             'pm_friends_only' => $user->pm_friends_only,
             'profile_colour' => $user->user_colour,
+            'profile_hue' => $user->user_style,
             'username' => $user->username,
         ];
     }
@@ -219,6 +222,16 @@ class UserCompactTransformer extends TransformerAbstract
         return $this->primitive($user->profileCount()->get('beatmapPlaycounts'));
     }
 
+    public function includeBeatmapsModdedCount(User $user)
+    {
+        return $this->primitive($user->profileCount()->get('beatmapsModded'));
+    }
+
+    public function includeBeatmapsetStatusCounts(User $user)
+    {
+        return $this->primitive($user->profileCount()->beatmapsetStatusCounts());
+    }
+
     public function includeBlocks(User $user)
     {
         return $this->collection($user->blocks, new UserRelationTransformer());
@@ -255,13 +268,7 @@ class UserCompactTransformer extends TransformerAbstract
 
     public function includeCurrentSeasonStats(User $user): Primitive
     {
-        $season = Season::active()
-            ->where('ruleset_id', Beatmap::modeInt($this->mode))
-            ->first();
-
-        return $season === null
-            ? $this->primitive(null)
-            : $this->primitive((new SeasonStats($user, $season))->get());
+        return $this->primitive(SeasonStats::currentFor($user, $this->mode));
     }
 
     public function includeCurrentUserAttributes(User $user): Primitive
@@ -374,6 +381,11 @@ class UserCompactTransformer extends TransformerAbstract
     public function includeIsSilenced(User $user)
     {
         return $this->primitive($user->isSilenced());
+    }
+
+    public function includeIssuesResolvedCount(User $user)
+    {
+        return $this->primitive($user->profileCount()->get('issuesResolved'));
     }
 
     public function includeKudosu(User $user): ResourceInterface
