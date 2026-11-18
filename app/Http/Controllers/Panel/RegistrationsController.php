@@ -14,7 +14,7 @@ use Request;
 
 /**
  * TomYum: GMT panel → Sign-ups. Accounts made in the game and the sign-ups the rules refused (the
- * last 90 days), the rules' switches, and the allowlist for a network staff have checked (a school,
+ * last 90 days), the rules' switches, the email domain rules, and the allowlist for a network staff have checked (a school,
  * a dorm, an internet cafe). Sign-up addresses are personal data: GMT and admins only.
  */
 class RegistrationsController extends Controller
@@ -48,7 +48,7 @@ class RegistrationsController extends Controller
         }
 
         $since = Carbon::now()->subDay();
-        [$hostingCount, $torCount] = TomYumRegistrationGuard::listSizes();
+        [$hostingCount, $torCount, $emailCount] = TomYumRegistrationGuard::listSizes();
 
         return ext_view('panel.gmt.registrations', [
             'filter' => $filter,
@@ -60,6 +60,12 @@ class RegistrationsController extends Controller
             'vpnBlock' => TomYumRegistrationGuard::vpnBlockEnabled(),
             'allowlist' => implode("\n", TomYumRegistrationGuard::allowlist()),
             'blockedAsns' => implode("\n", array_map(fn ($asn) => "AS{$asn}", TomYumRegistrationGuard::extraBlockedAsns())),
+            'emailDisposable' => TomYumRegistrationGuard::disposableEmailBlockEnabled(),
+            'emailMx' => TomYumRegistrationGuard::emailMxCheckEnabled(),
+            'emailListUrls' => implode("\n", TomYumRegistrationGuard::emailListUrls()),
+            'blockedEmailDomains' => implode("\n", TomYumRegistrationGuard::blockedEmailDomains()),
+            'allowedEmailDomains' => implode("\n", TomYumRegistrationGuard::allowedEmailDomains()),
+            'emailCount' => $emailCount,
             'hostingCount' => $hostingCount,
             'torCount' => $torCount,
             'proxycheck' => $GLOBALS['cfg']['tomyum']['registration']['proxycheck_enabled']
@@ -79,6 +85,27 @@ class RegistrationsController extends Controller
             return $this->back('error', 'Not an address, range or AS number: '.implode(', ', array_merge($invalid, $invalidAsns)).'.');
         }
 
+        $emailListUrls = static::entries(Request::input('email_list_urls'));
+        $badUrls = array_values(array_filter($emailListUrls, fn ($url) => filter_var($url, FILTER_VALIDATE_URL) === false || !preg_match('#^https?://#i', $url)));
+        if (count($badUrls) > 0) {
+            return $this->back('error', 'Not an http(s) URL: '.implode(', ', $badUrls).'.');
+        }
+        $domainLists = [];
+        foreach (['blocked_email_domains', 'allowed_email_domains'] as $field) {
+            $entries = static::entries(Request::input($field));
+            $badDomains = array_values(array_filter($entries, fn ($entry) => TomYumRegistrationGuard::normalizeDomain($entry) === null));
+            if (count($badDomains) > 0) {
+                return $this->back('error', 'Not a domain: '.implode(', ', $badDomains).'.');
+            }
+            $domainLists[$field] = array_values(array_unique(array_map(fn ($entry) => TomYumRegistrationGuard::normalizeDomain($entry), $entries)));
+        }
+        // Left empty or as the config's lists: nothing is stored, so the config's lists keep applying.
+        if ($emailListUrls === TomYumRegistrationGuard::defaultEmailListUrls()) {
+            $emailListUrls = [];
+        }
+        $emailDisposable = Request::boolean('email_disposable');
+        $emailMx = Request::boolean('email_mx');
+
         $ipLimit = Request::boolean('ip_limit');
         $vpnBlock = Request::boolean('vpn_block');
         $blockedAsns = array_map(fn ($entry) => 'AS'.preg_replace('/^AS/i', '', $entry), $blockedAsns);
@@ -87,13 +114,23 @@ class RegistrationsController extends Controller
         TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_VPN_BLOCK, $vpnBlock ? '1' : '0');
         TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_ALLOWLIST, implode("\n", $allowlist));
         TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_BLOCKED_ASNS, implode("\n", $blockedAsns));
+        TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_EMAIL_DISPOSABLE, $emailDisposable ? '1' : '0');
+        TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_EMAIL_MX, $emailMx ? '1' : '0');
+        TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_EMAIL_LIST_URLS, count($emailListUrls) > 0 ? implode("\n", $emailListUrls) : null);
+        TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_EMAIL_BLOCKED, implode("\n", $domainLists['blocked_email_domains']));
+        TomYumSiteSettings::set(TomYumRegistrationGuard::SETTING_EMAIL_ALLOWED, implode("\n", $domainLists['allowed_email_domains']));
 
         $this->staffLog('registration.settings', null, sprintf(
-            'Sign-up rules: 1 a day %s, VPN block %s, %d allowlisted, %d extra blocked networks',
+            'Sign-up rules: 1 a day %s, VPN block %s, %d allowlisted, %d extra blocked networks; disposable email %s, mail server check %s, %d email list(s), %d blocked and %d allowed email domains',
             $ipLimit ? 'on' : 'off',
             $vpnBlock ? 'on' : 'off',
             count($allowlist),
             count($blockedAsns),
+            $emailDisposable ? 'on' : 'off',
+            $emailMx ? 'on' : 'off',
+            count($emailListUrls) > 0 ? count($emailListUrls) : count(TomYumRegistrationGuard::defaultEmailListUrls()),
+            count($domainLists['blocked_email_domains']),
+            count($domainLists['allowed_email_domains']),
         ));
 
         return $this->back('success', 'Sign-up rules saved.');
@@ -101,9 +138,9 @@ class RegistrationsController extends Controller
 
     public function updateLists()
     {
-        [$hosting, $tor] = TomYumRegistrationGuard::updateLists();
+        [$hosting, $tor, $email] = TomYumRegistrationGuard::updateLists();
 
-        return $this->back('success', "Lists updated: {$hosting} hosting networks, {$tor} Tor exits.");
+        return $this->back('success', "Lists updated: {$hosting} hosting networks, {$tor} Tor exits, {$email} disposable email domains.");
     }
 
     private static function entries(?string $text): array

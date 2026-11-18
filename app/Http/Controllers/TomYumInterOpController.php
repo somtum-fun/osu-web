@@ -280,6 +280,7 @@ class TomYumInterOpController extends Controller
         $params = get_params(request()->all(), null, [
             'check:bool',
             'country',
+            'email',
             'ip',
             'source',
             'username',
@@ -302,6 +303,8 @@ class TomYumInterOpController extends Controller
             $params['check'] ?? false,
             $params['username'],
             $params['country'],
+            // Older TomYum doesn't send it: the email rules are skipped then.
+            $params['email'],
         );
 
         return $blocked === null ? ['ok' => true] : ['ok' => false] + $blocked;

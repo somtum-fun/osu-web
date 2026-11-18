@@ -8,16 +8,16 @@ namespace App\Console\Commands;
 use App\Libraries\TomYumRegistrationGuard;
 use Illuminate\Console\Command;
 
-/** TomYum: downloads the hosting network and Tor exit lists the sign-up rules use (TomYumRegistrationGuard). */
+/** TomYum: downloads the hosting network, Tor exit and disposable email domain lists the sign-up rules use (TomYumRegistrationGuard). */
 class TomYumRegistrationListsUpdate extends Command
 {
     protected $signature = 'tomyum:registration-lists-update';
 
-    protected $description = 'Downloads the hosting network (AS) and Tor exit lists that sign-ups are checked against.';
+    protected $description = 'Downloads the hosting network (AS), Tor exit and disposable email domain lists that sign-ups are checked against.';
 
     public function handle()
     {
-        [$hosting, $tor] = TomYumRegistrationGuard::updateLists();
-        $this->info("{$hosting} hosting networks, {$tor} Tor exits.");
+        [$hosting, $tor, $email] = TomYumRegistrationGuard::updateLists();
+        $this->info("{$hosting} hosting networks, {$tor} Tor exits, {$email} disposable email domains.");
     }
 }

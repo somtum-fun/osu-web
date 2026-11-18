@@ -20,7 +20,7 @@
             <h2><i class="fas fa-user-plus"></i>Sign-up rules</h2>
             <p class="tomyum-panel__hint">
                 Accounts are made in the game only (TumThai and stable). Every sign-up is checked in this order:
-                banned addresses; then the allowlist below skips the rest; one account per network (an IPv4
+                banned addresses; the email address (below; the allowlist doesn't skip it); then the allowlist below skips the rest; one account per network (an IPv4
                 address, or an IPv6 /64) in 24 hours; Tor and hosting networks ({{ i18n_number_format($hostingCount) }}
                 hosting networks and {{ i18n_number_format($torCount) }} Tor exits on the lists, updated daily);
                 then proxycheck.io ({{ $proxycheck }}). If proxycheck.io doesn't answer, the sign-up goes through
@@ -49,6 +49,30 @@
                     The allowlist takes addresses, ranges (CIDR) and AS numbers. Allowlist a network only after checking it (a school, a dorm or an internet cafe that wrote to
                     {{ App\Libraries\TomYumTickets::address('accounts') }}): everyone on it skips the daily limit and the VPN check. Bans still apply.
                     "Also block" treats those networks like the hosting networks on the lists (while VPNs are blocked).
+                </p>
+
+                <h3 class="panel-gmt__wide"><i class="fas fa-envelope"></i> Email addresses</h3>
+                <div class="panel-gmt__checks panel-gmt__wide">
+                    <label class="tomyum-panel__check"><input type="checkbox" name="email_disposable" value="1" @if ($emailDisposable) checked @endif> Block disposable email domains ({{ i18n_number_format($emailCount) }} on the lists)</label>
+                    <label class="tomyum-panel__check"><input type="checkbox" name="email_mx" value="1" @if ($emailMx) checked @endif> Refuse domains with no mail server</label>
+                </div>
+                <label class="input-container panel-gmt__wide">
+                    <span class="input-container__label">Disposable domain lists: one URL a line (plain text, one domain a line)</span>
+                    <textarea class="input-text" name="email_list_urls" rows="3">{{ $emailListUrls }}</textarea>
+                </label>
+                <label class="input-container">
+                    <span class="input-container__label">Also block: one email domain a line</span>
+                    <textarea class="input-text" name="blocked_email_domains" rows="6" placeholder="mailinator.com">{{ $blockedEmailDomains }}</textarea>
+                </label>
+                <label class="input-container">
+                    <span class="input-container__label">Always allow: one email domain a line</span>
+                    <textarea class="input-text" name="allowed_email_domains" rows="6" placeholder="duck.com">{{ $allowedEmailDomains }}</textarea>
+                </label>
+                <p class="tomyum-panel__hint panel-gmt__wide">
+                    A domain covers its subdomains. Reserved domains (example.com, .test, .invalid, .localhost) are always refused.
+                    The lists are downloaded daily with the others; if one can't be downloaded, the old set stays. Big lists get
+                    real providers wrong (some have duck.com or op.pl): put those under "Always allow". The mail server check
+                    looks up the domain's MX (or A) record on the final sign-up only; if DNS doesn't answer, the sign-up goes through.
                 </p>
                 <div class="panel-gmt__actions panel-gmt__wide">
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>

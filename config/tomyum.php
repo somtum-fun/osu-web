@@ -132,5 +132,9 @@ return [
         // The lists tomyum:registration-lists-update downloads every day.
         'hosting_asn_list_url' => presence(env('TOMYUM_HOSTING_ASN_LIST_URL')) ?? 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/input/datacenter/ASN.txt',
         'tor_exit_list_url' => presence(env('TOMYUM_TOR_EXIT_LIST_URL')) ?? 'https://check.torproject.org/torbulkexitlist',
+        // Disposable email domains, one URL per line (GMT panel → Sign-ups can replace them). One domain a
+        // line; # comments are skipped.
+        'disposable_email_list_urls' => presence(env('TOMYUM_DISPOSABLE_EMAIL_LIST_URLS'))
+            ?? 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf',
     ],
 ];

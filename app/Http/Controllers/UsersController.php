@@ -1254,10 +1254,10 @@ class UsersController extends Controller
         try {
             $registration->assertValid();
 
-            // TomYum: the sign-up rules (IP bans, 1 account per network a day, no VPN, proxy or
-            // hosting network), the same ones stable's sign-up goes through (TomYumRegistrationGuard).
+            // TomYum: the sign-up rules (IP bans, a real email address, 1 account per network a day,
+            // no VPN, proxy or hosting network), the same ones stable's sign-up goes through (TomYumRegistrationGuard).
             $isCheck = get_bool($rawParams['check'] ?? null) ?? false;
-            $blocked = TomYumRegistrationGuard::check($ip, $source, $isCheck, $params['username'], $countryCode);
+            $blocked = TomYumRegistrationGuard::check($ip, $source, $isCheck, $params['username'], $countryCode, $params['user_email']);
             if ($blocked !== null) {
                 return error_popup($blocked['message'], 403);
             }

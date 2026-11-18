@@ -20,13 +20,16 @@ use Illuminate\Support\Facades\Log;
  * sign-up is checked here, in this order:
  *
  *  1. the address isn't banned (osu_ip_bans);
+ *  1b. the email address is a real, lasting one: not a reserved domain (example.com, .test, ...), not
+ *     a domain staff block, not on the disposable-domain lists (downloaded daily; staff can let a domain
+ *     through), and (full check only) its domain has a mail server. The network allowlist doesn't skip it;
  *  2. the staff allowlist (addresses, ranges or AS numbers; GMT panel → Sign-ups) skips the rest;
  *  3. no account was made from the same network in the last 24 hours (the IPv4 address, or the IPv6 /64);
  *  4. it isn't a Tor exit or a hosting network (a datacenter AS list, plus staff's own);
  *  5. proxycheck.io doesn't call it a VPN or proxy. When proxycheck.io can't answer, the sign-up goes
  *     through and the log says so.
  *
- * The quick check (stable asks on every keystroke) runs 1 to 3 only, so a player sees the 24-hour
+ * The quick check (stable asks on every keystroke) runs 1 to 3 only (no mail server lookup), so a player sees the 24-hour
  * message early. Accounts made and sign-ups refused are kept in tomyum_registrations for 90 days.
  */
 class TomYumRegistrationGuard
@@ -38,11 +41,17 @@ class TomYumRegistrationGuard
     public const SETTING_VPN_BLOCK = 'registration_vpn_block_enabled';
     public const SETTING_ALLOWLIST = 'registration_allowlist';
     public const SETTING_BLOCKED_ASNS = 'registration_blocked_asns';
+    public const SETTING_EMAIL_DISPOSABLE = 'registration_email_disposable_block_enabled';
+    public const SETTING_EMAIL_MX = 'registration_email_mx_check_enabled';
+    public const SETTING_EMAIL_LIST_URLS = 'registration_email_list_urls';
+    public const SETTING_EMAIL_BLOCKED = 'registration_blocked_email_domains';
+    public const SETTING_EMAIL_ALLOWED = 'registration_allowed_email_domains';
 
     /** result => what the panel calls it */
     public const RESULTS = [
         'created' => 'Account made',
         'blocked_ban' => 'Banned address',
+        'blocked_email' => 'Email address',
         'blocked_ip_limit' => 'Already one today',
         'blocked_tor' => 'Tor',
         'blocked_hosting' => 'Hosting network',
@@ -53,12 +62,18 @@ class TomYumRegistrationGuard
 
     private const HOSTING_CACHE = 'tomyum:registration:hosting-asns';
     private const TOR_CACHE = 'tomyum:registration:tor-exits';
+    private const EMAIL_COUNT_CACHE = 'tomyum:registration:email-domains-count';
+    private const EMAIL_TABLE = 'tomyum_email_domain_blocklist';
+
+    /** Domains no one gets mail at (RFC 2606 / 6761), refused whatever the settings say. */
+    private const RESERVED_DOMAINS = ['example.com', 'example.net', 'example.org'];
+    private const RESERVED_TLDS = ['example', 'invalid', 'local', 'localhost', 'test'];
 
     /**
      * Whether this sign-up may go ahead: null when it may, otherwise ['code' => result, 'message' =>
      * what to tell the player]. A refused full check is logged.
      */
-    public static function check(string $ip, string $source, bool $quick = false, ?string $username = null, ?string $country = null): ?array
+    public static function check(string $ip, string $source, bool $quick = false, ?string $username = null, ?string $country = null, ?string $email = null): ?array
     {
         $ip = trim($ip);
         if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
@@ -67,6 +82,10 @@ class TomYumRegistrationGuard
 
         if (IpBan::where('ip', '=', $ip)->exists()) {
             return static::refuse($ip, $source, 'blocked_ban', static::message('ban'), $username, $country, $quick);
+        }
+
+        if (present($email) && ($why = static::emailRefusal($email, $quick)) !== null) {
+            return static::refuse($ip, $source, 'blocked_email', static::message('email'), $username, $country, $quick, $why);
         }
 
         $asn = static::asn($ip);
@@ -148,6 +167,89 @@ class TomYumRegistrationGuard
         )));
     }
 
+    public static function disposableEmailBlockEnabled(): bool
+    {
+        return TomYumSiteSettings::get(static::SETTING_EMAIL_DISPOSABLE) !== '0';
+    }
+
+    public static function emailMxCheckEnabled(): bool
+    {
+        return TomYumSiteSettings::get(static::SETTING_EMAIL_MX) !== '0';
+    }
+
+    /** The disposable-domain list URLs: staff's (the panel), else the config's. */
+    public static function emailListUrls(): array
+    {
+        $urls = static::lines(TomYumSiteSettings::get(static::SETTING_EMAIL_LIST_URLS));
+
+        return count($urls) > 0 ? $urls : static::defaultEmailListUrls();
+    }
+
+    /** The config's disposable-domain list URLs (TOMYUM_DISPOSABLE_EMAIL_LIST_URLS). */
+    public static function defaultEmailListUrls(): array
+    {
+        return static::lines($GLOBALS['cfg']['tomyum']['registration']['disposable_email_list_urls']);
+    }
+
+    /** Email domains staff refuse (a domain also covers its subdomains). */
+    public static function blockedEmailDomains(): array
+    {
+        return static::lines(TomYumSiteSettings::get(static::SETTING_EMAIL_BLOCKED));
+    }
+
+    /** Email domains staff let through though a list has them (a real provider a list got wrong). */
+    public static function allowedEmailDomains(): array
+    {
+        return static::lines(TomYumSiteSettings::get(static::SETTING_EMAIL_ALLOWED));
+    }
+
+    /** A domain as the lists and settings keep it (lowercase, no "*." or "@"), or null when it isn't one. */
+    public static function normalizeDomain(string $domain): ?string
+    {
+        $domain = rtrim(strtolower(trim(preg_replace('/^(\*\.|@|\.)+/', '', trim($domain)))), '.');
+
+        return preg_match('/^(?=.{1,253}$)([a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $domain) === 1 ? $domain : null;
+    }
+
+    /**
+     * Why an email address may not sign up (for the log: which rule and the domain), or null when it may.
+     * The address's format is the sign-up form's business; this looks at its domain only.
+     */
+    public static function emailRefusal(string $email, bool $quick = false): ?string
+    {
+        $at = strrpos($email, '@');
+        $domain = $at === false ? null : static::normalizeDomain(substr($email, $at + 1));
+        if ($domain === null) {
+            return null;
+        }
+
+        $candidates = static::domainAndParents($domain);
+        $tld = end($candidates);
+        if (in_array($tld, static::RESERVED_TLDS, true) || count(array_intersect($candidates, static::RESERVED_DOMAINS)) > 0) {
+            return "reserved domain {$domain}";
+        }
+        if (count(array_intersect($candidates, static::allowedEmailDomains())) > 0) {
+            return null;
+        }
+        if (count(array_intersect($candidates, static::blockedEmailDomains())) > 0) {
+            return "blocked domain {$domain}";
+        }
+        if (static::disposableEmailBlockEnabled()) {
+            try {
+                if (DB::table(static::EMAIL_TABLE)->whereIn('domain', $candidates)->exists()) {
+                    return "disposable domain {$domain}";
+                }
+            } catch (\Throwable $e) {
+                log_error($e);
+            }
+        }
+        if (!$quick && static::emailMxCheckEnabled() && !static::hasMailServer($domain)) {
+            return "no mail server for {$domain}";
+        }
+
+        return null;
+    }
+
     /** Whether an allowlist entry is well formed (an address, a CIDR range or "AS<number>"). */
     public static function isValidEntry(string $entry): bool
     {
@@ -188,7 +290,8 @@ class TomYumRegistrationGuard
 
     /**
      * Downloads the hosting AS list and the Tor exit list (tomyum:registration-lists-update, daily).
-     * Returns [hosting AS count, Tor exit count]; a list that fails to download keeps the old one.
+     * Also the disposable email domain lists (updateEmailList). Returns [hosting AS count, Tor exit count,
+     * disposable email domain count]; a list that fails to download keeps the old one.
      */
     public static function updateLists(int $timeout = 20): array
     {
@@ -218,13 +321,60 @@ class TomYumRegistrationGuard
             Log::warning("Registration: the Tor exit list couldn't be downloaded: {$e->getMessage()}");
         }
 
-        return [count($hosting ?? []), count($tor ?? [])];
+        return [count($hosting ?? []), count($tor ?? []), static::updateEmailList(max($timeout, 60))];
     }
 
-    /** [hosting AS count, Tor exit count] as they are now (for the panel). */
+    /**
+     * Downloads every disposable-domain list and swaps the merged set in. When any list fails, the old
+     * set stays (a half set would let that list's domains through). Returns the domain count now.
+     */
+    public static function updateEmailList(int $timeout = 60): int
+    {
+        $domains = [];
+        try {
+            foreach (static::emailListUrls() as $url) {
+                $body = Http::timeout($timeout)->get($url)->throw()->body();
+                foreach (preg_split('/\r\n|\r|\n/', $body) as $line) {
+                    $line = trim(preg_replace('/[#;].*$/', '', $line));
+                    if ($line !== '' && ($domain = static::normalizeDomain($line)) !== null) {
+                        $domains[$domain] = true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Registration: a disposable email domain list couldn't be downloaded: {$e->getMessage()}");
+
+            return static::emailListSize();
+        }
+        if (count($domains) === 0) {
+            Log::warning('Registration: the disposable email domain lists were empty; kept the old set');
+
+            return static::emailListSize();
+        }
+
+        $table = static::EMAIL_TABLE;
+        DB::statement("DROP TABLE IF EXISTS {$table}_new");
+        DB::statement("CREATE TABLE {$table}_new LIKE {$table}");
+        foreach (array_chunk(array_keys($domains), 2000) as $chunk) {
+            DB::table("{$table}_new")->insert(array_map(fn ($domain) => ['domain' => $domain], $chunk));
+        }
+        DB::statement("DROP TABLE IF EXISTS {$table}_old");
+        DB::statement("RENAME TABLE {$table} TO {$table}_old, {$table}_new TO {$table}");
+        DB::statement("DROP TABLE {$table}_old");
+        Cache::forever(static::EMAIL_COUNT_CACHE, count($domains));
+
+        return count($domains);
+    }
+
+    /** [hosting AS count, Tor exit count, disposable email domain count] as they are now (for the panel). */
     public static function listSizes(): array
     {
-        return [count(Cache::get(static::HOSTING_CACHE) ?? []), count(Cache::get(static::TOR_CACHE) ?? [])];
+        return [count(Cache::get(static::HOSTING_CACHE) ?? []), count(Cache::get(static::TOR_CACHE) ?? []), static::emailListSize()];
+    }
+
+    private static function emailListSize(): int
+    {
+        return (int) (Cache::get(static::EMAIL_COUNT_CACHE) ?? DB::table(static::EMAIL_TABLE)->count());
     }
 
     private static function message(string $key, ?Carbon $after = null): string
@@ -237,6 +387,8 @@ class TomYumRegistrationGuard
                 .$after->format('j M Y, H:i')." UTC. If someone else in your home or school needs an account, email {$accounts}.",
             'vpn' => "You can't make an account through a VPN, proxy or hosting network. Please turn it off and try again.",
             'invalid_ip' => "We couldn't tell where you're signing up from. Please try again later.",
+            'email' => 'Please sign up with a real email address you keep (not a temporary or disposable one). '
+                ."If you think this is a mistake, email {$accounts}.",
         };
     }
 
@@ -387,6 +539,44 @@ class TomYumRegistrationGuard
             return;
         }
         static::updateLists(5);
+    }
+
+    /** "a.b.example.com" → [a.b.example.com, b.example.com, example.com, com]. */
+    private static function domainAndParents(string $domain): array
+    {
+        $parts = explode('.', $domain);
+        $out = [];
+        for ($i = 0; $i < count($parts); $i++) {
+            $out[] = implode('.', array_slice($parts, $i));
+        }
+
+        return $out;
+    }
+
+    /**
+     * Whether a domain takes mail: an MX that isn't the "no mail" null MX (RFC 7505), else an A or AAAA
+     * record (RFC 5321's fallback). A lookup that fails (DNS down) counts as yes. Cached a day.
+     */
+    private static function hasMailServer(string $domain): bool
+    {
+        return Cache::remember('tomyum:registration:mx:'.$domain, 86400, function () use ($domain) {
+            $mx = @dns_get_record($domain.'.', DNS_MX);
+            if ($mx === false) {
+                return true;
+            }
+            if (count($mx) > 0) {
+                foreach ($mx as $record) {
+                    if (present(rtrim($record['target'] ?? '', '.'))) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            $address = @dns_get_record($domain.'.', DNS_A | DNS_AAAA);
+
+            return $address === false || count($address) > 0;
+        });
     }
 
     private static function lines(?string $text): array
