@@ -187,6 +187,8 @@ class ScoresController extends BaseController
         // TomYum: osu!dan is osu!(stable) only for now (a dan map in a room or playlist too).
         \App\Libraries\TomYumDan::refuseLazer($playlistItem->beatmap_id);
         $request = \Request::instance();
+        // TomYum: lazer scores come from TumThai, on a machine stable's rules let in.
+        \App\Libraries\TomYumLazerClient::assertMayPlay($request, $user);
 
         $scoreToken = $room->startPlay($user, $playlistItem, [
             ...$request->all(),

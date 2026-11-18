@@ -2213,6 +2213,13 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         $user = static::findForLogin($username);
         $authError = static::attemptLogin($user, $password);
 
+        // TomYum: TumThai's sign-in carries its machine hashes; stable's rules decide whether this account
+        // may sign in from that machine (another lazer client sends none and signs in as usual).
+        if ($authError === null) {
+            $hashes = \App\Libraries\TomYumLazerClient::hashesFrom(\Request::instance());
+            $authError = $hashes === null ? null : \App\Libraries\TomYumLazerClient::refusal($user, $hashes);
+        }
+
         if ($authError === null) {
             return $user;
         }

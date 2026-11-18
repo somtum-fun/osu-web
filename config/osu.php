@@ -217,6 +217,8 @@ return [
         'index_max_id_distance' => get_int(env('SCORE_INDEX_MAX_ID_DISTANCE')) ?? 10_000_000,
         'processing_queue' => presence(env('SCORES_PROCESSING_QUEUE')) ?? 'osu-queue:score-statistics',
         'submission_enabled' => get_bool(env('SCORES_SUBMISSION_ENABLED')) ?? true,
+        // TomYum: lazer scores only from TumThai (its X-TumThai-Client header); see App\Libraries\TomYumLazerClient.
+        'tomyum_require_client' => get_bool(env('TOMYUM_LAZER_REQUIRE_CLIENT')) ?? false,
         'user_summary_min_id' => get_int(env('SCORES_USER_SUMMARY_MIN_ID')) ?? 4101082566,
         'leaderboard_totals_enabled' => get_bool(env('SCORES_LEADERBOARD_TOTALS_ENABLED')) ?? true,
     ],

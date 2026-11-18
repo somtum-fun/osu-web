@@ -33,6 +33,8 @@ class ScoreTokensController extends BaseController
             abort(403, 'bot accounts can\'t submit scores');
         }
         $request = \Request::instance();
+        // TomYum: lazer scores come from TumThai, on a machine stable's rules let in.
+        \App\Libraries\TomYumLazerClient::assertMayPlay($request, $user);
         // TomYum: a TumThai play of an osu!dan map needs the Classic mod (TumThai sends its mods here):
         // without it the game shows "Score will not be submitted" with why.
         \App\Libraries\TomYumDan::refuseLazerWithoutClassic($beatmap->getKey(), $request->input('mods'));
