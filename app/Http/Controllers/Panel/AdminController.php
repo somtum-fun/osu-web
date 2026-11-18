@@ -82,6 +82,7 @@ class AdminController extends Controller
                 'queue' => $this->tomyum()->get('/pkms/wave/queue')->json(),
             ],
             'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
+            'pkmsTrustedSigners' => \App\Libraries\TomYumPkmsTrustedSigners::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
@@ -298,6 +299,41 @@ class AdminController extends Controller
         $this->staffLog('site.handle_requesters', null, 'pkms handle-requester allowlist: '.count($entries).' entries.');
 
         return $this->backToIndex('success', count($entries) === 0 ? 'pkms handle-requester allowlist cleared.' : 'Saved '.count($entries).' pkms handle requesters.');
+    }
+
+    /**
+     * pkms trusted-signer allowlist: signer CNs (Authenticode subject common names) the server trusts
+     * on top of pkms's baked-in list. A finding whose `ml:` entries all name signers listed here has
+     * its module_list bit dropped by the handshake-flag plugin. TomYum picks up a save within a
+     * minute — no pkms rebuild. See TomYumPkmsTrustedSigners for the stored shape.
+     */
+    public function pkmsTrustedSigners()
+    {
+        $existing = (array) Request::input('signer', []);
+        $delete = (array) Request::input('delete', []);
+        $entries = [];
+        foreach ($existing as $i => $signer) {
+            if (isset($delete[$i])) continue;
+            $signer = trim((string) $signer);
+            if ($signer === '') continue;
+            if (!\App\Libraries\TomYumPkmsTrustedSigners::isValidSigner($signer)) {
+                return $this->backToIndex('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$signer}'.");
+            }
+            $entries[] = $signer;
+        }
+
+        $newSigner = trim((string) Request::input('new_signer', ''));
+        if ($newSigner !== '') {
+            if (!\App\Libraries\TomYumPkmsTrustedSigners::isValidSigner($newSigner)) {
+                return $this->backToIndex('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$newSigner}'.");
+            }
+            $entries[] = $newSigner;
+        }
+
+        \App\Libraries\TomYumPkmsTrustedSigners::save($entries);
+        $this->staffLog('site.pkms_trusted_signers', null, 'pkms trusted-signer allowlist: '.count($entries).' entries.');
+
+        return $this->backToIndex('success', count($entries) === 0 ? 'pkms trusted-signer allowlist cleared.' : 'Saved '.count($entries).' pkms trusted signers.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */

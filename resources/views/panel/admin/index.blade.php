@@ -524,6 +524,48 @@
             </form>
         </div>
 
+        {{-- TomYum: pkms trusted-signer allowlist (AdminController@pkmsTrustedSigners). --}}
+        <div class="tomyum-panel__card" id="pkms-trusted-signers">
+            <h2>
+                <i class="fas fa-certificate"></i>pkms trusted signers
+                @if (count($pkmsTrustedSigners) === 0)
+                    <span class="tomyum-panel__badge">EMPTY</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ count($pkmsTrustedSigners) }}</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Authenticode signer CNs the server trusts <strong>on top of</strong> the list baked into pkms. A finding whose <code>ml:</code> entries all name signers listed here has its module_list bit dropped — no pkms rebuild, no ship flow. TomYum picks up a change within a minute.<br>
+                Signer names come from the finding reason, e.g. <code>[not in allowlist: OORT Inc.]</code> → enter <code>OORT Inc.</code> here. Match is case-insensitive.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pkms-trusted-signers') }}">
+                @csrf
+                <table class="tomyum-panel__table">
+                    <thead>
+                        <tr>
+                            <th>signer CN</th>
+                            <th style="width: 50px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pkmsTrustedSigners as $i => $signer)
+                            <tr>
+                                <td><input class="input-text" type="text" name="signer[{{ $i }}]" value="{{ $signer }}" maxlength="{{ App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH }}" required></td>
+                                <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <td><input class="input-text" type="text" name="new_signer" placeholder="OORT Inc." maxlength="{{ App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH }}"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tomyum-panel__row" style="margin-top: 10px">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                </div>
+            </form>
+        </div>
+
         {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
         <div class="tomyum-panel__card" id="handle-requesters">
             <h2>

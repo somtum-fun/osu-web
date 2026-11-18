@@ -225,6 +225,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('pkms-wave/run', 'AdminController@pkmsWaveRun')->name('pkms-wave-run');
             // TomYum: pkms handle-requester allowlist (basename + sha256 of each approved external VM_READer).
             Route::post('handle-requesters', 'AdminController@handleRequesters')->name('handle-requesters');
+            // TomYum: pkms trusted-signer allowlist (server-added Authenticode CNs, dropped from ml:*).
+            Route::post('pkms-trusted-signers', 'AdminController@pkmsTrustedSigners')->name('pkms-trusted-signers');
             // TomYum: operator kill switch for the client-side AC.
             Route::post('anticheat-killswitch', 'AdminController@anticheatKillSwitch')->name('anticheat-killswitch');
             // TomYum: which staff log actions the Discord plugin posts to the log channels.
