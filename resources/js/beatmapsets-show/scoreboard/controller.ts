@@ -178,7 +178,7 @@ export default class Controller {
 
     if (options.customRuleset !== undefined) {
       this.customRuleset = options.customRuleset;
-      // A custom ruleset's boards (Normal, Relax, Autopilot alike) are by score only: no pp.
+      // A custom ruleset's boards (Normal, Relax, Autopilot alike) are by score, as osu!'s (pp is shown, not sorted by).
       if (options.customRuleset != null) {
         this.sort = 'score';
       } else {

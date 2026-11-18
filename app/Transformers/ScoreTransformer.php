@@ -113,8 +113,10 @@ class ScoreTransformer extends TransformerAbstract
             'legacy_total_score' => $score->legacy_total_score,
             'max_combo' => $score->max_combo,
             'passed' => $score->passed,
-            'pp' => $score->pp,
+            // TomYum: a custom ruleset ranked by score keeps its plays' pp, but doesn't show it (tomyum_hides_pp).
+            'pp' => ($hidesPp = \App\Libraries\TomYumCustomRulesets::hidesPp($score->ruleset_id)) ? null : $score->pp,
             'ruleset_id' => $score->ruleset_id,
+            'tomyum_hides_pp' => $hidesPp,
             'started_at' => $score->getJsonTime('started_at'),
             'total_score' => $score->total_score,
             // TODO: remove this redundant field sometime after 2024-02

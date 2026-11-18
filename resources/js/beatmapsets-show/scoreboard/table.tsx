@@ -58,8 +58,9 @@ export default class Table extends React.Component<Props> {
   }
 
   get showPp() {
-    // TomYum: a custom lazer ruleset has no pp.
-    return this.props.controller.customRuleset == null && shouldShowPp(this.props.controller.beatmap);
+    // TomYum: a custom lazer ruleset's plays have Pla-ra pp too (its boards stay sorted by score).
+    // Not for a custom ruleset ranked by score.
+    return shouldShowPp(this.props.controller.beatmap) && !this.props.controller.data.scores.some((score) => score.tomyum_hides_pp);
   }
 
   constructor(props: Props) {

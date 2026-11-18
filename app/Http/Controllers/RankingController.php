@@ -214,7 +214,7 @@ class RankingController extends Controller
      *
      * Returns [Rankings](#rankings)
      *
-     * @urlParam ruleset string required [Ruleset](#ruleset), or a [custom ruleset](#ruleset-custom-rulesets)'s slug (`type` `score` only). Example: mania
+     * @urlParam ruleset string required [Ruleset](#ruleset), or a [custom ruleset](#ruleset-custom-rulesets)'s slug (`type` `performance` or `score`). Example: mania
      * @urlParam type string required [RankingType](#rankingtype). Example: global
      *
      * @queryParam country string Filter ranking by country code. Only available for `type` of `global`. Example: JP
@@ -226,13 +226,17 @@ class RankingController extends Controller
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {
         $rawParams = \Request::instance()->query->all();
-        // TomYum: a custom lazer ruleset's rankings (by ranked score: it has no pp), for TumThai's rankings overlay
-        // (rankings/{slug}/score or /performance); the website has its own page for them.
+        // TomYum: a custom lazer ruleset's rankings (by Pla-ra pp, or ranked score with /score), for TumThai's rankings
+        // overlay (rankings/{slug}/performance or /score); the website has its own page for them.
         if ($mode !== null && ($customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($mode)) !== null) {
             if (!is_api_request()) {
-                return ujs_redirect(route('rankings.custom-rulesets', ['slug' => $customRuleset->slug, ...array_intersect_key($rawParams, ['country' => 1, 'variant' => 1])]));
+                return ujs_redirect(route('rankings.custom-rulesets', [
+                    'slug' => $customRuleset->slug,
+                    ...array_intersect_key($rawParams, ['country' => 1, 'variant' => 1]),
+                    ...($type === 'score' ? ['type' => 'score'] : []),
+                ]));
             }
-            abort_unless(in_array($type, ['score', 'performance', 'global'], true), 404, 'custom rulesets have score rankings only');
+            abort_unless(in_array($type, ['score', 'performance', 'global'], true), 404, 'custom rulesets have performance and score rankings only');
             $country = presence(get_string($rawParams['country'] ?? null));
             $country = $country !== null && preg_match('/^[A-Za-z]{2}$/', $country) === 1 ? strtoupper($country) : null;
             $cursor = $rawParams['cursor'] ?? null;
@@ -243,6 +247,8 @@ class RankingController extends Controller
                 $country,
                 $page,
                 \App\Libraries\TomYumCustomRulesets::variant(get_string($rawParams['variant'] ?? null)),
+                // A ruleset staff rank by score answers by score whichever is asked.
+                \App\Libraries\TomYumCustomRulesetScores::sort($type === 'score' ? 'score' : 'performance', $customRuleset),
             );
         }
         // TomYum: lazer asks for Relax/Autopilot rankings with its mode (osurx, ...), the website with variant.

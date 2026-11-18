@@ -34,7 +34,45 @@ class TomYumRulesetsController extends Controller
         $country = $country !== null && preg_match('/^[A-Za-z]{2}$/', $country) === 1 ? strtoupper($country) : null;
         $page = max(1, min(200, get_int(request('page')) ?? 1));
         $variant = TomYumCustomRulesets::variant(get_string(request('variant')));
-        $rankings = TomYumCustomRulesetScores::rankings($ruleset, $country, $page, $variant);
+
+        // Top plays (type=top_plays): the best pp plays, 100 a page, as the rankings' own Top Plays.
+        // (None for a ruleset ranked by score: its pp isn't shown.)
+        if (get_string(request('type')) === 'top_plays' && !$ruleset->ranksByPp()) {
+            return redirect(route('rankings.custom-rulesets', array_filter(['slug' => $ruleset->slug, 'variant' => $variant === 'vanilla' ? null : $variant])));
+        }
+        if (get_string(request('type')) === 'top_plays') {
+            $page = min($page, 10);
+            $ids = TomYumCustomRulesetScores::topPlays($ruleset, $variant);
+            $pageIds = array_slice($ids, ($page - 1) * 100, 100);
+            $found = \App\Models\Solo\Score::with(['user.country', 'user.team', 'beatmap.beatmapset'])->whereIn('id', $pageIds)->get()->keyBy('id');
+            $items = [];
+            foreach ($pageIds as $id) {
+                $score = $found[$id] ?? null;
+                if ($score !== null && $score->user !== null && $score->beatmap?->beatmapset !== null) {
+                    $items[] = json_item($score, new \App\Transformers\ScoreTransformer(), ['beatmap', 'beatmapset', 'user.country', 'user.team']);
+                }
+            }
+
+            return ext_view('rankings.custom_rulesets', [
+                'country' => null,
+                'ruleset' => $ruleset,
+                'rulesets' => $rulesets,
+                'scores' => new \Illuminate\Pagination\LengthAwarePaginator(
+                    $items,
+                    count($ids),
+                    100,
+                    $page,
+                    ['path' => route('rankings.custom-rulesets', ['slug' => $ruleset->slug]), 'query' => array_filter(['variant' => $variant === 'vanilla' ? null : $variant, 'type' => 'top_plays'])],
+                ),
+                'sort' => 'top_plays',
+                'users' => [],
+                'variant' => $variant,
+            ]);
+        }
+
+        // By pp unless asked for ranked score (type=score).
+        $sort = TomYumCustomRulesetScores::sort(get_string(request('type')), $ruleset);
+        $rankings = TomYumCustomRulesetScores::rankings($ruleset, $country, $page, $variant, $sort);
         $users = \App\Models\User::with('country')->whereIn('user_id', array_column($rankings['rows'], 'user_id'))->get()->keyBy('user_id');
 
         $scores = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -42,7 +80,7 @@ class TomYumRulesetsController extends Controller
             $rankings['total'],
             TomYumCustomRulesetScores::RANKINGS_PAGE,
             $page,
-            ['path' => route('rankings.custom-rulesets', ['slug' => $ruleset->slug]), 'query' => array_filter(['country' => $country, 'variant' => $variant === 'vanilla' ? null : $variant])],
+            ['path' => route('rankings.custom-rulesets', ['slug' => $ruleset->slug]), 'query' => array_filter(['country' => $country, 'variant' => $variant === 'vanilla' ? null : $variant, 'type' => $sort === 'score' ? 'score' : null])],
         );
 
         return ext_view('rankings.custom_rulesets', [
@@ -50,6 +88,7 @@ class TomYumRulesetsController extends Controller
             'ruleset' => $ruleset,
             'rulesets' => $rulesets,
             'scores' => $scores,
+            'sort' => $sort,
             'users' => $users,
             'variant' => $variant,
         ]);

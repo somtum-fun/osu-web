@@ -1162,6 +1162,18 @@ class AdminController extends Controller
         return $this->backToIndex('success', 'Updating the pp library: the steps show below as it goes. Once it is live, a pp rework starts by itself.');
     }
 
+    /** TomYum: works out custom rulesets' Pla-ra pp again (all ranked passes, or only those without pp), on the queue. */
+    public function plara()
+    {
+        $missing = Request::input('scope') !== 'all';
+        dispatch(new \App\Jobs\TomYumPlaraRecalculate($missing));
+        $this->staffLog('pp.plara_recalculate', null, $missing ? 'Asked Pla-ra for the pp of plays without it' : "Asked Pla-ra to work out every custom ruleset play's pp again");
+
+        return $this->backToIndex('success', $missing
+            ? 'Working out the pp of plays without it: the counts below update as it goes.'
+            : 'Working out every custom ruleset play\'s pp again: the counts below update as it goes.');
+    }
+
     /** TomYum: starts a pp rework in the chosen modes, or cancels one (the game server runs it). */
     public function ppRework()
     {

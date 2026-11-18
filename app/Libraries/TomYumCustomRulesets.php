@@ -121,6 +121,16 @@ class TomYumCustomRulesets
      */
     const UNRANKED_MODS = ['AT', 'CN', 'AU'];
 
+    /**
+     * A ruleset's own mods that play or aim for you, by slug (an acronym means different things in different rulesets,
+     * and ids past FIXED_IDS differ between servers): sentakki's No Touch, tau's Dual, osu!fps's Magnetised.
+     */
+    const RULESET_UNRANKED_MODS = [
+        'sentakki' => ['NT'],
+        'tau' => ['DL'],
+        'osufps' => ['MG'],
+    ];
+
     /** A custom ruleset's boards: normal (no RX or AP), Relax, Autopilot; `variant` in requests. */
     const VARIANTS = ['vanilla', 'relax', 'autopilot'];
 
@@ -181,11 +191,13 @@ class TomYumCustomRulesets
     }
 
     /** Whether a custom ruleset's play with these mods counts on the leaderboards (no automation mods). */
-    public static function modsRanked(array $mods): bool
+    public static function modsRanked(array $mods, mixed $rulesetId = null): bool
     {
+        $slug = static::find($rulesetId)?->slug;
+        $unranked = [...static::UNRANKED_MODS, ...($slug === null ? [] : (static::RULESET_UNRANKED_MODS[strtolower($slug)] ?? []))];
         foreach ($mods as $mod) {
             $acronym = is_array($mod) ? ($mod['acronym'] ?? null) : (is_object($mod) ? ($mod->acronym ?? null) : $mod);
-            if (is_string($acronym) && in_array(strtoupper($acronym), static::UNRANKED_MODS, true)) {
+            if (is_string($acronym) && in_array(strtoupper($acronym), $unranked, true)) {
                 return false;
             }
         }
@@ -213,6 +225,8 @@ class TomYumCustomRulesets
             // The mods a player can pick ([{acronym, name, type}], in the game's order; null when unknown) and the boards it has.
             'mods' => static::mods($ruleset),
             'variants' => static::variants($ruleset),
+            // How its players are ranked: "pp" (Pla-ra's) or "score" (ranked score; its plays show no pp).
+            'ranking' => $ruleset->ranksByPp() ? 'pp' : 'score',
         ];
     }
 
@@ -336,6 +350,26 @@ class TomYumCustomRulesets
         Cache::forget(static::CACHE_KEY);
 
         return $ruleset;
+    }
+
+    /** Ranks the ruleset's players by "pp" (Pla-ra's) or "score"; null when it isn't one of ours. */
+    public static function setRanking(string $slug, string $ranking): ?TomYumCustomRuleset
+    {
+        $ruleset = TomYumCustomRuleset::where('slug', $slug)->first();
+        if ($ruleset !== null) {
+            $ruleset->ranking = $ranking === 'score' ? 'score' : 'pp';
+            $ruleset->save();
+            Cache::forget(static::CACHE_KEY);
+            TomYumCustomRulesetScores::rankingsChanged($ruleset->id);
+        }
+
+        return $ruleset;
+    }
+
+    /** True for a play in a custom ruleset ranked by score (its pp is kept, but not shown). */
+    public static function hidesPp(mixed $rulesetId): bool
+    {
+        return static::isCustomId($rulesetId) && !(static::find($rulesetId)?->ranksByPp() ?? true);
     }
 
     public static function disable(string $slug): ?TomYumCustomRuleset

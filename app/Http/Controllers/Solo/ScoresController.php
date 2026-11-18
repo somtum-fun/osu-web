@@ -76,6 +76,8 @@ class ScoresController extends BaseController
             // leaves custom rulesets alone, so nothing else refreshes them).
             if ($score->passed && $score->ranked && \App\Libraries\TomYumCustomRulesets::isCustomId($score->ruleset_id)) {
                 \App\Libraries\TomYumCustomRulesetScores::rankingsChanged((int) $score->ruleset_id);
+                // Its pp, from Pla-ra (the rankings are worked out again once it's in).
+                dispatch(new \App\Jobs\TomYumCustomRulesetPp($score->getKey()));
             }
         }
 

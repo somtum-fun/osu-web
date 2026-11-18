@@ -16,10 +16,12 @@ import RankCount from './rank-count';
 import Stats from './stats';
 
 interface Props {
-  // TomYum: a custom lazer ruleset's profile: by score, no pp.
+  // TomYum: a custom lazer ruleset's profile (its pp is Pla-ra's).
   custom?: boolean;
   // TomYum: the player's pp history in the mode shown (the chart can show it instead of the rank).
   ppHistoryUrl?: string;
+  // TomYum: false on a custom ruleset ranked by score.
+  showPp?: boolean;
   user: Controller['state']['user'];
 }
 
@@ -43,9 +45,8 @@ export default class DetailStats extends React.PureComponent<Props> {
           </div>
 
           <div className='profile-detail-stats__chart'>
-            {/* TomYum: a custom lazer ruleset's graph is its rank only (it has no pp). */}
             {user.statistics.is_ranked ? (
-              <RankChart ppHistoryUrl={this.props.custom ? undefined : this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
+              <RankChart ppHistoryUrl={this.props.ppHistoryUrl} rankHistory={user.rank_history} stats={user.statistics} />
             ) : (
               <div className='profile-detail-stats__empty-chart'>{trans('users.show.extra.unranked')}</div>
             )}
@@ -53,7 +54,7 @@ export default class DetailStats extends React.PureComponent<Props> {
           <div className='profile-detail-stats__chart-numbers'>
             <div className='profile-detail-stats__values profile-detail-stats__values--grid'>
               <MedalsCount userAchievements={user.user_achievements} />
-              {!this.props.custom && <Pp stats={user.statistics} />}
+              {this.props.showPp !== false && <Pp stats={user.statistics} />}
               <PlayTime stats={user.statistics} />
             </div>
             <div className='profile-detail-stats__values'>

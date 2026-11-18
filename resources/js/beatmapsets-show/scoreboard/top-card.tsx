@@ -182,7 +182,7 @@ export default class TopCard extends React.PureComponent<Props> {
                   <ScoreValue score={this.props.score} />
                 </div>
               </div>
-            ) : shouldShowPp(this.props.beatmap) && this.props.score.ruleset_id < 10 /* TomYum: custom rulesets (10 and up) have no pp */ && (
+            ) : shouldShowPp(this.props.beatmap) && !this.props.score.tomyum_hides_pp && (
               <div className='beatmap-score-top__stat'>
                 <div className='beatmap-score-top__stat-header'>
                   {trans('beatmapsets.show.scoreboard.headers.pp')}

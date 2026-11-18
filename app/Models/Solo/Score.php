@@ -126,12 +126,13 @@ class Score extends Model implements Traits\ReportableInterface
      */
     public static function allModsRanked(int $rulesetId, array $mods): bool
     {
+        // TomYum: a custom ruleset has no ranked mods list; its automation mods are never ranked. Its Relax and
+        // Autopilot plays are: they go on its own Relax / Autopilot boards (TomYumCustomRulesets::VARIANTS).
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            return \App\Libraries\TomYumCustomRulesets::modsRanked($mods, $rulesetId);
+        }
         if (static::hasRelaxMod($mods)) {
             return false;
-        }
-        // TomYum: a custom ruleset has no ranked mods list; its automation mods are never ranked.
-        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
-            return \App\Libraries\TomYumCustomRulesets::modsRanked($mods);
         }
 
         // Kept a minute (the site's workers live long; staff changes apply within it). false: no list.

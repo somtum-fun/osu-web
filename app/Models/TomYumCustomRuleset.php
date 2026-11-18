@@ -19,6 +19,7 @@ namespace App\Models;
  * @property int $id
  * @property string $name
  * @property \Carbon\Carbon|null $pinned_at
+ * @property string $ranking "pp" (Pla-ra's) or "score": how its players are ranked
  * @property int|null $pinned_by
  * @property string $sha256
  * @property int $size
@@ -36,4 +37,10 @@ class TomYumCustomRuleset extends Model
         'pinned_at' => 'datetime',
     ];
     protected $table = 'tomyum_custom_rulesets';
+
+    /** True when its players are ranked by Pla-ra's pp (staff's pick); false: by ranked score, and pp isn't shown. */
+    public function ranksByPp(): bool
+    {
+        return ($this->ranking ?? 'pp') !== 'score';
+    }
 }

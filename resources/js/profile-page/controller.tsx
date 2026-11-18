@@ -110,6 +110,8 @@ export interface CustomRulesetJson {
   // Its mods ([{acronym, name, type}], null: unknown) and the boards it has.
   mods?: { acronym: string; name: string; type: string }[] | null;
   name: string;
+  // How its players are ranked (staff's pick): by Pla-ra's pp, or by ranked score (no pp shown).
+  ranking?: 'pp' | 'score';
   slug: string;
   variants?: ('autopilot' | 'relax' | 'vanilla')[];
 }
@@ -122,6 +124,27 @@ export default class Controller {
   readonly customRulesets: CustomRulesetJson[];
   readonly customVariant: string;
   readonly variant: string | null;
+
+  // TomYum: the profile's pp graph's data: a custom ruleset's by its slug (and board), osu!'s by tomyumMode. None
+  // for a custom ruleset ranked by score.
+  get ppHistoryUrl(): string | undefined {
+    const user = this.state.user.id;
+
+    if (!this.showsPp) return undefined;
+
+    if (this.customRuleset == null) {
+      return route('users.tomyum-pp-history', { mode: this.tomyumMode, user });
+    }
+
+    return this.customVariant === 'vanilla'
+      ? route('users.tomyum-pp-history', { mode: this.customRuleset.slug, user })
+      : route('users.tomyum-pp-history', { mode: this.customRuleset.slug, user, variant: this.customVariant });
+  }
+
+  // TomYum: false on a custom ruleset staff rank by score (its pp is kept, not shown).
+  get showsPp() {
+    return this.customRuleset?.ranking !== 'score';
+  }
 
   // TomYum: the mode shown as TomYum numbers it (0-3 the rulesets, 4-6 Relax, 8 Autopilot), for its pp history.
   get tomyumMode() {

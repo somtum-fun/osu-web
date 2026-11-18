@@ -52,8 +52,7 @@ export default function Stats(props: Props) {
             </div>
           </div>
 
-          {/* TomYum: a custom lazer ruleset's play (ruleset 10 and up) has no pp. */}
-          {shouldShowPp(props.beatmap) && props.score.ruleset_id < 10 && (
+          {shouldShowPp(props.beatmap) && !props.score.tomyum_hides_pp && (
             <div className='score-stats__stat'>
               <div className='score-stats__stat-row score-stats__stat-row--label'>
                 {trans('beatmapsets.show.scoreboard.headers.pp')}

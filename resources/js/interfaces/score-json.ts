@@ -73,6 +73,8 @@ interface ScoreJsonAttributesMultiplayer extends ScoreJsonAttributesSolo {
 }
 
 type ScoreJsonAttributes = {
+  // TomYum: a play in a custom ruleset staff rank by score: no pp shown.
+  tomyum_hides_pp?: boolean;
   accuracy: number;
   beatmap_id: number;
   best_id: number | null;

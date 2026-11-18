@@ -27,6 +27,15 @@ class TopPlaysController extends Controller
             return ujs_redirect(route('rankings.top-plays', ['mode' => default_mode()]));
         }
 
+        // TomYum: a custom lazer ruleset's top plays are on its own rankings page.
+        if (!isset(Beatmap::MODES[$rulesetName]) && ($custom = \App\Libraries\TomYumCustomRulesets::findBySlug($rulesetName)) !== null) {
+            return ujs_redirect(route('rankings.custom-rulesets', array_filter([
+                'slug' => $custom->slug,
+                'type' => 'top_plays',
+                'variant' => presence(get_string(\Request::input('variant'))),
+            ])));
+        }
+
         $rulesetId = Beatmap::MODES[$rulesetName] ?? abort(422, 'invalid ruleset parameter');
         $page = \Number::clamp(get_int(\Request::input('page')) ?? 1, 1, static::PAGES);
 

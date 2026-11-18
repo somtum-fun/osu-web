@@ -12,8 +12,8 @@ use DB;
 use Illuminate\Console\Command;
 
 /**
- * TomYum: each player's global rank on every custom lazer ruleset's boards today (or, with --days, on each of the
- * last days, as the plays up to then had it), for their profile's rank graph.
+ * TomYum: each player's global rank (by pp) and pp on every custom lazer ruleset's boards today (or, with --days, on
+ * each of the last days, as the plays up to then had it), for their profile's rank graph and its pp view.
  */
 class TomYumCustomRulesetRanks extends Command
 {
@@ -32,16 +32,16 @@ class TomYumCustomRulesetRanks extends Command
                 for ($back = $days - 1; $back >= 0; $back--) {
                     $day = $today->subDays($back);
                     // As the plays until the end of that day had it (today: until now).
-                    $userIds = TomYumCustomRulesetScores::rankedUserIdsBefore($ruleset, $variant, $back === 0 ? null : $day->addDay());
-                    if ($userIds === []) {
+                    $ranked = TomYumCustomRulesetScores::rankedBefore($ruleset, $variant, $back === 0 ? null : $day->addDay());
+                    if ($ranked === []) {
                         continue;
                     }
                     $rows = [];
-                    foreach ($userIds as $index => $userId) {
-                        $rows[] = ['user_id' => $userId, 'ruleset_id' => $ruleset->id, 'variant' => $variant, 'date' => $day->toDateString(), 'rank' => $index + 1];
+                    foreach ($ranked as $index => $player) {
+                        $rows[] = ['user_id' => $player['user_id'], 'ruleset_id' => $ruleset->id, 'variant' => $variant, 'date' => $day->toDateString(), 'rank' => $index + 1, 'pp' => $player['pp']];
                     }
                     foreach (array_chunk($rows, 1000) as $chunk) {
-                        DB::table('tomyum_custom_ruleset_rank_history')->upsert($chunk, ['user_id', 'ruleset_id', 'variant', 'date'], ['rank']);
+                        DB::table('tomyum_custom_ruleset_rank_history')->upsert($chunk, ['user_id', 'ruleset_id', 'variant', 'date'], ['rank', 'pp']);
                     }
                     $stored += count($rows);
                 }

@@ -206,6 +206,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('/', 'AdminController@index')->name('index');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
             Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
+            Route::post('plara', 'AdminController@plara')->name('plara');
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
@@ -315,6 +316,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('rulesets', 'RulesetsController@index')->name('rulesets.index');
             Route::post('rulesets/{slug}/pin', 'RulesetsController@pin')->name('rulesets.pin');
             Route::post('rulesets/{slug}/disable', 'RulesetsController@disable')->name('rulesets.disable');
+            Route::post('rulesets/{slug}/ranking', 'RulesetsController@ranking')->name('rulesets.ranking');
             Route::get('matchmaking', 'MatchmakingController@index')->name('matchmaking.index');
             Route::post('matchmaking', 'MatchmakingController@store')->name('matchmaking.store');
             Route::post('matchmaking/{pool}', 'MatchmakingController@update')->name('matchmaking.update');

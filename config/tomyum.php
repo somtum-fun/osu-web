@@ -7,6 +7,9 @@ return [
     // Where the website reaches TomYum's admin API: its compose service on the shared network.
     'admin_url' => env('TOMYUM_ADMIN_URL', 'http://server:8080'),
 
+    // Pla-ra: the sidecar that works out custom lazer rulesets' stars and pp (TomYum's services/TomYum.Plara).
+    'plara_url' => env('TOMYUM_PLARA_URL', 'http://plara:9100'),
+
     // The server's name where the website speaks for it (support ticket mail, the maintenance notice).
     'server_name' => presence(env('TOMYUM_SERVER_NAME')) ?? 'TomYum',
 

@@ -869,6 +869,14 @@ class UsersController extends Controller
     {
         $user = User::find(get_int($userId));
         abort_if($user === null || ($user->isRestricted() && \Auth::id() !== $user->getKey()), 404);
+        // A custom lazer ruleset's (by its slug, on the board in `variant`): Pla-ra pp, kept with its daily rank.
+        if (($customRuleset = \App\Libraries\TomYumCustomRulesets::findBySlug($mode)) !== null) {
+            return \App\Libraries\TomYumCustomRulesetScores::ppHistory(
+                $user,
+                $customRuleset,
+                \App\Libraries\TomYumCustomRulesets::variant(get_string(request('variant'))),
+            );
+        }
         $mode = get_int($mode);
         abort_if($mode === null || !in_array($mode, [0, 1, 2, 3, 4, 5, 6, 8], true), 404);
 

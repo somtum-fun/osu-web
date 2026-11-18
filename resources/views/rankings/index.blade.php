@@ -52,7 +52,8 @@
             'customRulesetCurrent' => $customRulesetCurrent ?? null,
             // TomYum: custom lazer rulesets' own rankings (by ranked score).
             'customRulesetLinks' => array_values(array_map(
-                fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug]), $r->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $r->slug])],
+                // From Top Plays, to its Top Plays.
+                fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug, 'type' => ($params['type'] ?? null) === 'top_plays' || ($sort ?? null) === 'top_plays' ? 'top_plays' : null]), $r->icon_url === null ? null : route('tomyum.rulesets.icon', ['slug' => $r->slug])],
                 App\Libraries\TomYumCustomRulesets::enabled(),
             )),
         ])

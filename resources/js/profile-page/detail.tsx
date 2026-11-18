@@ -3,7 +3,6 @@
 
 import ProfileTournamentBanner from 'components/profile-tournament-banner';
 import StringWithComponent from 'components/string-with-component';
-import { route } from 'laroute';
 import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
@@ -26,7 +25,7 @@ interface Props {
 export default class Detail extends React.Component<Props> {
   // TomYum: the player's pp history in the mode shown, for the rank chart's pp view.
   private get ppHistoryUrl() {
-    return route('users.tomyum-pp-history', { mode: this.props.controller.tomyumMode, user: this.props.controller.state.user.id });
+    return this.props.controller.ppHistoryUrl;
   }
 
   render() {
@@ -52,7 +51,7 @@ export default class Detail extends React.Component<Props> {
           <div className='profile-detail'>
             {core.userPreferences.get('profile_detail_v2')
               ? <DetailStatsV2 controller={this.props.controller} />
-              : <DetailStats custom={this.props.controller.customRuleset != null} ppHistoryUrl={this.ppHistoryUrl} user={user} />
+              : <DetailStats custom={this.props.controller.customRuleset != null} ppHistoryUrl={this.ppHistoryUrl} showPp={this.props.controller.showsPp} user={user} />
             }
             {this.renderDetailToggle()}
 

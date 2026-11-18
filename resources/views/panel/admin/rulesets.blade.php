@@ -18,7 +18,9 @@
                 Custom lazer rulesets from <a href="https://rulesets.info" target="_blank" rel="noopener">rulesets.info</a>, played in TumThai.
                 Turning one on pins its release as it is now: the DLL's address and SHA-256. TumThai players install exactly that file from
                 Settings (or put it in TumThai's rulesets folder themselves), and a play only submits when the ruleset it ran on has that hash.
-                Their leaderboards and rankings go by score (no pp). When the author releases a new version, <strong>Pin again</strong> moves to it;
+                Players are ranked by <strong>pp</strong> (Pla-ra's: stars, accuracy and misses) or by <strong>ranked score</strong>, as
+                you pick for each ruleset under "ranked by"; maps' leaderboards are sorted by score either way. Pla-ra works out pp for
+                every ranked pass whichever you pick, so switching is instant. When the author releases a new version, <strong>Pin again</strong> moves to it;
                 players then update the ruleset from Settings. Turning a ruleset off stops new plays submitting; its scores stay.
             </p>
         </details>
@@ -36,6 +38,7 @@
                             <th>ruleset</th>
                             <th style="width: 170px">latest on rulesets.info</th>
                             <th style="width: 260px">here</th>
+                            <th style="width: 150px">ranked by</th>
                             <th style="width: 200px"></th>
                         </tr>
                     </thead>
@@ -65,6 +68,26 @@
                                         @endif
                                         id <code>{{ $mine->id }}</code>, {{ $mine->version ?? 'unversioned file' }}
                                         <br><span class="tomyum-panel__hint" style="margin: 0"><code>{{ substr($mine->sha256, 0, 16) }}…</code>, {{ number_format($mine->size / 1024) }} KB, {{ $mine->pinned_at?->diffForHumans() }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($mine?->enabled)
+                                        <div class="tomyum-panel__buttons">
+                                            @foreach (['pp' => 'pp', 'score' => 'Score'] as $value => $label)
+                                                @if ($mine->ranksByPp() === ($value === 'pp'))
+                                                    <span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $label }}</span>
+                                                @else
+                                                    <form method="POST" action="{{ route('panel.admin.rulesets.ranking', ['slug' => $slug]) }}"
+                                                        onsubmit="return confirm({{ json_encode($value === 'pp' ? "Rank {$mine->name} by pp (Pla-ra's)?" : "Rank {$mine->name} by ranked score? Its pp is kept but not shown.") }})">
+                                                        @csrf
+                                                        <input type="hidden" name="ranking" value="{{ $value }}">
+                                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit">{{ $label }}</button>
+                                                    </form>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="tomyum-panel__hint" style="margin: 0">-</span>
                                     @endif
                                 </td>
                                 <td>

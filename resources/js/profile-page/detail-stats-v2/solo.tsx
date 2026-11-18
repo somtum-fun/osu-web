@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import { route } from 'laroute';
 import { observer } from 'mobx-react';
 import Controller from 'profile-page/controller';
 import MedalsCount from 'profile-page/medals-count';
@@ -37,8 +36,7 @@ export default class Solo extends React.PureComponent<Props> {
             <Rank modifiers='rank-small' plainValue stats={user.statistics} type='country' />
           </div>
           <div className='profile-detail-stats-card__values profile-detail-stats-card__values--row'>
-            {/* TomYum: a custom lazer ruleset has no pp. */}
-            {this.props.controller.customRuleset == null && <Pp stats={user.statistics} />}
+            {this.props.controller.showsPp && <Pp stats={user.statistics} />}
             <MedalsCount userAchievements={user.user_achievements} />
           </div>
         </div>
@@ -52,8 +50,7 @@ export default class Solo extends React.PureComponent<Props> {
             ? (
               <div className='profile-detail-stats-card__chart'>
                 <RankChart
-                  // TomYum: a custom lazer ruleset's graph is its rank only (it has no pp).
-                  ppHistoryUrl={this.props.controller.customRuleset == null ? route('users.tomyum-pp-history', { mode: this.props.controller.tomyumMode, user: user.id }) : undefined}
+                  ppHistoryUrl={this.props.controller.ppHistoryUrl}
                   rankHistory={user.rank_history}
                   stats={user.statistics}
                 />

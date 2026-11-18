@@ -125,10 +125,7 @@ export default class PlayDetail extends React.PureComponent<Props, State> {
             </div>
 
             <div className={`${bn}__pp`}>
-              {/* TomYum: a custom lazer ruleset's play (ruleset 10 and up) has no pp: its score. */}
-              {score.ruleset_id >= 10 ? (
-                <span title='Custom rulesets are ranked by score'>{formatNumber(score.total_score)}</span>
-              ) : shouldShowPp(beatmap) ? (
+              {shouldShowPp(beatmap) ? (
                 <PpValue
                   score={score}
                   suffix={<span className={`${bn}__pp-unit`}>pp</span>}

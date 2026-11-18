@@ -720,58 +720,138 @@
                 $shortRef = fn (?string $ref) => $ref === null ? '' : substr($ref, 0, 7);
             @endphp
             <h3>pp libraries</h3>
-            @if ($ppStatus === null)
-                <p class="tomyum-panel__hint">The pp updater hasn't reported yet (it runs on the server itself: deploy/pp-updater).</p>
-            @else
-                <table class="tomyum-panel__table">
-                    <tr><th>Library</th><th>Running</th><th>Newest</th><th></th></tr>
-                    @foreach (['vanilla' => 'Vanilla', 'akatsuki' => 'Relax / Autopilot'] as $key => $label)
-                        @php $library = $ppStatus[$key] ?? []; @endphp
-                        <tr>
-                            <td>
-                                <strong>{{ $label }}</strong><br>
-                                <span class="tomyum-panel__muted">{{ $library['library'] ?? '' }}</span>
-                            </td>
-                            <td>
-                                {{ $library['current'] ?? '?' }}
-                                @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['commit'] ?? null) }})</span>
-                                @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['processorRef'] ?? null) }})</span> @endif
-                            </td>
-                            <td>
-                                @if (isset($library['error']))
-                                    <span class="tomyum-panel__pill tomyum-panel__pill--bad">couldn't check</span>
-                                @else
-                                    {{ $library['latest'] ?? '?' }}
-                                    @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['latestCommit'] ?? null) }})</span>
-                                    @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['latestProcessorRef'] ?? null) }})</span> @endif
-                                    @if ($key === 'vanilla' && isset($library['osuRelease']) && $library['osuRelease'] !== ($library['latest'] ?? null))
-                                        <br><span class="tomyum-panel__muted">osu! released {{ $library['osuRelease'] }}; ppy's score processor isn't on it yet (vanilla pp must match it).</span>
+            {{-- TomYum: Pla-ra (custom lazer rulesets' pp; TomYum's plara sidecar, github.com/somtum-fun/plara) is ours, so it
+                 has nothing newer to pull: a change ships with TomYum and TumThai, then its plays are worked out again. --}}
+            @php
+                $plara = App\Libraries\TomYumPlara::status();
+                $plaraWith = array_sum(array_column($plara['rulesets'], 'with_pp'));
+                $plaraWithout = array_sum(array_column($plara['rulesets'], 'without_pp'));
+            @endphp
+            <table class="tomyum-panel__table">
+                <tr><th>Library</th><th>Running</th><th>Newest</th><th></th></tr>
+                @if ($ppStatus === null)
+                    <tr>
+                        <td><strong>Vanilla</strong><br><strong>Relax / Autopilot</strong></td>
+                        <td colspan="3"><span class="tomyum-panel__muted">The pp updater hasn't reported yet (it runs on the server itself: deploy/pp-updater).</span></td>
+                    </tr>
+                @else
+                        @foreach (['vanilla' => 'Vanilla', 'akatsuki' => 'Relax / Autopilot'] as $key => $label)
+                            @php $library = $ppStatus[$key] ?? []; @endphp
+                            <tr>
+                                <td>
+                                    <strong>{{ $label }}</strong><br>
+                                    <span class="tomyum-panel__muted">{{ $library['library'] ?? '' }}</span>
+                                </td>
+                                <td>
+                                    {{ $library['current'] ?? '?' }}
+                                    @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['commit'] ?? null) }})</span>
+                                    @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['processorRef'] ?? null) }})</span> @endif
+                                </td>
+                                <td>
+                                    @if (isset($library['error']))
+                                        <span class="tomyum-panel__pill tomyum-panel__pill--bad">couldn't check</span>
+                                    @else
+                                        {{ $library['latest'] ?? '?' }}
+                                        @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['latestCommit'] ?? null) }})</span>
+                                        @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['latestProcessorRef'] ?? null) }})</span> @endif
+                                        @if ($key === 'vanilla' && isset($library['osuRelease']) && $library['osuRelease'] !== ($library['latest'] ?? null))
+                                            <br><span class="tomyum-panel__muted">osu! released {{ $library['osuRelease'] }}; ppy's score processor isn't on it yet (vanilla pp must match it).</span>
+                                        @endif
                                     @endif
+                                </td>
+                                <td>
+                                    @if ($library['available'] ?? false)
+                                        <form method="POST" action="{{ route('panel.admin.pp-library') }}"
+                                            onsubmit="return confirm({{ json_encode('Update the '.$label.' pp library? The server rebuilds with it, then reworks '.App\Libraries\TomYumPpRework::modeNames($library['modes'] ?? []).': those rankings pause and new pp waits until it is done.') }})">
+                                            @csrf
+                                            <input type="hidden" name="action" value="update">
+                                            <input type="hidden" name="library" value="{{ $key }}">
+                                            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-download"></i>Update</button>
+                                        </form>
+                                    @elseif (!isset($library['error']))
+                                        <span class="tomyum-panel__pill tomyum-panel__pill--good">up to date</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                @endif
+                <tr>
+                    <td>
+                        <strong>Custom rulesets</strong><br>
+                        <a class="tomyum-panel__muted" href="https://github.com/somtum-fun/plara" rel="noopener" target="_blank">Pla-ra</a>
+                    </td>
+                    <td>
+                        @if ($plara['running'] === null)
+                            <span class="tomyum-panel__pill tomyum-panel__pill--bad">sidecar down</span>
+                        @else
+                            v{{ $plara['running']['version'] }}
+                            <span class="tomyum-panel__muted">(osu! {{ preg_replace('/\.0$/', '', (string) ($plara['running']['osu_game'] ?? '?')) }})</span>
+                        @endif
+                    </td>
+                    <td>
+                        <span class="tomyum-panel__muted">ships with TomYum</span><br>
+                        <span class="tomyum-panel__muted">{{ i18n_number_format($plaraWith) }} plays with pp, {{ i18n_number_format($plaraWithout) }} without</span>
+                    </td>
+                    <td>
+                        <div class="tomyum-panel__buttons">
+                            <form method="POST" action="{{ route('panel.admin.plara') }}" onsubmit="return confirm('Work out the pp of plays without it?')">
+                                @csrf
+                                <input type="hidden" name="scope" value="missing">
+                                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit" title="Plays without pp: Pla-ra was down, or they're new"><i class="fas fa-redo"></i>Missing</button>
+                            </form>
+                            <form method="POST" action="{{ route('panel.admin.plara') }}" onsubmit="return confirm('Work out every custom ruleset play\'s pp again? Do this after a new Pla-ra version.')">
+                                @csrf
+                                <input type="hidden" name="scope" value="all">
+                                <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit" title="Every play: after a new Pla-ra version">All plays</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            @if ($ppStatus !== null)
+                    <form method="POST" action="{{ route('panel.admin.pp-library') }}" class="tomyum-panel__row" style="align-items: center; margin-top: 6px">
+                        @csrf
+                        <input type="hidden" name="action" value="check">
+                        <span class="tomyum-panel__muted">Checked {!! isset($ppStatus['checkedAt']) ? timeago(Carbon\Carbon::parse($ppStatus['checkedAt'])) : 'never' !!} (every 6 hours).</span>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Check now</button>
+                    </form>
+            @endif
+            <details class="tomyum-panel__explainer" style="margin-top: 8px">
+                <summary>Custom rulesets in Pla-ra</summary>
+                <table class="tomyum-panel__table">
+                    <tr><th>Ruleset</th><th>Ranked by</th><th>Stars</th><th>With pp</th><th>Without</th></tr>
+                    @foreach ($plara['rulesets'] as $row)
+                        <tr>
+                            <td><strong>{{ $row['ruleset']->name }}</strong><br><span class="tomyum-panel__muted">{{ $row['ruleset']->assembly }}</span></td>
+                            <td>
+                                @if ($row['ruleset']->ranksByPp())
+                                    <span class="tomyum-panel__pill tomyum-panel__pill--pink">pp</span>
+                                @else
+                                    <span class="tomyum-panel__pill">score</span>
                                 @endif
                             </td>
                             <td>
-                                @if ($library['available'] ?? false)
-                                    <form method="POST" action="{{ route('panel.admin.pp-library') }}"
-                                        onsubmit="return confirm({{ json_encode('Update the '.$label.' pp library? The server rebuilds with it, then reworks '.App\Libraries\TomYumPpRework::modeNames($library['modes'] ?? []).': those rankings pause and new pp waits until it is done.') }})">
-                                        @csrf
-                                        <input type="hidden" name="action" value="update">
-                                        <input type="hidden" name="library" value="{{ $key }}">
-                                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-download"></i>Update</button>
-                                    </form>
-                                @elseif (!isset($library['error']))
-                                    <span class="tomyum-panel__pill tomyum-panel__pill--good">up to date</span>
+                                @if ($row['profile'] === null)
+                                    <span class="tomyum-panel__pill tomyum-panel__pill--bad">no profile: no pp</span>
+                                @elseif (!$row['profile']['gives_pp'])
+                                    Pla-ra's <span class="tomyum-panel__muted">(×{{ $row['profile']['scale'] }}, stars only)</span>
+                                @elseif ($row['profile']['source'] === 'own')
+                                    its own
+                                @else
+                                    Pla-ra's <span class="tomyum-panel__muted">(×{{ $row['profile']['scale'] }})</span>
                                 @endif
                             </td>
+                            <td>{{ i18n_number_format($row['with_pp']) }}</td>
+                            <td>{{ i18n_number_format($row['without_pp']) }}</td>
                         </tr>
                     @endforeach
                 </table>
-                <form method="POST" action="{{ route('panel.admin.pp-library') }}" class="tomyum-panel__row" style="align-items: center; margin-top: 6px">
-                    @csrf
-                    <input type="hidden" name="action" value="check">
-                    <span class="tomyum-panel__muted">Checked {!! isset($ppStatus['checkedAt']) ? timeago(Carbon\Carbon::parse($ppStatus['checkedAt'])) : 'never' !!} (every 6 hours).</span>
-                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Check now</button>
-                </form>
-            @endif
+                <p class="tomyum-panel__hint">
+                    "Without" counts plays Pla-ra gives no pp (a mod without pp, judgements that don't fit the map) as well as those
+                    it couldn't reach. Pick pp or score per ruleset on <a href="{{ route('panel.admin.rulesets.index') }}">Custom rulesets</a>.
+                    After a change to Pla-ra's numbers: bump its version, restart plara, then recalculate all plays.
+                </p>
+            </details>
             @if ($ppJob !== null)
                 <div class="tomyum-panel__item" style="margin-top: 8px">
                     <strong>{{ $ppJob['library'] === 'vanilla' ? 'Vanilla' : 'Relax / Autopilot' }} update:</strong>

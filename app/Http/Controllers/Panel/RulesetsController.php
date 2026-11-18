@@ -69,6 +69,21 @@ class RulesetsController extends Controller
         return $this->back('success', "{$ruleset->name} is off: no new plays submit. Its scores stay.");
     }
 
+    /** How the ruleset's players are ranked: by Pla-ra's pp, or by ranked score (its pp is kept, not shown). */
+    public function ranking(string $slug)
+    {
+        $ranking = Request::input('ranking') === 'score' ? 'score' : 'pp';
+        $ruleset = TomYumCustomRulesets::setRanking($slug, $ranking);
+        if ($ruleset === null) {
+            return $this->back('error', 'That ruleset isn\'t one of ours.');
+        }
+        $this->staffLog('ruleset.ranking', $ruleset->id, "Custom ruleset {$ruleset->name} ({$ruleset->slug}) ranked by ".($ranking === 'pp' ? 'pp (Pla-ra)' : 'ranked score').'.');
+
+        return $this->back('success', $ranking === 'pp'
+            ? "{$ruleset->name} is ranked by pp (Pla-ra's) now."
+            : "{$ruleset->name} is ranked by ranked score now. Pla-ra keeps working out pp, so switching back is instant.");
+    }
+
     private function back(string $type, string $message)
     {
         return redirect(route('panel.admin.rulesets.index'))
