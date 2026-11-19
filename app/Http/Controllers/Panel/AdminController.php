@@ -75,14 +75,6 @@ class AdminController extends Controller
             ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'tumthai' => static::tumthaiSettings(),
-            'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
-            'pkmsFindingPolicy' => \App\Libraries\TomYumPkmsFindingPolicy::all(),
-            'pkmsWave' => [
-                'state' => $this->tomyum()->get('/pkms/wave')->json(),
-                'queue' => $this->tomyum()->get('/pkms/wave/queue')->json(),
-            ],
-            'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
-            'pkmsTrustedSigners' => \App\Libraries\TomYumPkmsTrustedSigners::all(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
@@ -91,12 +83,27 @@ class AdminController extends Controller
                 'enabled' => \App\Libraries\TomYumSiteSettings::banchoWelcomeEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::banchoWelcomeMessage(),
             ],
-            'anticheatKillSwitch' => [
-                'clientRequired' => \App\Libraries\TomYumAnticheatKillSwitch::isClientRequired(),
-            ],
             'discordLog' => [
                 'actions' => \App\Libraries\TomYumDiscordLog::actions(),
                 'muted' => \App\Libraries\TomYumDiscordLog::muted(),
+            ],
+        ]);
+    }
+
+    /** TomYum: the anti-cheat page: the kill switch, pkms's settings and ban wave, and the OpenTabletDriver filter list. */
+    public function anticheat()
+    {
+        return ext_view('panel.admin.anticheat', [
+            'pkmsVersions' => \App\Libraries\TomYumPkmsVersions::all(),
+            'pkmsFindingPolicy' => \App\Libraries\TomYumPkmsFindingPolicy::all(),
+            'pkmsWave' => [
+                'state' => $this->tomyum()->get('/pkms/wave')->json(),
+                'queue' => $this->tomyum()->get('/pkms/wave/queue')->json(),
+            ],
+            'handleRequesters' => \App\Libraries\TomYumHandleRequesterAllowlist::all(),
+            'pkmsTrustedSigners' => \App\Libraries\TomYumPkmsTrustedSigners::all(),
+            'anticheatKillSwitch' => [
+                'clientRequired' => \App\Libraries\TomYumAnticheatKillSwitch::isClientRequired(),
             ],
         ]);
     }
@@ -210,7 +217,7 @@ class AdminController extends Controller
             if (!in_array($status, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $status = 'enabled';
             $graceUntil = trim((string) ($graces[$i] ?? ''));
             if ($graceUntil !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $graceUntil)) {
-                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+                return $this->backToAnticheat('error', 'Grace date must be YYYY-MM-DD.');
             }
             $entries[] = [
                 'build_id' => $buildId,
@@ -228,7 +235,7 @@ class AdminController extends Controller
             if (!in_array($newStatus, \App\Libraries\TomYumPkmsVersions::STATUSES, true)) $newStatus = 'enabled';
             $newGrace = trim((string) Request::input('new_grace_until', ''));
             if ($newGrace !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $newGrace)) {
-                return $this->backToIndex('error', 'Grace date must be YYYY-MM-DD.');
+                return $this->backToAnticheat('error', 'Grace date must be YYYY-MM-DD.');
             }
             $entries[] = [
                 'build_id' => $newBuildId,
@@ -241,7 +248,7 @@ class AdminController extends Controller
         \App\Libraries\TomYumPkmsVersions::save($entries);
         $this->staffLog('site.pkms_versions', null, 'pkms version registry: '.count($entries).' entries.');
 
-        return $this->backToIndex('success', count($entries) === 0 ? 'pkms version registry cleared.' : 'Saved '.count($entries).' pkms versions.');
+        return $this->backToAnticheat('success', count($entries) === 0 ? 'pkms version registry cleared.' : 'Saved '.count($entries).' pkms versions.');
     }
 
     /**
@@ -267,10 +274,10 @@ class AdminController extends Controller
             $sha256 = strtolower(trim((string) ($sha256s[$i] ?? '')));
             if ($basename === '' && $sha256 === '') continue;
             if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($basename)) {
-                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$basename}'.");
+                return $this->backToAnticheat('error', "Basename must end in .exe (no path): '{$basename}'.");
             }
             if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($sha256)) {
-                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$sha256}'.");
+                return $this->backToAnticheat('error', "sha256 must be 64 lowercase hex characters: '{$sha256}'.");
             }
             $entries[] = [
                 'basename' => $basename,
@@ -283,10 +290,10 @@ class AdminController extends Controller
         $newSha256 = strtolower(trim((string) Request::input('new_sha256', '')));
         if ($newBasename !== '' || $newSha256 !== '') {
             if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidBasename($newBasename)) {
-                return $this->backToIndex('error', "Basename must end in .exe (no path): '{$newBasename}'.");
+                return $this->backToAnticheat('error', "Basename must end in .exe (no path): '{$newBasename}'.");
             }
             if (!\App\Libraries\TomYumHandleRequesterAllowlist::isValidSha256($newSha256)) {
-                return $this->backToIndex('error', "sha256 must be 64 lowercase hex characters: '{$newSha256}'.");
+                return $this->backToAnticheat('error', "sha256 must be 64 lowercase hex characters: '{$newSha256}'.");
             }
             $entries[] = [
                 'basename' => $newBasename,
@@ -298,7 +305,7 @@ class AdminController extends Controller
         \App\Libraries\TomYumHandleRequesterAllowlist::save($entries);
         $this->staffLog('site.handle_requesters', null, 'pkms handle-requester allowlist: '.count($entries).' entries.');
 
-        return $this->backToIndex('success', count($entries) === 0 ? 'pkms handle-requester allowlist cleared.' : 'Saved '.count($entries).' pkms handle requesters.');
+        return $this->backToAnticheat('success', count($entries) === 0 ? 'pkms handle-requester allowlist cleared.' : 'Saved '.count($entries).' pkms handle requesters.');
     }
 
     /**
@@ -317,7 +324,7 @@ class AdminController extends Controller
             $signer = trim((string) $signer);
             if ($signer === '') continue;
             if (!\App\Libraries\TomYumPkmsTrustedSigners::isValidSigner($signer)) {
-                return $this->backToIndex('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$signer}'.");
+                return $this->backToAnticheat('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$signer}'.");
             }
             $entries[] = $signer;
         }
@@ -325,7 +332,7 @@ class AdminController extends Controller
         $newSigner = trim((string) Request::input('new_signer', ''));
         if ($newSigner !== '') {
             if (!\App\Libraries\TomYumPkmsTrustedSigners::isValidSigner($newSigner)) {
-                return $this->backToIndex('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$newSigner}'.");
+                return $this->backToAnticheat('error', "Signer CN must be 1-".\App\Libraries\TomYumPkmsTrustedSigners::MAX_LENGTH." visible characters: '{$newSigner}'.");
             }
             $entries[] = $newSigner;
         }
@@ -333,7 +340,7 @@ class AdminController extends Controller
         \App\Libraries\TomYumPkmsTrustedSigners::save($entries);
         $this->staffLog('site.pkms_trusted_signers', null, 'pkms trusted-signer allowlist: '.count($entries).' entries.');
 
-        return $this->backToIndex('success', count($entries) === 0 ? 'pkms trusted-signer allowlist cleared.' : 'Saved '.count($entries).' pkms trusted signers.');
+        return $this->backToAnticheat('success', count($entries) === 0 ? 'pkms trusted-signer allowlist cleared.' : 'Saved '.count($entries).' pkms trusted signers.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */
@@ -376,7 +383,7 @@ class AdminController extends Controller
         $changes = \App\Libraries\TomYumPkmsFindingPolicy::describeChanges($before, $after);
         $this->staffLog('site.pkms_finding_policy', null, 'pkms finding actions: '.$changes.'.');
 
-        return $this->backToIndex('success', \App\Libraries\TomYumPkmsFindingPolicy::isDefault($after)
+        return $this->backToAnticheat('success', \App\Libraries\TomYumPkmsFindingPolicy::isDefault($after)
             ? 'pkms finding actions are the defaults.'
             : 'Saved pkms finding actions ('.$changes.').');
     }
@@ -396,7 +403,7 @@ class AdminController extends Controller
             $required ? 'Anti-cheat kill switch OFF (pkms required).' : 'Anti-cheat kill switch ON (pkms NOT required).',
         );
 
-        return $this->backToIndex('success', $required ? 'Client anti-cheat is required.' : 'Client anti-cheat is OFF — anyone can submit scores.');
+        return $this->backToAnticheat('success', $required ? 'Client anti-cheat is required.' : 'Client anti-cheat is OFF — anyone can submit scores.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
@@ -446,6 +453,12 @@ class AdminController extends Controller
         return redirect(route('panel.admin.index'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 
+    /** Back to the anti-cheat page, with $message shown at the top. */
+    private function backToAnticheat(string $type, string $message)
+    {
+        return redirect(route('panel.admin.anticheat'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
+    }
+
     /**
      * TomYum: the pkms ban wave's switch and time. While it's on, a score whose pkms findings ask for a
      * restriction but were only what the client reported queues the player instead of restricting them;
@@ -460,10 +473,10 @@ class AdminController extends Controller
             try {
                 $when = Carbon::parse($nextAt, 'UTC');
             } catch (\Throwable) {
-                return $this->backToIndex('error', 'The wave time must be a date and time (YYYY-MM-DD HH:MM, UTC).');
+                return $this->backToAnticheat('error', 'The wave time must be a date and time (YYYY-MM-DD HH:MM, UTC).');
             }
             if ($when->year < 2000) {
-                return $this->backToIndex('error', 'Pick a real wave time.');
+                return $this->backToAnticheat('error', 'Pick a real wave time.');
             }
         }
 
@@ -472,7 +485,7 @@ class AdminController extends Controller
             'nextAt' => $when?->toIso8601ZuluString(),
         ]);
         if (!$response->successful()) {
-            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+            return $this->backToAnticheat('error', "The game server couldn't be reached (HTTP {$response->status()}).");
         }
 
         $summary = $enabled
@@ -480,7 +493,7 @@ class AdminController extends Controller
             : 'pkms ban wave off.';
         $this->staffLog('pkms.wave_settings', null, $summary);
 
-        return $this->backToIndex('success', $enabled
+        return $this->backToAnticheat('success', $enabled
             ? 'The pkms ban wave is on'.($when === null ? '; set its time when you\'re ready.' : ', next '.$when->toDateTimeString().' UTC.').' Client-only findings wait in the queue until then.'
             : 'The pkms ban wave is off: client-only restrict findings restrict at once again.');
     }
@@ -491,11 +504,11 @@ class AdminController extends Controller
         $userId = (int) Request::input('user_id');
         $response = $this->tomyum()->delete("/pkms/wave/queue/{$userId}");
         if (!$response->successful()) {
-            return $this->backToIndex('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
+            return $this->backToAnticheat('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
         }
         $this->staffLog('pkms.wave_removed', $userId, "Removed user {$userId} from the pkms ban wave queue.");
 
-        return $this->backToIndex('success', 'Removed from the pkms ban wave queue.');
+        return $this->backToAnticheat('success', 'Removed from the pkms ban wave queue.');
     }
 
     /** TomYum: restrict one queued player now, without waiting for the wave. */
@@ -504,11 +517,11 @@ class AdminController extends Controller
         $userId = (int) Request::input('user_id');
         $response = $this->tomyum()->post("/pkms/wave/queue/{$userId}/restrict");
         if (!$response->successful()) {
-            return $this->backToIndex('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
+            return $this->backToAnticheat('error', $response->status() === 404 ? 'That player isn\'t on the queue.' : "The game server couldn't be reached (HTTP {$response->status()}).");
         }
         $this->staffLog('pkms.wave_restrict', $userId, "Restricted user {$userId} from the pkms ban wave queue.");
 
-        return $this->backToIndex('success', 'Player restricted; the rest of the queue is unchanged.');
+        return $this->backToAnticheat('success', 'Player restricted; the rest of the queue is unchanged.');
     }
 
     /** TomYum: restrict everyone still queued now. */
@@ -516,12 +529,12 @@ class AdminController extends Controller
     {
         $response = $this->tomyum()->post('/pkms/wave/run');
         if (!$response->successful()) {
-            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+            return $this->backToAnticheat('error', "The game server couldn't be reached (HTTP {$response->status()}).");
         }
         $restricted = count((array) $response->json('restricted', []));
         $this->staffLog('pkms.wave_run', null, "Ran the pkms ban wave: restricted {$restricted} player(s).");
 
-        return $this->backToIndex('success', "Ran the pkms ban wave: restricted {$restricted} player(s).");
+        return $this->backToAnticheat('success', "Ran the pkms ban wave: restricted {$restricted} player(s).");
     }
 
     /** The kinds of staff action the log can show alone (TomYum's log takes a prefix ending in "."). */

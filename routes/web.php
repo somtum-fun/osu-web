@@ -204,6 +204,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('menu-banners', 'MenuBannersController@store')->name('menu-banners.store');
             Route::post('menu-banners/{index}/remove', 'MenuBannersController@destroy')->name('menu-banners.destroy')->where('index', '[0-9]+');
             Route::get('/', 'AdminController@index')->name('index');
+            // TomYum: the anti-cheat settings (pkms, OpenTabletDriver, the ban wave) on their own page.
+            Route::get('anticheat', 'AdminController@anticheat')->name('anticheat');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
             Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
             Route::post('plara', 'AdminController@plara')->name('plara');
