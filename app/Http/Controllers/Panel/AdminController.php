@@ -200,9 +200,10 @@ class AdminController extends Controller
         if (!is_array($graces)) $graces = [];
         if (!is_array($notes)) $notes = [];
 
-        // TomYum: the form has no field for a build's published pkms.dll hash (it is written by the
-        // release tooling), so carry each build's existing one over. Without this, the first save from
-        // the panel would silently drop every hash and TomYum's dll check would stop without a word.
+        // TomYum: each row's published pkms.dll hash (the dll_sha256 column). A form without the column carries each
+        // build's existing hash over: dropping them silently would stop TomYum's dll check without a word.
+        $dllInputs = Request::input('dll_sha256');
+        $dllInputs = is_array($dllInputs) ? $dllInputs : null;
         $dllHashes = [];
         foreach (\App\Libraries\TomYumPkmsVersions::all() as $existing) {
             if ($existing['dll_sha256'] !== null) $dllHashes[$existing['build_id']] = $existing['dll_sha256'];
@@ -226,6 +227,13 @@ class AdminController extends Controller
                 'note' => trim((string) ($notes[$i] ?? '')) ?: null,
                 'dll_sha256' => $dllHashes[$buildId] ?? null,
             ];
+            if ($dllInputs !== null && array_key_exists($i, $dllInputs)) {
+                $typed = trim((string) $dllInputs[$i]);
+                $entries[array_key_last($entries)]['dll_sha256'] = $typed === '' ? null : \App\Libraries\TomYumPkmsVersions::validDllSha256($typed);
+                if ($typed !== '' && $entries[array_key_last($entries)]['dll_sha256'] === null) {
+                    return $this->backToAnticheat('error', "The pkms.dll SHA-256 for {$buildId} must be 64 hex characters (several: separated by spaces).");
+                }
+            }
         }
 
         // Add a new row if the admin filled the "new" fields in the form.
@@ -242,6 +250,7 @@ class AdminController extends Controller
                 'status' => $newStatus,
                 'grace_until' => $newGrace === '' ? null : $newGrace,
                 'note' => trim((string) Request::input('new_note', '')) ?: null,
+                'dll_sha256' => \App\Libraries\TomYumPkmsVersions::validDllSha256(Request::input('new_dll_sha256')),
             ];
         }
 

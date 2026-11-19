@@ -206,6 +206,15 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('/', 'AdminController@index')->name('index');
             // TomYum: the anti-cheat settings (pkms, OpenTabletDriver, the ban wave) on their own page.
             Route::get('anticheat', 'AdminController@anticheat')->name('anticheat');
+            // TomYum: promote a pkms build, trust a signer from players' reports, one player's pkms findings.
+            Route::post('anticheat/promote', 'AnticheatToolsController@promote')->name('anticheat.promote');
+            Route::post('anticheat/trust-signer', 'AnticheatToolsController@trustSigner')->name('anticheat.trust-signer');
+            Route::get('anticheat/findings', 'AnticheatToolsController@findings')->name('anticheat.findings');
+            // TomYum: the cheat-signature sets pkms scans for (TomYumPkmsScanSets).
+            Route::get('anticheat/scan-sets/{name}', 'AnticheatToolsController@scanSet')->name('anticheat.scan-set');
+            Route::post('anticheat/scan-sets', 'AnticheatToolsController@scanSetSave')->name('anticheat.scan-set-save');
+            Route::post('anticheat/scan-sets/{name}/enabled', 'AnticheatToolsController@scanSetEnabled')->name('anticheat.scan-set-enabled');
+            Route::post('anticheat/scan-sets/{name}/delete', 'AnticheatToolsController@scanSetDelete')->name('anticheat.scan-set-delete');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
             Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
             Route::post('plara', 'AdminController@plara')->name('plara');

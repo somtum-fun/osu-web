@@ -38,6 +38,8 @@
         </div>
 
         <p class="tomyum-panel__section-title">pkms</p>
+        @include('panel.admin._pkms_promote')
+
         {{-- TomYum: pkms version registry (AdminController@pkmsVersions); TomYum's handshake-flag plugin enforces it. --}}
         <div class="tomyum-panel__card" id="pkms-versions">
             <h2>
@@ -61,6 +63,7 @@
                             <th>build_id</th>
                             <th style="width: 110px">status</th>
                             <th style="width: 130px">grace_until (YYYY-MM-DD)</th>
+                            <th>pkms.dll SHA-256</th>
                             <th>note</th>
                             <th style="width: 50px"></th>
                         </tr>
@@ -77,6 +80,7 @@
                                     </select>
                                 </td>
                                 <td><input class="input-text" type="date" name="grace_until[{{ $i }}]" value="{{ $version['grace_until'] }}"></td>
+                                <td><input class="input-text" type="text" name="dll_sha256[{{ $i }}]" value="{{ $version['dll_sha256'] }}" placeholder="(none)" autocomplete="off" spellcheck="false"></td>
                                 <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $version['note'] }}"></td>
                                 <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
                             </tr>
@@ -91,6 +95,7 @@
                                 </select>
                             </td>
                             <td><input class="input-text" type="date" name="new_grace_until"></td>
+                            <td><input class="input-text" type="text" name="new_dll_sha256" placeholder="(optional)" autocomplete="off" spellcheck="false"></td>
                             <td><input class="input-text" type="text" name="new_note" placeholder="(optional)"></td>
                             <td></td>
                         </tr>
@@ -99,6 +104,7 @@
                 <div class="tomyum-panel__row" style="margin-top: 10px">
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
                     <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.log', ['kind' => 'score.pkms_']) }}"><i class="fas fa-flag"></i>Flagged scores</a>
+                    <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('panel.admin.anticheat.findings') }}"><i class="fas fa-search"></i>A player's findings</a>
                 </div>
             </form>
         </div>
@@ -249,6 +255,8 @@
             @endif
         </div>
 
+        @include('panel.admin._pkms_scan_sets')
+
         {{-- TomYum: pkms trusted-signer allowlist (AdminController@pkmsTrustedSigners). --}}
         <div class="tomyum-panel__card" id="pkms-trusted-signers">
             <h2>
@@ -289,6 +297,7 @@
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
                 </div>
             </form>
+            @include('panel.admin._pkms_signer_suggestions', ['trustedSigners' => $pkmsTrustedSigners])
         </div>
 
         {{-- TomYum: pkms handle-requester allowlist (AdminController@handleRequesters). --}}
