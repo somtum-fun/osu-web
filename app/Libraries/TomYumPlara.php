@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Libraries;
 
 use App\Models\Solo\Score;
+use App\Models\TomYumCustomRuleset;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -74,6 +75,32 @@ class TomYumPlara
         }
 
         return ['running' => $running, 'rulesets' => $rows];
+    }
+
+    /**
+     * For the beatmap page's pp calculator: what a pass of the map in a custom ruleset would be worth, with the mods
+     * and misses, at each accuracy ({stars, objects, results: [{accuracy, pp}], mods: {acronym: multiplier}, version,
+     * reason, retry}); null when Pla-ra can't be reached.
+     */
+    public static function ppCalc(TomYumCustomRuleset $ruleset, int $beatmapId, array $mods, array $accuracies, int $misses): ?array
+    {
+        try {
+            $response = Http::timeout(60)->acceptJson()->post(rtrim($GLOBALS['cfg']['tomyum']['plara_url'], '/').'/pp-calc', [
+                'assembly' => $ruleset->assembly,
+                'download_url' => $ruleset->download_url,
+                'sha256' => $ruleset->sha256,
+                'beatmap_id' => $beatmapId,
+                'mods' => $mods,
+                'accuracies' => $accuracies,
+                'misses' => $misses,
+            ]);
+        } catch (ConnectionException $e) {
+            log_error($e);
+
+            return null;
+        }
+
+        return $response->successful() ? $response->json() : null;
     }
 
     /** Pla-ra's answer for the score, without storing it; null when it isn't a custom ruleset's or can't be asked. */

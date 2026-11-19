@@ -4,7 +4,8 @@
 // TomYum: the beatmap page's pp calculator (osu!, taiko, catch and mania, converts too): pick mods (a DT's speed,
 // Difficulty Adjust's stats, Relax/Autopilot, a mania convert's keys), misses and combo, and see what a pass would be
 // worth at a few accuracies. The server works it out as it does a submitted lazer play (TomYum's /pp-calc), with
-// Reprise's own rules.
+// Reprise's own rules. In a custom ruleset it's Pla-ra's pp (the sidecar's /pp-calc), with the ruleset's mods that
+// give pp.
 
 import Mod from 'components/mod';
 import BeatmapExtendedJson from 'interfaces/beatmap-extended-json';
@@ -17,6 +18,8 @@ import { formatNumber } from 'utils/html';
 
 interface Props {
   beatmap: BeatmapExtendedJson;
+  // TomYum: a custom ruleset's slug: Pla-ra's pp, with its mods.
+  customRuleset?: string | null;
 }
 
 interface Result {
@@ -25,9 +28,14 @@ interface Result {
 }
 
 interface Response {
-  maxCombo: number;
+  maxCombo: number | null;
+  // A custom ruleset's mods that give pp, with what each multiplies it by (an empty array when none do).
+  mods?: Partial<Record<string, number>> | [];
   objects: number;
+  // Why there's no pp (a custom ruleset's).
+  reason?: string | null;
   results: Result[];
+  stars?: number | null;
 }
 
 // The mods that change pp in each ruleset, in its order; some are mutually exclusive.
@@ -44,18 +52,25 @@ const modRowsFor = (beatmap: BeatmapExtendedJson): string[][] => {
       return [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'AP', 'SO', 'DA']];
   }
 };
+// A custom ruleset's mods: the rate mods, then the rest (as Pla-ra lists them).
+const rateMods = ['HT', 'DC', 'DT', 'NC'];
+const customModRows = (mods: string[]): string[][] => [
+  rateMods.filter((acronym) => mods.includes(acronym)),
+  mods.filter((acronym) => !rateMods.includes(acronym)),
+].filter((row) => row.length > 0);
 const exclusive: Partial<Record<string, string[]>> = {
   AP: ['RX', 'SO'],
-  DT: ['NC', 'HT'],
+  DC: ['DT', 'NC', 'HT'],
+  DT: ['NC', 'HT', 'DC'],
   EZ: ['HR'],
   HR: ['EZ'],
-  HT: ['DT', 'NC'],
-  NC: ['DT', 'HT'],
+  HT: ['DT', 'NC', 'DC'],
+  NC: ['DT', 'HT', 'DC'],
   RX: ['AP'],
   SO: ['AP'],
   ...Object.fromEntries(keyMods.map((key) => [key, keyMods.filter((other) => other !== key)])),
 };
-const speedRange: Partial<Record<string, [number, number, number]>> = { DT: [1.01, 2, 1.5], HT: [0.5, 0.99, 0.75], NC: [1.01, 2, 1.5] };
+const speedRange: Partial<Record<string, [number, number, number]>> = { DC: [0.5, 0.99, 0.75], DT: [1.01, 2, 1.5], HT: [0.5, 0.99, 0.75], NC: [1.01, 2, 1.5] };
 type AdjustStat = 'approach_rate' | 'circle_size' | 'drain_rate' | 'overall_difficulty';
 // Difficulty Adjust's settings in each ruleset (taiko and mania have no circle size or approach rate).
 const adjustStatsFor = (mode: string): [AdjustStat, string][] => mode === 'taiko' || mode === 'mania'
@@ -98,7 +113,15 @@ export default class PpCalculator extends React.Component<Props> {
 
   @computed
   private get rateMod() {
-    return ['DT', 'NC', 'HT'].find((acronym) => this.enabled.has(acronym)) ?? null;
+    return rateMods.find((acronym) => this.enabled.has(acronym)) ?? null;
+  }
+
+  // The mod buttons: a custom ruleset's are the ones Pla-ra gives pp for (known once it has answered).
+  @computed
+  private get modRows() {
+    if (this.props.customRuleset == null) return modRowsFor(this.props.beatmap);
+
+    return customModRows(Object.keys(this.response?.mods ?? {}));
   }
 
   // The mods as lazer has them (settings and all), for the server.
@@ -132,10 +155,12 @@ export default class PpCalculator extends React.Component<Props> {
 
     return {
       acc: accuracies.sort((a, b) => a - b).join(','),
-      combo: this.combo === '' ? undefined : this.combo,
+      // Pla-ra's pp doesn't depend on combo.
+      combo: this.combo === '' || this.props.customRuleset != null ? undefined : this.combo,
+      custom: this.props.customRuleset ?? undefined,
       misses: this.misses === '' ? '0' : this.misses,
       // The ruleset shown (a converted map's too).
-      mode: this.props.beatmap.mode,
+      mode: this.props.customRuleset == null ? this.props.beatmap.mode : undefined,
       mods: JSON.stringify(this.lazerMods),
     };
   }
@@ -146,10 +171,12 @@ export default class PpCalculator extends React.Component<Props> {
   }
 
   render() {
+    const custom = this.props.customRuleset != null;
     const maxCombo = this.response?.maxCombo ?? this.props.beatmap.max_combo ?? 0;
+    const stars = this.response?.stars;
     const results = this.response?.results ?? [];
     const best = Math.max(0, ...results.map((result) => result.pp ?? 0));
-    const custom = Number(this.customAccuracy) / 100;
+    const customAccuracy = Number(this.customAccuracy) / 100;
 
     return (
       <div className='beatmapset-pp-calculator'>
@@ -158,7 +185,9 @@ export default class PpCalculator extends React.Component<Props> {
           <span className='beatmapset-pp-calculator__summary'>
             {this.enabled.size > 0 ? [...this.enabled].join(' ') : 'No mods'}
             {' · '}
-            {formatNumber(maxCombo)}x max combo
+            {custom
+              ? <>{stars != null && `${formatNumber(stars, 2)}★ · `}{formatNumber(this.response?.objects ?? 0)} notes · Pla-ra</>
+              : `${formatNumber(maxCombo)}x max combo`}
             {this.maxAccuracy != null && ` · at most ${formatNumber(this.maxAccuracy * 100, 2)}% with ${this.misses} misses`}
           </span>
           {this.changed && (
@@ -171,7 +200,7 @@ export default class PpCalculator extends React.Component<Props> {
         <div className='beatmapset-pp-calculator__body'>
           <div className='beatmapset-pp-calculator__controls'>
             <div className='beatmapset-pp-calculator__mods'>
-              {modRowsFor(this.props.beatmap).map((row) => (
+              {this.modRows.map((row) => (
                 <div key={row.join()} className='beatmapset-pp-calculator__mod-row'>
                   {row.map((acronym) => (
                     <button
@@ -190,7 +219,7 @@ export default class PpCalculator extends React.Component<Props> {
 
             <div className='beatmapset-pp-calculator__fields'>
               {this.renderField('Misses', <input className='beatmapset-pp-calculator__input' min={0} onChange={this.setMisses} placeholder='0' type='number' value={this.misses} />)}
-              {this.renderField('Combo', (
+              {!custom && this.renderField('Combo', (
                 <input
                   className='beatmapset-pp-calculator__input'
                   max={maxCombo}
@@ -246,11 +275,14 @@ export default class PpCalculator extends React.Component<Props> {
           </div>
 
           <div className={classWithModifiers('beatmapset-pp-calculator__results', { loading: this.loading })}>
+            {custom && this.response?.reason != null && results.every((result) => result.pp == null) && (
+              <div className='beatmapset-pp-calculator__reason'>{this.response.reason}</div>
+            )}
             {/* (Each accuracy once: the server drops ones the misses make the same.) */}
             {results.map((result) => (
               <div
                 key={result.accuracy}
-                className={classWithModifiers('beatmapset-pp-calculator__result', { custom: this.customAccuracy !== '' && Math.abs(result.accuracy - custom) < 1e-6 })}
+                className={classWithModifiers('beatmapset-pp-calculator__result', { custom: this.customAccuracy !== '' && Math.abs(result.accuracy - customAccuracy) < 1e-6 })}
               >
                 <div className='beatmapset-pp-calculator__accuracy'>{formatNumber(result.accuracy * 100, 2)}%</div>
                 <div className='beatmapset-pp-calculator__pp'>

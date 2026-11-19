@@ -33,6 +33,8 @@ interface Props {
 interface CustomRulesetJson {
   icon: string | null;
   name: string;
+  // How its players are ranked: by Pla-ra's pp, or by ranked score (no pp shown).
+  ranking?: 'pp' | 'score';
   slug: string;
 }
 const customRulesets = parseJsonNullable<CustomRulesetJson[]>('json-tomyum-custom-rulesets') ?? [];
@@ -223,10 +225,15 @@ export default class Main extends React.Component<Props> {
               </div>
             )}
 
-            {/* TomYum: the pp calculator, in each ruleset (a converted map's too); custom rulesets have no pp. */}
-            {this.customRuleset == null && (
+            {/* TomYum: the pp calculator, in each ruleset (a converted map's too) and each custom ruleset ranked by
+                pp (Pla-ra's). */}
+            {this.customRuleset?.ranking !== 'score' && (
               <div className='page-extra'>
-                <PpCalculator key={`${this.controller.currentBeatmap.id}-${this.controller.currentBeatmap.mode}`} beatmap={this.controller.currentBeatmap} />
+                <PpCalculator
+                  key={`${this.controller.currentBeatmap.id}-${this.controller.currentBeatmap.mode}-${this.customRuleset?.slug ?? ''}`}
+                  beatmap={this.controller.currentBeatmap}
+                  customRuleset={this.customRuleset?.slug ?? null}
+                />
               </div>
             )}
 

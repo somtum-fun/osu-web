@@ -387,6 +387,12 @@ class BeatmapsController extends Controller
     public function tomyumPp($id)
     {
         $beatmap = Beatmap::findOrFail($id);
+
+        // A custom ruleset's: Pla-ra's (as its plays get their pp).
+        if (($customSlug = presence(get_string(request('custom')))) !== null) {
+            return $this->tomyumCustomPp($beatmap, $customSlug);
+        }
+
         $rulesetId = Beatmap::modeInt(get_string(request('mode'))) ?? $beatmap->playmode;
         abort_if($rulesetId !== $beatmap->playmode && $beatmap->playmode !== Beatmap::MODES['osu'], 422, "that map doesn't play in that ruleset");
 
@@ -400,6 +406,41 @@ class BeatmapsController extends Controller
         ], fn ($value) => $value !== null));
 
         return response()->json($response->json(), $response->successful() ? 200 : 422);
+    }
+
+    /** TomYum: the pp calculator in a custom ruleset (Pla-ra), in the shape the osu! rulesets' answer has. */
+    private function tomyumCustomPp(Beatmap $beatmap, string $slug)
+    {
+        $ruleset = \App\Libraries\TomYumCustomRulesets::findBySlug($slug) ?? abort(404, 'no such ruleset');
+
+        $accuracies = [];
+        foreach (explode(',', get_string(request('acc')) ?? '') as $accuracy) {
+            if (is_numeric($accuracy)) {
+                $accuracies[] = (float) $accuracy;
+            }
+        }
+        $mods = json_decode(get_string(request('mods')) ?? '[]', true);
+        $mods = is_array($mods) ? array_values(array_filter($mods, fn ($mod) => is_array($mod) && is_string($mod['acronym'] ?? null))) : [];
+
+        $answer = \App\Libraries\TomYumPlara::ppCalc(
+            $ruleset,
+            $beatmap->getKey(),
+            array_slice($mods, 0, 16),
+            array_slice($accuracies, 0, 10),
+            max(0, get_int(request('misses')) ?? 0),
+        );
+        if ($answer === null) {
+            return response()->json(['error' => 'Pla-ra is unavailable.'], 503);
+        }
+
+        return response()->json([
+            'maxCombo' => null,
+            'mods' => $answer['mods'] ?? [],
+            'objects' => $answer['objects'] ?? 0,
+            'reason' => $answer['reason'] ?? null,
+            'results' => $answer['results'] ?? [],
+            'stars' => $answer['stars'] ?? null,
+        ], $answer['stars'] === null && !($answer['retry'] ?? false) && ($answer['results'] ?? []) === [] ? 422 : 200);
     }
 
     /**
