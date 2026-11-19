@@ -49,7 +49,7 @@ const modRowsFor = (beatmap: BeatmapExtendedJson): string[][] => {
       // A converted map's key count is a mod too.
       return beatmap.convert ? [['EZ', 'NF', 'HT'], ['DT', 'NC', 'DA'], keyMods] : [['EZ', 'NF', 'HT'], ['DT', 'NC', 'DA']];
     default:
-      return [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'AP', 'SO', 'DA']];
+      return [['EZ', 'NF', 'HT'], ['HR', 'DT', 'NC', 'HD', 'FL'], ['RX', 'AP', 'SO', 'DA', 'TD']];
   }
 };
 // A custom ruleset's mods: the rate mods, then the rest (as Pla-ra lists them).
