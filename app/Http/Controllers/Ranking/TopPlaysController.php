@@ -44,9 +44,17 @@ class TopPlaysController extends Controller
         if ($variant !== null && isset(RankingController::TOMYUM_VARIANTS[$rulesetName][$variant])) {
             return $this->tomyum($rulesetName, $variant, $page);
         }
-        $variant = null;
-
-        $data = new TopPlays($rulesetId)->get();
+        // TomYum: the EZ/FL/TD/DR top plays: plays that include the mod (as its ranking counts them).
+        $modAcronym = \App\Libraries\TomYumModRankings::acronym($rulesetName, $variant);
+        if ($modAcronym === null) {
+            $variant = null;
+            $data = new TopPlays($rulesetId)->get();
+        } else {
+            $data = [
+                'ids' => \App\Libraries\TomYumModRankings::topPlays($rulesetName, $modAcronym),
+                'time' => time(),
+            ];
+        }
 
         if (isset($data)) {
             $lastUpdate = parse_time_to_carbon($data['time']);

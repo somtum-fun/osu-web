@@ -90,6 +90,42 @@ class TomYumModRankings
         return $global === null ? null : ['global_rank' => $global, 'country_rank' => $countryRank, 'pp' => $pp];
     }
 
+    /**
+     * The mod's top plays: the ids of each player's best pp play per map that includes the mod, best first
+     * (cached), as the top plays page lists them. Relax/Autopilot plays and restricted players' are left out,
+     * as on the vanilla top plays.
+     *
+     * @return int[]
+     */
+    public static function topPlays(string $mode, string $acronym, int $limit = 1000): array
+    {
+        return Cache::remember("tomyum_mod_top_plays:{$mode}:{$acronym}", static::CACHE_SECONDS, function () use ($mode, $acronym, $limit) {
+            $query = Score::where('ruleset_id', Beatmap::MODES[$mode])
+                ->where('passed', true)
+                ->where('pp', '>', 0)
+                ->whereRaw("JSON_CONTAINS(data->'$.mods', ?)", [json_encode(['acronym' => $acronym])]);
+            foreach (\App\Libraries\Search\ScoreSearchParams::RELAX_MODS as $relax) {
+                $query->whereRaw("NOT JSON_CONTAINS(data->'$.mods', ?)", [json_encode(['acronym' => $relax])]);
+            }
+            $scores = $query->orderByDesc('pp')->get(['id', 'user_id', 'beatmap_id']);
+
+            $allowed = User::default()
+                ->whereIn('user_id', $scores->pluck('user_id')->unique())
+                ->pluck('user_id')
+                ->flip();
+
+            $ids = [];
+            foreach ($scores as $score) {
+                if (isset($allowed[$score->user_id])) {
+                    // Best first, so the first play seen for a player and map is their best.
+                    $ids["{$score->user_id}:{$score->beatmap_id}"] ??= $score->getKey();
+                }
+            }
+
+            return array_slice(array_values($ids), 0, $limit);
+        });
+    }
+
     /** Every ranked player's row for the mod, unsorted (cached). */
     private static function all(string $mode, string $acronym): array
     {

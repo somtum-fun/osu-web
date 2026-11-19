@@ -9,11 +9,16 @@
     'titlePrepend' => osu_trans('rankings.type.top_plays'),
 ])
 
-{{-- TomYum: Relax/Autopilot top plays (osu!, taiko, catch), as the global ranking switches. --}}
+{{-- TomYum: Relax/Autopilot top plays (osu!, taiko, catch) and EZ/FL/TD/DR (osu!), as the global ranking switches. --}}
 @php
     $tomyumVariants = isset(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$rulesetName])
         ? ['all', ...array_keys(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$rulesetName])]
         : null;
+    // TomYum: and the EZ/FL/TD/DR top plays (osu!).
+    $tomyumModVariants = array_keys(App\Libraries\TomYumModRankings::VARIANTS[$rulesetName] ?? []);
+    if ($tomyumModVariants !== []) {
+        $tomyumVariants = [...($tomyumVariants ?? ['all']), ...$tomyumModVariants];
+    }
 @endphp
 @if ($tomyumVariants !== null)
     @section('ranking-header')
