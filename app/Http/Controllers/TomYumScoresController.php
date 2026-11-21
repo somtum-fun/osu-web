@@ -42,7 +42,15 @@ class TomYumScoresController extends Controller
         $score->setRelation('beatmap', $beatmap);
         $score->setRelation('user', $user);
 
-        return ext_view('scores.show', compact('score', 'scoreJson'));
+        // Its comments belong to a website row for the play, made the first time its page is shown.
+        $commentable = \App\Models\TomYumModeScore::firstOrCreate(['id' => (int) $id], [
+            'user_id' => $user->getKey(),
+            'beatmap_id' => $beatmap->getKey(),
+            'ruleset_id' => (int) $scoreJson['ruleset_id'],
+        ]);
+        $commentBundle = \App\Libraries\CommentBundle::forEmbed($commentable);
+
+        return ext_view('scores.show', compact('score', 'scoreJson', 'commentBundle', 'commentable'));
     }
 
     public function download($id)

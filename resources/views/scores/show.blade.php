@@ -53,6 +53,16 @@
         </script>
     @endif
 
+    {{-- TomYum: the play's comments. --}}
+    @isset($commentBundle)
+        <script id="json-comments" type="application/json">
+            {!! json_encode($commentBundle->toArray()) !!}
+        </script>
+        <script id="json-commentable" type="application/json">
+            {!! json_encode(['id' => $commentable->getKey(), 'type' => $commentable->getMorphClass()]) !!}
+        </script>
+    @endisset
+
     <script id="json-raw" type="application/json">
         {!! json_encode($score->getAttributes()) !!}
     </script>

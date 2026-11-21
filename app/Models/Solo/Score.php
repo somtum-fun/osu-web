@@ -10,6 +10,7 @@ namespace App\Models\Solo;
 use App\Enums\Ruleset;
 use App\Enums\ScoreRank;
 use App\Exceptions\InvariantException;
+use App\Interfaces\CommentableInterface;
 use App\Interfaces\ScoreReplayFileInterface;
 use App\Libraries\Score\LegacyReplayFile;
 use App\Libraries\Score\ReplayFile;
@@ -57,8 +58,9 @@ use LaravelRedis;
  * @property User $user
  * @property int $user_id
  */
-class Score extends Model implements Traits\ReportableInterface
+class Score extends Model implements CommentableInterface, Traits\ReportableInterface
 {
+    use Traits\CommentableDefaults;
     use Traits\Reportable;
     use Traits\WithDbCursorHelper;
     use Traits\WithWeightedPp;
@@ -361,7 +363,11 @@ class Score extends Model implements Traits\ReportableInterface
             'legacy_replay_view_count_type' => $this->getLegacyReplayViewCountType(),
             'legacy_score_type' => $this->getLegacyScoreType(),
 
+            // TomYum: score pages take comments (CommentableDefaults).
+            'commentable_identifier' => $this->getCommentableIdentifierAttribute(),
+
             'beatmap',
+            'comments',
             'build',
             'legacyReplayViewCount',
             'legacyScore',
@@ -729,6 +735,32 @@ class Score extends Model implements Traits\ReportableInterface
     public function url(): string
     {
         return route('scores.show', ['score' => $this->getKey()]);
+    }
+
+    // TomYum: score pages take comments.
+
+    public function commentLocked(): bool
+    {
+        return false;
+    }
+
+    public function commentableTitle()
+    {
+        return static::commentableTitleFor($this->user, $this->beatmap);
+    }
+
+    /** "player's play on Artist - Title [Version]", for a score's comments (this one, and a Relax/Autopilot play's). */
+    public static function commentableTitleFor(?User $user, ?Beatmap $beatmap): string
+    {
+        $username = $user === null || $user->trashed() ? osu_trans('users.deleted') : $user->username;
+        $map = $beatmap?->beatmapset === null ? '' : " on {$beatmap->beatmapset->artist} - {$beatmap->beatmapset->title} [{$beatmap->version}]";
+
+        return "{$username}'s play{$map}";
+    }
+
+    public function notificationCover()
+    {
+        return $this->beatmap?->beatmapset?->coverURL('card');
     }
 
     public function userRank(?array $params = null): int

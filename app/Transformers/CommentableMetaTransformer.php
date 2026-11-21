@@ -16,6 +16,10 @@ class CommentableMetaTransformer extends TransformerAbstract
             if ($commentable instanceof Beatmapset) {
                 $ownerId = $commentable->user_id;
                 $ownerTitle = 'MAPPER';
+            } elseif ($commentable instanceof \App\Models\Solo\Score || $commentable instanceof \App\Models\TomYumModeScore) {
+                // TomYum: the one who played it, marked on a score page's comments.
+                $ownerId = $commentable->user_id;
+                $ownerTitle = 'PLAYER';
             }
 
             return [

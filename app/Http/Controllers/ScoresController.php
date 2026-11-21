@@ -304,6 +304,10 @@ class ScoresController extends Controller
         // TomYum: on a map without pp, what the play would be worth if it were ranked (greyed out on the page).
         $scoreJson['tomyum_pp_if_ranked'] = \App\Libraries\TomYumModeScores::ppIfRanked(['website' => $score->getKey()], $score->passed, $score->beatmap);
 
-        return ext_view('scores.show', compact('score', 'scoreJson'));
+        // TomYum: the play's comments.
+        $commentable = $score;
+        $commentBundle = \App\Libraries\CommentBundle::forEmbed($commentable);
+
+        return ext_view('scores.show', compact('score', 'scoreJson', 'commentBundle', 'commentable'));
     }
 }

@@ -4,8 +4,9 @@
 import core from 'osu-core-singleton';
 import * as React from 'react';
 import Main from 'scores-show/main';
-import { parseJson } from 'utils/json';
+import { parseJson, parseJsonNullable } from 'utils/json';
 
 core.reactTurbolinks.register('scores-show', () => (
-  <Main score={parseJson('json-show')} />
+  // TomYum: and its comments (none on a page without them).
+  <Main commentable={parseJsonNullable('json-commentable')} score={parseJson('json-show')} />
 ));

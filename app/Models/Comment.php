@@ -49,6 +49,9 @@ class Comment extends Model implements Traits\ReportableInterface
         MorphMap::MAP[Beatmapset::class],
         MorphMap::MAP[Build::class],
         MorphMap::MAP[NewsPost::class],
+        // TomYum: score pages (a website score, and a Relax/Autopilot play from TomYum).
+        MorphMap::MAP[Solo\Score::class],
+        MorphMap::MAP[TomYumModeScore::class],
     ];
 
     const MAX_FIELD_LENGTHS = [

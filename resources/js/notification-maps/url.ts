@@ -18,6 +18,14 @@ export function urlGroup(item: Notification) {
       case 'build':
         return route('changelog.show', { changelog: item.objectId, key: 'id' });
     }
+
+    // TomYum: comments on a score page (not notification filter types, so compared as text).
+    switch (item.objectType as string | null) {
+      case 'solo_score':
+        return route('scores.show', { score: item.objectId });
+      case 'tomyum_mode_score':
+        return route('scores.tomyum', { score: item.objectId });
+    }
   } else if (item.name === 'user_achievement_unlock') {
     return userAchievementUrl(item);
   } else if (item.category === 'user_beatmapset_new') {

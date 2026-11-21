@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import Comments from 'components/comments';
+import { BaseCommentableMeta } from 'components/comments-controller';
 import HeaderV4 from 'components/header-v4';
 import { ScoreJsonForShow } from 'interfaces/score-json';
 import * as React from 'react';
@@ -11,10 +13,11 @@ import RenderPlayer from './render-player';
 import Stats from './stats';
 
 interface Props {
+  commentable?: BaseCommentableMeta | null;
   score: ScoreJsonForShow;
 }
 
-export default function Main({ score }: Props) {
+export default function Main({ commentable, score }: Props) {
   const { beatmap, beatmapset } = score;
 
   return (
@@ -37,6 +40,17 @@ export default function Main({ score }: Props) {
           </div>
         )}
       </div>
+
+      {/* TomYum: comments on the play. */}
+      {commentable != null && (
+        <div className='osu-page osu-page--generic-compact'>
+          <Comments
+            baseCommentableMeta={commentable}
+            controllerStateSelector='#json-comments'
+            modifiers='changelog'
+          />
+        </div>
+      )}
     </>
   );
 }

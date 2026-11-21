@@ -20,6 +20,7 @@ use App\Models\ReplayViewCount;
 use App\Models\Score;
 use App\Models\Solo;
 use App\Models\Team;
+use App\Models\TomYumModeScore;
 use App\Models\User;
 
 class MorphMap
@@ -51,6 +52,7 @@ class MorphMap
         Score\Taiko::class => 'score_taiko',
         Solo\Score::class => 'solo_score',
         Team::class => 'team',
+        TomYumModeScore::class => 'tomyum_mode_score',
         User::class => 'user',
     ];
 
