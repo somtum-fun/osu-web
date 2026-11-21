@@ -73,6 +73,12 @@ class Cover
         }
 
         $id = app('user-cover-presets')->defaultForUser($this->user)->getKey();
+        // No active presets (a server without any): nothing to set. Saving anyway would re-index the
+        // user in Elasticsearch every time they're shown (each leaderboard row, /me, ...).
+        if ($id === null) {
+            return;
+        }
+
         $this->user->update(['cover_preset_id' => $id]);
     }
 }
