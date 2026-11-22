@@ -125,79 +125,91 @@ class TomYumInterOpController extends Controller
         $params = request()->all();
         $sender = User::findOrFail(get_int($params['sender_id'] ?? null));
         $target = isset($params['target_id']) ? User::find(get_int($params['target_id'])) : null;
-        if (isset($params['target_id']) && ($target === null || $target->is($sender))) {
-            abort(422, 'target user not found');
-        }
+        $channels = [];
+        $result = static::gameMessage($params, $sender, $target, $channels);
 
-        $message = TomYumChatBridge::fromGame(
-            $sender,
-            get_string($params['channel'] ?? null),
-            $target,
-            (string) ($params['message'] ?? ''),
-            get_bool($params['is_action'] ?? null) ?? false,
-        );
-
-        return $message === null
-            ? response()->json(['error' => 'no such public channel'], 404)
-            : ['message_id' => $message->getKey()];
+        return isset($result['error'])
+            ? response()->json(['error' => $result['error']], $result['status'])
+            : $result;
     }
 
     /**
-     * Several in-game messages at once (`messages`: what {@see chatMessage} takes, up to 200), in order. One answer per
-     * message: `message_id`, or `error` (unknown sender or target, no such channel, blocked) without failing the rest.
-     * The game sends its chat here in batches so a busy channel doesn't cost one request per line.
+     * Several in-game messages at once (`messages`: what {@see chatMessage} takes, at most 200), in order. One answer
+     * per message: `message_id`, or `error` (and `status`) without failing the rest. The game sends its chat here in
+     * batches so a busy channel doesn't cost one request per line.
      */
     public function chatMessages()
     {
-        $messages = array_slice((array) request()->input('messages', []), 0, 200);
-        $users = User::whereIn('user_id', array_filter(array_map(
-            fn ($m) => get_int($m['sender_id'] ?? null),
-            $messages,
-        )))->get()->keyBy('user_id');
+        $messages = array_values(array_filter((array) request()->input('messages', []), 'is_array'));
+        if (count($messages) > 200) {
+            abort(422, 'at most 200 messages per batch');
+        }
+
+        $ids = [];
+        foreach ($messages as $params) {
+            $ids[] = get_int($params['sender_id'] ?? null);
+            $ids[] = get_int($params['target_id'] ?? null);
+        }
+        $users = User::whereIn('user_id', array_unique(array_filter($ids)))->get()->keyBy('user_id');
 
         $results = [];
         $channels = []; // each channel looked up once per batch
         foreach ($messages as $params) {
-            try {
-                $sender = $users[get_int($params['sender_id'] ?? null)] ?? null;
-                if ($sender === null) {
-                    $results[] = ['error' => 'sender not found'];
-                    continue;
-                }
-                $target = null;
-                if (isset($params['target_id'])) {
-                    $target = User::find(get_int($params['target_id']));
-                    if ($target === null || $target->is($sender)) {
-                        $results[] = ['error' => 'target user not found'];
-                        continue;
-                    }
-                }
-                $channelName = get_string($params['channel'] ?? null);
-                $channel = null;
-                if ($target === null && $channelName !== null) {
-                    $channel = $channels[$channelName] ??= TomYumChatBridge::publicChannel($channelName) ?? false;
-                    if ($channel === false) {
-                        $results[] = ['error' => 'no such public channel'];
-                        continue;
-                    }
-                }
-                $message = TomYumChatBridge::fromGame(
-                    $sender,
-                    $channelName,
-                    $target,
-                    (string) ($params['message'] ?? ''),
-                    get_bool($params['is_action'] ?? null) ?? false,
-                    $channel,
-                );
-                $results[] = $message === null ? ['error' => 'no such public channel'] : ['message_id' => $message->getKey()];
-            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
-                $results[] = ['error' => $e->getMessage() ?: 'refused'];
-            } catch (\App\Exceptions\API\ChatMessageEmptyException|\App\Exceptions\API\ChatMessageTooLongException|\App\Exceptions\API\ExcessiveChatMessagesException|\App\Exceptions\ModelNotSavedException|\App\Exceptions\InvariantException $e) {
-                $results[] = ['error' => $e->getMessage() ?: 'refused'];
+            $sender = $users[get_int($params['sender_id'] ?? null)] ?? null;
+            if ($sender === null) {
+                $results[] = ['error' => 'sender not found', 'status' => 404];
+                continue;
             }
+            $target = isset($params['target_id']) ? ($users[get_int($params['target_id'])] ?? null) : null;
+            $results[] = static::gameMessage($params, $sender, $target, $channels);
         }
 
         return ['results' => $results];
+    }
+
+    /**
+     * Posts one in-game message (the work of {@see chatMessage} and {@see chatMessages}). $target is the user
+     * `target_id` names, if found; $channels caches public channels by name (false: none). Returns `message_id`, or
+     * `error` and `status`; never throws, so one message can't fail a batch.
+     *
+     * @return array{message_id: int}|array{error: string, status: int}
+     */
+    private static function gameMessage(array $params, User $sender, ?User $target, array &$channels): array
+    {
+        $content = $params['message'] ?? '';
+        if (!is_string($content) && !is_numeric($content)) {
+            return ['error' => 'message must be text', 'status' => 422];
+        }
+        $channelName = get_string($params['channel'] ?? null);
+        if (isset($params['target_id'])) {
+            if ($target === null || $target->is($sender)) {
+                return ['error' => 'target user not found', 'status' => 422];
+            }
+        } elseif ($channelName === null) {
+            return ['error' => 'channel or target_id required', 'status' => 422];
+        }
+
+        try {
+            $channel = null;
+            if ($target === null) {
+                $channel = $channels[$channelName] ??= TomYumChatBridge::publicChannel($channelName) ?? false;
+                if ($channel === false) {
+                    return ['error' => 'no such public channel', 'status' => 404];
+                }
+            }
+            $message = TomYumChatBridge::fromGame($sender, $channelName, $target, (string) $content,
+                get_bool($params['is_action'] ?? null) ?? false, $channel);
+
+            return $message === null
+                ? ['error' => 'no such public channel', 'status' => 404]
+                : ['message_id' => $message->getKey()];
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            return ['error' => $e->getMessage() ?: 'refused', 'status' => $e->getStatusCode()];
+        } catch (\Throwable $e) {
+            report($e);
+
+            return ['error' => 'failed', 'status' => 500];
+        }
     }
 
     /**
