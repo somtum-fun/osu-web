@@ -1122,6 +1122,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/grant-supporter', 'TomYumInterOpController@grantSupporter');
     // TomYum: in-game chat into website chat, and the game's channels on the website.
     Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
+    Route::post('tomyum/chat-messages', 'TomYumInterOpController@chatMessages');
     Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');
     Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
     // TomYum: BN groups as BN Management (QAT) decided them (applications, evaluations, resignations).

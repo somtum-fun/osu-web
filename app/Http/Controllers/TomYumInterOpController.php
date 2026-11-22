@@ -143,6 +143,53 @@ class TomYumInterOpController extends Controller
     }
 
     /**
+     * Several in-game messages at once (`messages`: what {@see chatMessage} takes, up to 200), in order. One answer per
+     * message: `message_id`, or `error` (unknown sender or target, no such channel, blocked) without failing the rest.
+     * The game sends its chat here in batches so a busy channel doesn't cost one request per line.
+     */
+    public function chatMessages()
+    {
+        $messages = array_slice((array) request()->input('messages', []), 0, 200);
+        $users = User::whereIn('user_id', array_filter(array_map(
+            fn ($m) => get_int($m['sender_id'] ?? null),
+            $messages,
+        )))->get()->keyBy('user_id');
+
+        $results = [];
+        foreach ($messages as $params) {
+            try {
+                $sender = $users[get_int($params['sender_id'] ?? null)] ?? null;
+                if ($sender === null) {
+                    $results[] = ['error' => 'sender not found'];
+                    continue;
+                }
+                $target = null;
+                if (isset($params['target_id'])) {
+                    $target = User::find(get_int($params['target_id']));
+                    if ($target === null || $target->is($sender)) {
+                        $results[] = ['error' => 'target user not found'];
+                        continue;
+                    }
+                }
+                $message = TomYumChatBridge::fromGame(
+                    $sender,
+                    get_string($params['channel'] ?? null),
+                    $target,
+                    (string) ($params['message'] ?? ''),
+                    get_bool($params['is_action'] ?? null) ?? false,
+                );
+                $results[] = $message === null ? ['error' => 'no such public channel'] : ['message_id' => $message->getKey()];
+            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+                $results[] = ['error' => $e->getMessage() ?: 'refused'];
+            } catch (\App\Exceptions\API\ChatMessageEmptyException|\App\Exceptions\API\ChatMessageTooLongException|\App\Exceptions\API\ExcessiveChatMessagesException|\App\Exceptions\ModelNotSavedException|\App\Exceptions\InvariantException $e) {
+                $results[] = ['error' => $e->getMessage() ?: 'refused'];
+            }
+        }
+
+        return ['results' => $results];
+    }
+
+    /**
      * A player's Beatmap Nominator groups as BN Management (QAT) decided them: `modes` is
      * {ruleset: "full" | "probation" | null} (QAT's names: osu, taiko, catch, mania). Sets the `bng`
      * and `bng_limited` groups' modes to match (leaving a group when it has none); NAT and every other
