@@ -526,9 +526,20 @@
             @if (count($online) === 0)
                 <p class="tomyum-panel__empty">Nobody is online.</p>
             @else
+                @php
+                    // Hundreds online (a busy evening, or a bench run) would make a table of every one of them, fetched
+                    // again every 10 s: a count by what they're doing, then the most recently active only.
+                    $onlineLimit = 50;
+                    $onlineDoing = collect($online)->countBy(fn ($p) => $actions[$p['action']] ?? 'Unknown')->sortDesc();
+                    $onlineShown = collect($online)->sortByDesc('lastActivity')->take($onlineLimit);
+                @endphp
+                <p class="tomyum-panel__hint">
+                    {{ number_format(count($online)) }} online:
+                    {{ $onlineDoing->map(fn ($n, $doing) => number_format($n).' '.mb_strtolower($doing))->implode(', ') }}
+                </p>
                 <table class="tomyum-panel__table">
                     <tr><th>Player</th><th>Mode</th><th>Doing</th><th>Last seen</th></tr>
-                    @foreach ($online as $player)
+                    @foreach ($onlineShown as $player)
                         <tr>
                             <td><a href="{{ route('panel.admin.users.show', ['user' => $player['userId']]) }}">{{ $player['username'] }}</a></td>
                             <td class="tomyum-panel__nowrap">{{ $modes[$player['mode'] % 4] ?? $player['mode'] }}</td>
@@ -547,6 +558,9 @@
                         </tr>
                     @endforeach
                 </table>
+                @if (count($online) > $onlineLimit)
+                    <p class="tomyum-panel__hint">The {{ $onlineLimit }} most recently active of {{ number_format(count($online)) }}; find anyone else with the account search.</p>
+                @endif
             @endif
         </div>
 
