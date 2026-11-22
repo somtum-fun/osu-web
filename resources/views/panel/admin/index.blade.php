@@ -3,7 +3,8 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 @php
-    $actions = ['Idle', 'AFK', 'Playing', 'Editing', 'Modding', 'In multiplayer', 'Watching', 'Unknown', 'Testing', 'Submitting', 'Paused', 'In the lobby', 'Multiplaying', 'osu!direct'];
+    // What a player is doing (bancho's action ids). Not $actions: the Discord-log card below loops with that name.
+    $presenceActions = ['Idle', 'AFK', 'Playing', 'Editing', 'Modding', 'In multiplayer', 'Watching', 'Unknown', 'Testing', 'Submitting', 'Paused', 'In the lobby', 'Multiplaying', 'osu!direct'];
     $modes = ['osu!', 'osu!taiko', 'osu!catch', 'osu!mania'];
     $userIds = array_filter(array_map(fn ($e) => str_starts_with($e['action'], 'beatmapset.') ? null : $e['targetId'], $entries));
     $targets = App\Http\Controllers\Panel\GmtController::userNames($userIds);
@@ -530,8 +531,8 @@
                     // Hundreds online (a busy evening, or a bench run) would make a table of every one of them, fetched
                     // again every 10 s: a count by what they're doing, then the most recently active only.
                     $onlineLimit = 50;
-                    $onlineDoing = collect($online)->countBy(fn ($p) => $actions[$p['action']] ?? 'Unknown')->sortDesc();
-                    $onlineShown = collect($online)->sortByDesc('lastActivity')->take($onlineLimit);
+                    $onlineDoing = collect($online)->countBy(fn ($p) => $presenceActions[$p['action']] ?? 'Unknown')->sortDesc();
+                    $onlineShown = collect($online)->sortByDesc(fn ($p) => Carbon\Carbon::parse($p['lastActivity'])->getTimestampMs())->take($onlineLimit);
                 @endphp
                 <p class="tomyum-panel__hint">
                     {{ number_format(count($online)) }} online:
@@ -544,7 +545,7 @@
                             <td><a href="{{ route('panel.admin.users.show', ['user' => $player['userId']]) }}">{{ $player['username'] }}</a></td>
                             <td class="tomyum-panel__nowrap">{{ $modes[$player['mode'] % 4] ?? $player['mode'] }}</td>
                             <td>
-                                {{ $actions[$player['action']] ?? 'Unknown' }}
+                                {{ $presenceActions[$player['action']] ?? 'Unknown' }}
                                 @if ($player['actionInfo'] !== '')
                                     &middot;
                                     @if ($player['beatmapId'] > 0)
