@@ -225,6 +225,11 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         'keyboard' => 2,
         'tablet' => 4,
         'touch' => 8,
+        'oculus' => 16,
+        'dick' => 32,
+        'eggplant' => 64,
+        'cookiezi' => 128,
+        'touchpad' => 256,
     ];
 
     const CACHING = [

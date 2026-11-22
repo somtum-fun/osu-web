@@ -110,10 +110,15 @@ return [
     ],
 
     'device' => [
+        'cookiezi' => 'Cookiezi',
+        'dick' => 'Dick',
+        'eggplant' => 'Eggplant',
         'keyboard' => 'Keyboard',
         'mouse' => 'Mouse',
+        'oculus' => 'Oculus',
         'tablet' => 'Tablet',
         'touch' => 'Touch Screen',
+        'touchpad' => 'Touchpad',
     ],
 
     'dropzone' => [

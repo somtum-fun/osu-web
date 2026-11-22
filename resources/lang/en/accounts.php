@@ -136,12 +136,17 @@ return [
     ],
 
     'playstyles' => [
+        'cookiezi' => 'cookiezi',
         'default_ruleset' => 'default game mode',
+        'dick' => 'dick',
+        'eggplant' => 'eggplant',
         'keyboard' => 'keyboard',
         'mouse' => 'mouse',
+        'oculus' => 'oculus',
         'tablet' => 'tablet',
         'title' => 'Playstyles',
         'touch' => 'touch',
+        'touchpad' => 'touchpad',
     ],
 
     'privacy' => [
