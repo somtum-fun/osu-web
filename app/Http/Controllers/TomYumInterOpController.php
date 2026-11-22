@@ -156,6 +156,7 @@ class TomYumInterOpController extends Controller
         )))->get()->keyBy('user_id');
 
         $results = [];
+        $channels = []; // each channel looked up once per batch
         foreach ($messages as $params) {
             try {
                 $sender = $users[get_int($params['sender_id'] ?? null)] ?? null;
@@ -171,12 +172,22 @@ class TomYumInterOpController extends Controller
                         continue;
                     }
                 }
+                $channelName = get_string($params['channel'] ?? null);
+                $channel = null;
+                if ($target === null && $channelName !== null) {
+                    $channel = $channels[$channelName] ??= TomYumChatBridge::publicChannel($channelName) ?? false;
+                    if ($channel === false) {
+                        $results[] = ['error' => 'no such public channel'];
+                        continue;
+                    }
+                }
                 $message = TomYumChatBridge::fromGame(
                     $sender,
-                    get_string($params['channel'] ?? null),
+                    $channelName,
                     $target,
                     (string) ($params['message'] ?? ''),
                     get_bool($params['is_action'] ?? null) ?? false,
+                    $channel,
                 );
                 $results[] = $message === null ? ['error' => 'no such public channel'] : ['message_id' => $message->getKey()];
             } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {

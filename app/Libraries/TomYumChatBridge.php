@@ -61,7 +61,7 @@ class TomYumChatBridge
      * Posts a message sent in-game: to a public channel by name, or as a PM to $targetId. Returns the
      * message, or null when the channel doesn't exist on the website.
      */
-    public static function fromGame(User $sender, ?string $channelName, ?User $target, string $content, bool $isAction): ?Message
+    public static function fromGame(User $sender, ?string $channelName, ?User $target, string $content, bool $isAction, ?Channel $channel = null): ?Message
     {
         static::$receivingFromGame = true;
         try {
@@ -74,12 +74,18 @@ class TomYumChatBridge
                 return Chat::sendPrivateMessage($sender, $target, $content, $isAction, null, false);
             }
 
-            $channel = Channel::where('name', $channelName)->where('type', Channel::TYPES['public'])->first();
+            $channel ??= static::publicChannel($channelName);
 
             return $channel === null ? null : Chat::sendMessage($sender, $channel, $content, $isAction, null, false);
         } finally {
             static::$receivingFromGame = false;
         }
+    }
+
+    /** The website's public channel named $name (as the game's), or null. */
+    public static function publicChannel(?string $name): ?Channel
+    {
+        return $name === null ? null : Channel::where('name', $name)->where('type', Channel::TYPES['public'])->first();
     }
 
     /**
