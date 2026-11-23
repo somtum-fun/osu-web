@@ -203,6 +203,12 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');
             Route::post('menu-banners', 'MenuBannersController@store')->name('menu-banners.store');
             Route::post('menu-banners/{index}/remove', 'MenuBannersController@destroy')->name('menu-banners.destroy')->where('index', '[0-9]+');
+            // TomYum: the beatmap mirrors the game server asks for maps and sends downloads to.
+            Route::get('beatmap-mirrors', 'BeatmapMirrorsController@index')->name('beatmap-mirrors.index');
+            Route::post('beatmap-mirrors', 'BeatmapMirrorsController@store')->name('beatmap-mirrors.store');
+            Route::post('beatmap-mirrors/reset', 'BeatmapMirrorsController@reset')->name('beatmap-mirrors.reset');
+            Route::post('beatmap-mirrors/{index}', 'BeatmapMirrorsController@update')->name('beatmap-mirrors.update')->where('index', '[0-9]+');
+            Route::post('beatmap-mirrors/{index}/remove', 'BeatmapMirrorsController@destroy')->name('beatmap-mirrors.destroy')->where('index', '[0-9]+');
             Route::get('/', 'AdminController@index')->name('index');
             // TomYum: the anti-cheat settings (pkms, OpenTabletDriver, the ban wave) on their own page.
             Route::get('anticheat', 'AdminController@anticheat')->name('anticheat');

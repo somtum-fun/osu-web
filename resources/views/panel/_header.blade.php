@@ -49,6 +49,7 @@
             ['Backgrounds', 'panel.admin.seasonal-backgrounds.index', ['panel.admin.seasonal-backgrounds.']],
             ['Menu banners', 'panel.admin.menu-banners.index', ['panel.admin.menu-banners.']],
             ['Branding', 'panel.admin.branding.index', ['panel.admin.branding.']],
+            ['Beatmap mirrors', 'panel.admin.beatmap-mirrors.index', ['panel.admin.beatmap-mirrors.']], // TomYum
             ['Staff log', 'panel.admin.log', ['panel.admin.log']],
             ['Servers', 'panel.admin.servers', ['panel.admin.servers']], // TomYum
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
