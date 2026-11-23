@@ -222,6 +222,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('anticheat/scan-sets/{name}/enabled', 'AnticheatToolsController@scanSetEnabled')->name('anticheat.scan-set-enabled');
             Route::post('anticheat/scan-sets/{name}/delete', 'AnticheatToolsController@scanSetDelete')->name('anticheat.scan-set-delete');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
+            // TomYum: the rankings' inactivity rule (days, and grey out or remove).
+            Route::post('ranking-inactivity', 'AdminController@rankingInactivity')->name('ranking-inactivity');
             Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
             Route::post('plara', 'AdminController@plara')->name('plara');
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');

@@ -117,7 +117,14 @@
                 $firstItem = $scores->firstItem();
             @endphp
             @foreach ($scores as $index => $score)
-                <tr class="{{ class_with_modifiers('ranking-page-table__row', ['inactive' => !$score->user->isActive()]) }}">
+                {{-- TomYum: players without a score for a while are greyed out when staff keep them ranked (TomYumRankingInactivity). --}}
+                @php
+                    $tomyumGreyedOut = $score instanceof App\Models\UserStatistics\Model && App\Libraries\TomYumRankingInactivity::isGreyedOut($score->last_played);
+                @endphp
+                <tr
+                    class="{{ class_with_modifiers('ranking-page-table__row', ['inactive' => !$score->user->isActive() || $tomyumGreyedOut]) }}"
+                    @if ($tomyumGreyedOut) title="Inactive: no score in {{ App\Libraries\TomYumRankingInactivity::days() }} days" @endif
+                >
                     <td class="ranking-page-table__column">
                         #{{ i18n_number_format($firstItem + $index) }}
                     </td>

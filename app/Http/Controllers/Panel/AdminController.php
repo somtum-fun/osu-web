@@ -1196,6 +1196,37 @@ class AdminController extends Controller
             : 'Working out every custom ruleset play\'s pp again: the counts below update as it goes.');
     }
 
+    /**
+     * TomYum: the rankings' inactivity rule: after how many days without a score a player is inactive, and whether
+     * inactive players are taken off the rankings or kept and greyed out (TomYumRankingInactivity).
+     */
+    public function rankingInactivity()
+    {
+        if (Request::boolean('reset')) {
+            \App\Libraries\TomYumRankingInactivity::save(null, 'remove');
+            $this->staffLog('site.ranking_inactivity', null, 'Ranking inactivity back to the server default.');
+
+            return $this->backToIndex('success', 'Inactive players: back to the server default ('.\App\Libraries\TomYumRankingInactivity::days().' days, remove).');
+        }
+
+        $days = get_int(Request::input('days'));
+        $mode = (string) Request::input('mode');
+        if ($days === null || $days < 0 || $days > \App\Libraries\TomYumRankingInactivity::MAX_DAYS) {
+            return $this->backToIndex('error', 'Days must be 0 to '.\App\Libraries\TomYumRankingInactivity::MAX_DAYS.'.');
+        }
+        if (!in_array($mode, \App\Libraries\TomYumRankingInactivity::MODES, true)) {
+            return $this->backToIndex('error', 'Pick grey out or remove.');
+        }
+
+        \App\Libraries\TomYumRankingInactivity::save($days, $mode);
+        $summary = $days === 0
+            ? 'Ranking inactivity off.'
+            : "Players inactive after {$days} days are ".($mode === 'grey' ? 'greyed out (still ranked).' : 'removed from the rankings.');
+        $this->staffLog('site.ranking_inactivity', null, $summary);
+
+        return $this->backToIndex('success', $summary.' The game server and score processor follow within a minute.');
+    }
+
     /** TomYum: starts a pp rework in the chosen modes, or cancels one (the game server runs it). */
     public function ppRework()
     {

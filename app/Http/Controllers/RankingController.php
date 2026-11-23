@@ -363,8 +363,9 @@ class RankingController extends Controller
                     // TomYum: restricted, banned and deleted players aren't ranked (osu! zeroes their stats
                     // elsewhere; here they're kept, so an unrestricted player comes back as they were).
                     ->whereHas('user', fn ($user) => $user->default());
-                // TomYum: the inactivity rule (no score for a while: off the ranking until the next one).
-                if (($inactiveDays = $GLOBALS['cfg']['tomyum']['ranking_inactive_days']) > 0) {
+                // TomYum: the inactivity rule (no score for a while: off the ranking until the next one), unless staff
+                // chose to keep inactive players ranked and greyed out (TomYumRankingInactivity).
+                if (($inactiveDays = \App\Libraries\TomYumRankingInactivity::removeDays()) > 0) {
                     $stats->where('last_played', '>=', now()->subDays($inactiveDays));
                 }
 

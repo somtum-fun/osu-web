@@ -523,6 +523,48 @@
             @endif
         </div>
 
+        {{-- TomYum: the rankings' inactivity rule (AdminController@rankingInactivity, TomYumRankingInactivity). --}}
+        @php
+            $inactiveDays = App\Libraries\TomYumRankingInactivity::days();
+            $inactiveMode = App\Libraries\TomYumRankingInactivity::mode();
+            $inactiveFromPanel = App\Libraries\TomYumRankingInactivity::daysStored();
+        @endphp
+        <div class="tomyum-panel__card" id="ranking-inactivity">
+            <h2>
+                <i class="fas fa-user-clock"></i>Inactive players
+                @if ($inactiveDays === 0)
+                    <span class="tomyum-panel__badge">OFF</span>
+                @elseif ($inactiveMode === 'grey')
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">GREY OUT · {{ $inactiveDays }} DAYS</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--warn">REMOVE · {{ $inactiveDays }} DAYS</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                A player without a score in a mode for this many days is <strong>inactive</strong> there.
+                <strong>Remove</strong> takes them off that mode's rankings (global and country, on the website and in-game, as osu! does) until their next score.
+                <strong>Grey out</strong> keeps them ranked and only shows them greyed out on the website's rankings.
+                0 days turns the rule off. Scores and pp aren't touched either way. The game server and the score processor pick a change up within a minute;
+                a profile's rank follows with the player's next score or TomYum's next rank pass.
+                @if (!$inactiveFromPanel)
+                    Now: the server's default ({{ $inactiveDays }} days, <code>TOMYUM_RANKING_INACTIVE_DAYS</code>).
+                @endif
+            </p>
+            <form method="POST" action="{{ route('panel.admin.ranking-inactivity') }}" class="tomyum-panel__row" style="gap: 10px; align-items: end; flex-wrap: wrap">
+                @csrf
+                <label style="flex: 0 0 140px">
+                    inactive after (days)
+                    <input class="input-text" type="number" name="days" min="0" max="{{ App\Libraries\TomYumRankingInactivity::MAX_DAYS }}" value="{{ $inactiveDays }}" required>
+                </label>
+                <label class="tomyum-panel__check"><input type="radio" name="mode" value="grey" @if ($inactiveMode === 'grey') checked @endif> Grey out (stay ranked)</label>
+                <label class="tomyum-panel__check"><input type="radio" name="mode" value="remove" @if ($inactiveMode === 'remove') checked @endif> Remove from the rankings</label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+                @if ($inactiveFromPanel)
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit" name="reset" value="1" onclick="return confirm('Back to the server\'s default ({{ (int) $GLOBALS['cfg']['tomyum']['ranking_inactive_days'] }} days, remove)?')"><i class="fas fa-undo"></i>Server default</button>
+                @endif
+            </form>
+        </div>
+
         <div class="tomyum-panel__card js-tomyum-live">
             <h2><i class="fas fa-signal"></i>Online now</h2>
             @if (count($online) === 0)

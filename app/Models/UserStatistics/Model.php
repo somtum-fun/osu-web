@@ -186,7 +186,7 @@ abstract class Model extends BaseModel
             //   rank_score_index < $this->rank_score_index AND rank_score_index > 0 AND rank_score > 0
             // but it is slower.
             // TomYum: the inactivity rule, as in the rankings (inactive players have no country rank either).
-            $inactiveDays = $GLOBALS['cfg']['tomyum']['ranking_inactive_days'];
+            $inactiveDays = \App\Libraries\TomYumRankingInactivity::removeDays();
             if ($inactiveDays > 0 && $this->last_played < now()->subDays($inactiveDays)) {
                 return;
             }
