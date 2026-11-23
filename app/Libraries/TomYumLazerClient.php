@@ -24,6 +24,17 @@ class TomYumLazerClient
 {
     public const HEADER = 'X-TumThai-Client';
 
+    /** What a TumThai understands beyond osu!lazer (comma separated), e.g. "playstyles": the website's extra playstyles. */
+    public const FEATURES_HEADER = 'X-TumThai-Features';
+
+    /** Whether the request's client says it understands $feature (another lazer client says nothing). */
+    public static function knows(string $feature): bool
+    {
+        $raw = request()?->header(static::FEATURES_HEADER);
+
+        return is_string($raw) && in_array($feature, array_map('trim', explode(',', strtolower($raw))), true);
+    }
+
     /** A machine already checked isn't asked about again for this long (seconds). */
     private const CACHE_SECONDS = 600;
 
