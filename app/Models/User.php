@@ -232,6 +232,12 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         'touchpad' => 256,
     ];
 
+    /**
+     * The playstyles osu!lazer knows (its APIPlayStyle): the API sends only these, since the game refuses a user
+     * with any other (Enum.Parse throws, and signing in fails). The website shows them all.
+     */
+    const GAME_PLAYSTYLES = ['mouse', 'keyboard', 'tablet', 'touch'];
+
     const CACHING = [
         'follower_count' => [
             'key' => 'followerCount',

@@ -41,7 +41,10 @@ class UserTransformer extends UserCompactTransformer
             'max_friends' => $user->maxFriends(),
             'occupation' => $user->user_occ,
             'playmode' => $user->playmode,
-            'playstyle' => $user->osu_playstyle,
+            // The game knows only some playstyles (User::GAME_PLAYSTYLES) and can't sign in with others.
+            'playstyle' => is_api_request() && $user->osu_playstyle !== null
+                ? array_values(array_intersect($user->osu_playstyle, User::GAME_PLAYSTYLES))
+                : $user->osu_playstyle,
             'post_count' => $user->user_posts,
             'profile_order' => $options['extras_order'],
             'profile_pinned_badge' => $options['profile_pinned_badge'],
