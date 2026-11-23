@@ -579,6 +579,45 @@ class AdminController extends Controller
         ]);
     }
 
+    /** TomYum: the errors TumThai reported, one row per kind, newest first (open ones, or all with ?status=all). */
+    public function clientErrors()
+    {
+        $status = Request::input('status') === 'all' ? 'all' : 'open';
+        $page = max(1, (int) Request::input('page', 1));
+        $response = $this->tomyum()->get('/client-errors', ['status' => $status, 'page' => $page]);
+
+        return ext_view('panel.admin.client_errors', [
+            'errors' => $response->successful() ? $response->json() : null,
+            'status' => $status,
+            'page' => $page,
+        ]);
+    }
+
+    /** TomYum: mark a TumThai error fixed, open it again, or delete it (TomYum writes the staff log). */
+    public function clientErrorAction(string $id, string $action)
+    {
+        $response = match ($action) {
+            'resolve' => $this->tomyum()->post("/client-errors/{$id}/resolve"),
+            'reopen' => $this->tomyum()->post("/client-errors/{$id}/reopen"),
+            'delete' => $this->tomyum()->delete("/client-errors/{$id}"),
+        };
+        $back = redirect(route('panel.admin.client-errors', array_filter([
+            'status' => Request::input('status') === 'all' ? 'all' : null,
+            'page' => Request::input('page'),
+        ])));
+        if (!$response->successful()) {
+            return $back->with('panel_status', ['type' => 'error', 'link' => null, 'message' => $response->status() === 404
+                ? 'That error report is gone.'
+                : "The game server couldn't be reached (HTTP {$response->status()})."]);
+        }
+
+        return $back->with('panel_status', ['type' => 'success', 'link' => null, 'message' => match ($action) {
+            'resolve' => 'Marked fixed. It opens again if a player hits it again.',
+            'reopen' => 'Opened again.',
+            'delete' => 'Deleted.',
+        }]);
+    }
+
     public function staffLogPage()
     {
         $kind = (string) Request::input('kind');

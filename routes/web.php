@@ -198,6 +198,10 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('log', 'AdminController@staffLogPage')->name('log');
             // TomYum: the game server's nodes (machine, load, plugins, version, latency).
             Route::get('servers', 'AdminController@servers')->name('servers');
+            // TomYum: errors TumThai reported (TomYum /_admin/client-errors).
+            Route::get('client-errors', 'AdminController@clientErrors')->name('client-errors');
+            Route::post('client-errors/{id}/{action}', 'AdminController@clientErrorAction')
+                ->where(['id' => '[0-9]+', 'action' => 'resolve|reopen|delete'])->name('client-errors.action');
             Route::get('branding', 'BrandingController@index')->name('branding.index');
             Route::post('branding', 'BrandingController@update')->name('branding.update');
             Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');
