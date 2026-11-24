@@ -23,7 +23,11 @@ class TomYumChangelog
         'lazer' => [6, 'TumThai'],
         // TumThai!Next: TumThai's other release stream (in the game: Settings → Updates, ppy's Tachyon).
         'tachyon' => [15, 'TumThai!Next'],
-        'stable40' => [5, 'Stable'],
+        // The Somtum Patcher (named stable40 before our own stable client existed; kept, old builds link to it).
+        'stable40' => [5, 'Somtum Patcher'],
+        // Our own stable client (Somtum.Client): its two release streams, as the game names them.
+        'stable' => [17, 'Stable'],
+        'cuttingedge' => [18, 'Cutting Edge'],
         'legacy' => [13, 'Legacy clients'],
         'server' => [10, 'Server'],
         'web' => [1, 'Web / Wiki'],

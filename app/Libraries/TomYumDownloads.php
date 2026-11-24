@@ -56,9 +56,22 @@ class TomYumDownloads
     {
         $years = [];
         foreach ($manifest['legacy'] ?? [] as $build) {
-            $years[$build['year']][] = $build;
+            // A list without years (a dev publish) would put every build under one blank heading: take a dated build's
+            // year from its name (b20151228.3), else group it under "Other".
+            $year = $build['year'] ?? null;
+            if ($year === null && preg_match('/^b(\d{4})\d{4}/', $build['build'] ?? '', $m) === 1) {
+                $year = (int) $m[1];
+            }
+            $years[$year ?? osu_trans('home.download.tomyum.legacy.other_year')][] = $build;
         }
+        // Newest year first; builds without a year last.
+        $other = osu_trans('home.download.tomyum.legacy.other_year');
+        $rest = $years[$other] ?? null;
+        unset($years[$other]);
         krsort($years);
+        if ($rest !== null) {
+            $years[$other] = $rest;
+        }
 
         return $years;
     }

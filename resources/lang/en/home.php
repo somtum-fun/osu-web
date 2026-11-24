@@ -164,6 +164,14 @@ return [
                 'switch_other' => 'Switch streams any time in the Somtum Launcher, or download the other one here.',
             ],
 
+            'stable_client' => [
+                'text' => 'Download the Somtum stable client on its own: it installs itself the first time you start it (point it at your osu! folder, or start fresh).',
+                'launcher_easier' => 'The Somtum Launcher does the same and keeps it up to date, so it\'s still the easier way.',
+                'platforms' => 'Windows, and Linux through osu-winello (no macOS)',
+                'stable40' => 'Stable',
+                'cuttingedge' => 'Cutting Edge',
+            ],
+
             'patcher' => [
                 'manual' => 'Rather not use the launcher for osu!(stable)?',
                 'text' => 'Start your own osu!(stable) with the :patcher to play on :brand.',
@@ -176,6 +184,7 @@ return [
                 'subtitle' => 'The Somtum Launcher installs and updates these for you. Download one yourself here.',
                 'show' => 'Show',
                 'hide' => 'Hide',
+                'other_year' => 'Other',
                 'text' => 'Old osu!(stable) builds, rebuilt to play on :brand: today\'s beatmaps load, Relax and Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe. They need Windows and .NET Framework 3.5 (a few 2015 builds use .NET Framework 4).',
                 'ask_discord' => 'Can\'t find the build you want? Ask for it in our :discord or on the :forum.',
                 'ask' => 'Can\'t find the build you want? Ask for it on the :forum.',

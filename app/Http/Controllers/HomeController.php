@@ -180,6 +180,12 @@ class HomeController extends Controller
             'lazerStreams' => $streams,
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),
             'patcherUrl' => TomYumBranding::downloadsPatcherUrl() ?? $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
+            // TomYum: our own stable client's exe per stream (manifest stable_client.<stream>.exe), the no-launcher way
+            // to play stable. While the manifest has none, the page offers the Somtum Patcher as before.
+            'stableClient' => array_filter([
+                'stable40' => $manifest['stable_client']['stable40']['exe']['url'] ?? null,
+                'cuttingedge' => $manifest['stable_client']['cuttingedge']['exe']['url'] ?? null,
+            ]),
             // TomYum: what the page shows (Admin panel > Branding).
             'showLazer' => TomYumBranding::enabled('downloads_show_lazer'),
             'showStable' => TomYumBranding::enabled('downloads_show_stable'),

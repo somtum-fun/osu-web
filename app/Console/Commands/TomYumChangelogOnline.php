@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\Redis as LaravelRedis;
  *   - TumThai (lazer) and TumThai!Next (tachyon): the players in lazer's presence feed
  *     (tomyum:lazer-presence, written by TomYum's spectator build), split by each session's
  *     X-Osu-Version-Hash (osu.Game.dll MD5 on desktop, "{version}-Android" MD5 on Android).
- *   - Somtum Patcher (stable40) and Legacy: the fields of the same name in tomyum:changelog-online,
+ *   - Somtum Patcher (stable40), Legacy, and our own stable client's Stable and Cutting Edge: the fields
+ *     of the same name in tomyum:changelog-online,
  *     written by TomYum (see TomYum docs/changelog-online.md; the key expires, so a stopped server's
  *     counts don't stay). No field: 0, so the stream shows no count.
  *
@@ -36,7 +37,7 @@ class TomYumChangelogOnline extends Command
     public const LAZER_PRESENCE_KEY = 'tomyum:lazer-presence';
 
     /** The streams this counts. */
-    private const STREAMS = ['lazer', 'tachyon', 'stable40', 'legacy'];
+    private const STREAMS = ['lazer', 'tachyon', 'stable40', 'legacy', 'stable', 'cuttingedge'];
 
     /** Shipped TumThai!Next desktop hashes without their own osu_builds row (2026.1026.3-next, .4-next). */
     private const EXTRA_TACHYON_HASHES = [
