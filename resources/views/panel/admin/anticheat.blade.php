@@ -64,6 +64,7 @@
                             <th style="width: 110px">status</th>
                             <th style="width: 130px">grace_until (YYYY-MM-DD)</th>
                             <th>pkms.dll SHA-256</th>
+                            <th title="Our own stable client's somtum-stable.exe, for builds that ship with it">client exe SHA-256</th>
                             <th>note</th>
                             <th style="width: 50px"></th>
                         </tr>
@@ -81,6 +82,7 @@
                                 </td>
                                 <td><input class="input-text" type="date" name="grace_until[{{ $i }}]" value="{{ $version['grace_until'] }}"></td>
                                 <td><input class="input-text" type="text" name="dll_sha256[{{ $i }}]" value="{{ $version['dll_sha256'] }}" placeholder="(none)" autocomplete="off" spellcheck="false"></td>
+                                <td><input class="input-text" type="text" name="host_sha256[{{ $i }}]" value="{{ $version['host_sha256'] }}" placeholder="(none)" autocomplete="off" spellcheck="false"></td>
                                 <td><input class="input-text" type="text" name="note[{{ $i }}]" value="{{ $version['note'] }}"></td>
                                 <td style="text-align: center"><label><input type="checkbox" name="delete[{{ $i }}]" value="1"> delete</label></td>
                             </tr>
@@ -96,6 +98,7 @@
                             </td>
                             <td><input class="input-text" type="date" name="new_grace_until"></td>
                             <td><input class="input-text" type="text" name="new_dll_sha256" placeholder="(optional)" autocomplete="off" spellcheck="false"></td>
+                            <td><input class="input-text" type="text" name="new_host_sha256" placeholder="(optional)" autocomplete="off" spellcheck="false"></td>
                             <td><input class="input-text" type="text" name="new_note" placeholder="(optional)"></td>
                             <td></td>
                         </tr>

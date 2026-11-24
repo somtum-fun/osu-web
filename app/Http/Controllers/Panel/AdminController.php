@@ -205,8 +205,12 @@ class AdminController extends Controller
         $dllInputs = Request::input('dll_sha256');
         $dllInputs = is_array($dllInputs) ? $dllInputs : null;
         $dllHashes = [];
+        $hostInputs = Request::input('host_sha256');
+        $hostInputs = is_array($hostInputs) ? $hostInputs : null;
+        $hostHashes = [];
         foreach (\App\Libraries\TomYumPkmsVersions::all() as $existing) {
             if ($existing['dll_sha256'] !== null) $dllHashes[$existing['build_id']] = $existing['dll_sha256'];
+            if ($existing['host_sha256'] !== null) $hostHashes[$existing['build_id']] = $existing['host_sha256'];
         }
 
         $entries = [];
@@ -226,7 +230,15 @@ class AdminController extends Controller
                 'grace_until' => $graceUntil === '' ? null : $graceUntil,
                 'note' => trim((string) ($notes[$i] ?? '')) ?: null,
                 'dll_sha256' => $dllHashes[$buildId] ?? null,
+                'host_sha256' => $hostHashes[$buildId] ?? null,
             ];
+            if ($hostInputs !== null && array_key_exists($i, $hostInputs)) {
+                $typed = trim((string) $hostInputs[$i]);
+                $entries[array_key_last($entries)]['host_sha256'] = $typed === '' ? null : \App\Libraries\TomYumPkmsVersions::validDllSha256($typed);
+                if ($typed !== '' && $entries[array_key_last($entries)]['host_sha256'] === null) {
+                    return $this->backToAnticheat('error', "The client exe SHA-256 for {$buildId} must be 64 hex characters (several: separated by spaces).");
+                }
+            }
             if ($dllInputs !== null && array_key_exists($i, $dllInputs)) {
                 $typed = trim((string) $dllInputs[$i]);
                 $entries[array_key_last($entries)]['dll_sha256'] = $typed === '' ? null : \App\Libraries\TomYumPkmsVersions::validDllSha256($typed);
@@ -251,6 +263,7 @@ class AdminController extends Controller
                 'grace_until' => $newGrace === '' ? null : $newGrace,
                 'note' => trim((string) Request::input('new_note', '')) ?: null,
                 'dll_sha256' => \App\Libraries\TomYumPkmsVersions::validDllSha256(Request::input('new_dll_sha256')),
+                'host_sha256' => \App\Libraries\TomYumPkmsVersions::validDllSha256(Request::input('new_host_sha256')),
             ];
         }
 

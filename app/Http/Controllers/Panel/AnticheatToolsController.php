@@ -79,6 +79,7 @@ class AnticheatToolsController extends Controller
             'grace_until' => null,
             'note' => $note ?? $previous['note'] ?? null,
             'dll_sha256' => $dllSha256 ?? $previous['dll_sha256'] ?? null,
+            'host_sha256' => $previous['host_sha256'] ?? null,
         ]);
 
         TomYumPkmsVersions::save($entries);

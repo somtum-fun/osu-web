@@ -54,6 +54,8 @@ class TomYumPkmsVersions
                 // the running pkms reports. Kept only when it looks like one or more hex digests, so a
                 // hand-edited typo is dropped instead of making every player's hash "mismatch".
                 'dll_sha256' => static::validDllSha256($entry['dll_sha256'] ?? null),
+                // TomYum: our own stable client's game exe (somtum-stable.exe) for this build, as pkms reports it.
+                'host_sha256' => static::validDllSha256($entry['host_sha256'] ?? null),
             ];
         }
 
@@ -79,9 +81,11 @@ class TomYumPkmsVersions
 
             return;
         }
-        // TomYum: leave dll_sha256 out when there isn't one, so entries without a hash stay as they were.
+        // TomYum: leave dll_sha256 / host_sha256 out when there isn't one, so entries without a hash stay as they were.
         $entries = array_map(
-            fn (array $e) => ($e['dll_sha256'] ?? null) === null ? array_diff_key($e, ['dll_sha256' => true]) : $e,
+            fn (array $e) => array_diff_key($e, array_filter(
+                ['dll_sha256' => ($e['dll_sha256'] ?? null) === null, 'host_sha256' => ($e['host_sha256'] ?? null) === null],
+            )),
             $entries,
         );
         TomYumSiteSettings::set('pkms_versions_json', json_encode(array_values($entries), JSON_UNESCAPED_SLASHES));
