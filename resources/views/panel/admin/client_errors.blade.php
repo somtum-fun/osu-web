@@ -21,7 +21,8 @@
             <p class="tomyum-panel__hint">
                 Errors and crashes our clients sent in: TumThai, TumThai!Next, the Somtum stable client, the legacy
                 stable client and pkms. The same error counts up instead of adding a row; a crash is kept apart from an
-                error with the same stack. Marking one fixed hides it until someone hits it again.
+                error with the same stack. Marking one fixed hides it until someone hits it again; one still fixed
+                30 days later is deleted.
             </p>
             <p>
                 <a class="btn-osu-big btn-osu-big--rounded-thin {{ $status === 'open' ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ $query(['status' => null, 'page' => null]) }}">Open</a>
