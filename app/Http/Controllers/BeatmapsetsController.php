@@ -190,12 +190,29 @@ class BeatmapsetsController extends Controller
 
         $user = Auth::user();
         $userId = $user->getKey();
-        $recentlyDownloaded = BeatmapDownload::where('user_id', $userId)
-            ->where('timestamp', '>', Carbon::now()->subHours()->getTimestamp())
-            ->count();
 
-        if ($recentlyDownloaded > $user->beatmapsetDownloadAllowance()) {
-            abort(429, osu_trans('beatmapsets.download.limit_exceeded'));
+        // TomYum: Ranked Play downloads a new map every round, so a map from a Ranked Play match the player is in (its
+        // playlist, the last few hours) neither hits the hourly limit nor counts towards it: two matches would
+        // otherwise use it up and stall the next round on "Missing beatmap".
+        $rankedPlaySets = fn () => DB::table('multiplayer_playlist_items')
+            ->join('multiplayer_rooms', 'multiplayer_rooms.id', '=', 'multiplayer_playlist_items.room_id')
+            ->join('multiplayer_rooms_high', 'multiplayer_rooms_high.room_id', '=', 'multiplayer_rooms.id')
+            ->join('osu_beatmaps', 'osu_beatmaps.beatmap_id', '=', 'multiplayer_playlist_items.beatmap_id')
+            ->where('multiplayer_rooms.type', 'ranked_play')
+            ->where('multiplayer_rooms.created_at', '>', Carbon::now()->subHours(3))
+            ->where('multiplayer_rooms_high.user_id', $userId)
+            ->select('osu_beatmaps.beatmapset_id');
+        $forRankedPlay = $rankedPlaySets()->where('osu_beatmaps.beatmapset_id', $beatmapset->getKey())->exists();
+
+        if (!$forRankedPlay) {
+            $recentlyDownloaded = BeatmapDownload::where('user_id', $userId)
+                ->where('timestamp', '>', Carbon::now()->subHours()->getTimestamp())
+                ->whereNotIn('beatmapset_id', $rankedPlaySets())
+                ->count();
+
+            if ($recentlyDownloaded > $user->beatmapsetDownloadAllowance()) {
+                abort(429, osu_trans('beatmapsets.download.limit_exceeded'));
+            }
         }
 
         $noVideo = get_bool(Request::input('noVideo', false));
