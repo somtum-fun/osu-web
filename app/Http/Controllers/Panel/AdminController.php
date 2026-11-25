@@ -597,12 +597,14 @@ class AdminController extends Controller
     {
         $status = Request::input('status') === 'all' ? 'all' : 'open';
         $page = max(1, (int) Request::input('page', 1));
-        $response = $this->tomyum()->get('/client-errors', ['status' => $status, 'page' => $page]);
+        $kind = in_array(Request::input('kind'), ['error', 'handled', 'crash', 'hang', 'native'], true) ? Request::input('kind') : null;
+        $response = $this->tomyum()->get('/client-errors', array_filter(['status' => $status, 'page' => $page, 'kind' => $kind]));
 
         return ext_view('panel.admin.client_errors', [
             'errors' => $response->successful() ? $response->json() : null,
             'status' => $status,
             'page' => $page,
+            'kind' => $kind,
         ]);
     }
 
@@ -616,6 +618,7 @@ class AdminController extends Controller
         };
         $back = redirect(route('panel.admin.client-errors', array_filter([
             'status' => Request::input('status') === 'all' ? 'all' : null,
+            'kind' => Request::input('kind'),
             'page' => Request::input('page'),
         ])));
         if (!$response->successful()) {

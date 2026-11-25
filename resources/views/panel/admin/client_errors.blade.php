@@ -2,28 +2,35 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: errors TumThai reported (TomYum /_admin/client-errors), one row per kind of error. --}}
+{{-- TomYum: errors and crashes our clients reported (TomYum /_admin/client-errors), one row per kind of error. --}}
 @php
     $pages = $errors === null ? 1 : max(1, (int) ceil($errors['total'] / max(1, $errors['perPage'])));
-    $query = fn (array $extra) => route('panel.admin.client-errors', array_filter(array_merge(['status' => $status === 'all' ? 'all' : null, 'page' => $page > 1 ? $page : null], $extra)));
+    $kind ??= null;
+    $query = fn (array $extra) => route('panel.admin.client-errors', array_filter(array_merge(['status' => $status === 'all' ? 'all' : null, 'kind' => $kind, 'page' => $page > 1 ? $page : null], $extra)));
 @endphp
-@extends('master', ['titlePrepend' => 'TumThai errors'])
+@extends('master', ['titlePrepend' => 'Client errors'])
 
 @section('content')
     @include('panel._header', ['crumbs' => [
         ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
-        ['title' => 'TumThai errors'],
+        ['title' => 'Client errors'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2><i class="fas fa-bug"></i>TumThai errors</h2>
+            <h2><i class="fas fa-bug"></i>Client errors</h2>
             <p class="tomyum-panel__hint">
-                Crashes and errors the game sent in (TumThai and TumThai!Next, from their error notices). The same error
-                counts up instead of adding a row. Marking one fixed hides it until someone hits it again.
+                Errors and crashes our clients sent in: TumThai, TumThai!Next, the Somtum stable client, the legacy
+                stable client and pkms. The same error counts up instead of adding a row; a crash is kept apart from an
+                error with the same stack. Marking one fixed hides it until someone hits it again.
             </p>
             <p>
-                <a class="btn-osu-big btn-osu-big--rounded-thin {{ $status === 'open' ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ route('panel.admin.client-errors') }}">Open</a>
-                <a class="btn-osu-big btn-osu-big--rounded-thin {{ $status === 'all' ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ route('panel.admin.client-errors', ['status' => 'all']) }}">All</a>
+                <a class="btn-osu-big btn-osu-big--rounded-thin {{ $status === 'open' ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ $query(['status' => null, 'page' => null]) }}">Open</a>
+                <a class="btn-osu-big btn-osu-big--rounded-thin {{ $status === 'all' ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ $query(['status' => 'all', 'page' => null]) }}">All</a>
+            </p>
+            <p>
+                @foreach ([null => 'Every kind', 'error' => 'Errors', 'handled' => 'Handled', 'crash' => 'Crashes', 'hang' => 'Hangs', 'native' => 'Native'] as $value => $label)
+                    <a class="btn-osu-big btn-osu-big--rounded-thin {{ $kind === ($value ?: null) ? '' : 'btn-osu-big--panel-secondary' }}" href="{{ $query(['kind' => $value ?: null, 'page' => null]) }}">{{ $label }}</a>
+                @endforeach
                 @if ($errors !== null)
                     <span class="tomyum-panel__badge">{{ $errors['total'] }} {{ $status === 'all' ? 'IN ALL' : 'OPEN' }}</span>
                 @endif
@@ -44,6 +51,9 @@
                     <h2 style="word-break: break-word">
                         <code>{{ $report['exceptionType'] }}</code>
                         <span class="tomyum-panel__badge">{{ number_format($report['count']) }}×</span>
+                        @if (($report['kind'] ?? 'error') !== 'error')
+                            <span class="tomyum-panel__badge">{{ strtoupper($report['kind']) }}</span>
+                        @endif
                         @if ($report['resolvedAt'] !== null)
                             <span class="tomyum-panel__badge">FIXED</span>
                         @endif
@@ -65,6 +75,14 @@
                             <span class="tomyum-panel__kicker">Platform (last)</span>
                             <span class="tomyum-panel__fact-value">{{ $report['platform'] !== '' ? $report['platform'] : '?' }}</span>
                         </div>
+                        @foreach (['role' => 'Roles', 'build' => 'Build (last)', 'session' => 'Launch (last)'] as $key => $label)
+                            @if (($report[$key] ?? null) !== null)
+                                <div class="tomyum-panel__fact">
+                                    <span class="tomyum-panel__kicker">{{ $label }}</span>
+                                    <span class="tomyum-panel__fact-value" style="word-break: break-all">{{ $report[$key] }}</span>
+                                </div>
+                            @endif
+                        @endforeach
                         <div class="tomyum-panel__fact">
                             <span class="tomyum-panel__kicker">Last player</span>
                             <span class="tomyum-panel__fact-value">
@@ -88,6 +106,12 @@
                         <summary>Stack trace</summary>
                         <pre style="white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow: auto">{{ $report['stackTrace'] }}</pre>
                     </details>
+                    @if (($report['logTail'] ?? null) !== null)
+                        <details>
+                            <summary>Log (last lines)</summary>
+                            <pre style="white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow: auto">{{ $report['logTail'] }}</pre>
+                        </details>
+                    @endif
                     <p>
                         @foreach (($report['resolvedAt'] === null ? ['resolve' => ['fa-check', 'Mark fixed']] : ['reopen' => ['fa-undo', 'Open again']]) + ['delete' => ['fa-trash', 'Delete']] as $action => [$icon, $label])
                             <form method="POST" action="{{ route('panel.admin.client-errors.action', ['id' => $report['id'], 'action' => $action]) }}" style="display: inline"
@@ -95,6 +119,7 @@
                                 @csrf
                                 <input type="hidden" name="status" value="{{ $status }}">
                                 <input type="hidden" name="page" value="{{ $page }}">
+                                <input type="hidden" name="kind" value="{{ $kind }}">
                                 <button class="btn-osu-big btn-osu-big--rounded-thin {{ $action === 'resolve' ? '' : 'btn-osu-big--panel-secondary' }}" type="submit"><i class="fas {{ $icon }}"></i>{{ $label }}</button>
                             </form>
                         @endforeach

@@ -52,7 +52,7 @@
             ['Beatmap mirrors', 'panel.admin.beatmap-mirrors.index', ['panel.admin.beatmap-mirrors.']], // TomYum
             ['Staff log', 'panel.admin.log', ['panel.admin.log']],
             ['Servers', 'panel.admin.servers', ['panel.admin.servers']], // TomYum
-            ['TumThai errors', 'panel.admin.client-errors', ['panel.admin.client-errors']], // TomYum
+            ['Client errors', 'panel.admin.client-errors', ['panel.admin.client-errors']], // TomYum
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
             ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],
