@@ -39,8 +39,14 @@ class TomYumImportMissingBeatmaps
      */
     private const IMPORTS_PER_HOUR = 600;
 
-    /** Seconds a request waits for an import before going on without it. */
+    /** Seconds a request that needs the map (a score token, a room's playlist) waits for an import before going on without it. */
     private const IMPORT_WAIT = 6;
+
+    /**
+     * Seconds an import may take when nothing waits for it: a lookup (song select, a leaderboard, a set's info) answers
+     * at once and the import runs after the response, so browsing never stalls on it; the next lookup finds the map.
+     */
+    private const BACKGROUND_IMPORT_TIMEOUT = 30;
 
     /** Seconds a map being imported isn't asked for again (lazer repeats its lookup before the first is done). */
     private const IN_FLIGHT_TTL = 60;
@@ -173,16 +179,32 @@ class TomYumImportMissingBeatmaps
 
         // The import log shows who asked, and from which client.
         $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
-        try {
-            // A few seconds, then the request goes on without it (lazer gives up after ten): the game server
-            // finishes the import anyway, and the next lookup finds the map. Meanwhile it isn't asked for again.
-            $response = $send((new TomYumAdmin(auth()->user()))->withTimeout(static::IMPORT_WAIT), $via);
-        } catch (\App\Exceptions\InvariantException) {
+        $user = auth()->user();
+        $run = function (int $timeout) use ($send, $via, $user, $key, $inFlight): void {
+            try {
+                $response = $send((new TomYumAdmin($user))->withTimeout($timeout), $via);
+            } catch (\App\Exceptions\InvariantException) {
+                return;
+            } catch (\Throwable $e) {
+                log_error($e);
+
+                return;
+            }
+            Cache::forget($inFlight);
+            if ($response->status() === 404) {
+                Cache::put($key, true, static::UNKNOWN_TTL);
+            }
+        };
+
+        if (request()->isMethod('GET')) {
+            // A lookup: answer now (as "not found" this once) and import after the response.
+            app()->terminating(fn () => $run(static::BACKGROUND_IMPORT_TIMEOUT));
+
             return;
         }
-        Cache::forget($inFlight);
-        if ($response->status() === 404) {
-            Cache::put($key, true, static::UNKNOWN_TTL);
-        }
+
+        // Something that needs the map now (a score token, a room's playlist): a few seconds, then the request goes on
+        // without it (lazer gives up after ten); the game server finishes the import anyway. Meanwhile it isn't asked for again.
+        $run(static::IMPORT_WAIT);
     }
 }
