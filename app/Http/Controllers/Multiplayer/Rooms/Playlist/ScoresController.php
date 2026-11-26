@@ -192,7 +192,8 @@ class ScoresController extends BaseController
 
         $scoreToken = $room->startPlay($user, $playlistItem, [
             ...$request->all(),
-            'build_id' => ClientCheck::parseToken($request)['buildId'],
+            // TomYum: the TumThai release the play came from, by its version_hash (logged; not refused yet).
+            'build_id' => \App\Libraries\TomYumLazerBuilds::buildIdForPlay($request, ClientCheck::parseToken($request)['buildId'], $user->getKey(), 'playlist'),
         ]);
 
         return json_item($scoreToken, new ScoreTokenTransformer());

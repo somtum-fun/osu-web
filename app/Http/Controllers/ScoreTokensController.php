@@ -43,7 +43,8 @@ class ScoreTokensController extends BaseController
 
         $scoreToken = new ScoreToken([
             'beatmap_id' => $beatmap->getKey(),
-            'build_id' => ClientCheck::parseToken($request)['buildId'],
+            // TomYum: the TumThai release the play came from, by its version_hash (logged; not refused yet).
+            'build_id' => \App\Libraries\TomYumLazerBuilds::buildIdForPlay($request, ClientCheck::parseToken($request)['buildId'], $user->getKey(), 'solo'),
             'user_id' => $user->getKey(),
             ...get_params($request->all(), null, [
                 'beatmap_hash',
