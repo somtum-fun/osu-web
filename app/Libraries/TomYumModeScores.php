@@ -244,6 +244,8 @@ class TomYumModeScores
         };
 
         $result = ['scores' => array_values(array_filter(array_map($row, $entries)))];
+        // The whole board's size (lazer: "#3 of 120"); an older game server without it: what's listed.
+        $result['score_count'] = (int) ($response->json('total') ?? count($result['scores']));
         if ($mine !== null && ($score = $row($mine)) !== null) {
             $result['user_score'] = ['position' => $mine['position'], 'score' => $score];
         }
