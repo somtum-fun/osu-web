@@ -143,6 +143,46 @@ class TomYumLazerBuilds
         return $found['build_id'] ?? $fallback;
     }
 
+    /**
+     * For the admin panel: each stream's releases, newest first, with their status and how many plays they started
+     * (score tokens) in all and in the last 7 days, plus the plays that matched no release (build 0) in those 7 days.
+     */
+    public static function overview(int $perStream = 30): array
+    {
+        $since = now()->subDays(7);
+        $streams = [];
+
+        foreach (static::STREAMS as $key => $streamId) {
+            $builds = Build::where('stream_id', $streamId)->whereNotNull('hash')
+                ->orderByDesc('date')->orderByDesc('build_id')->limit($perStream)
+                ->get(['build_id', 'version', 'hash', 'date', 'private', 'allow_ranking', 'allow_performance']);
+            $ids = $builds->pluck('build_id')->all();
+            $plays = \DB::table('score_tokens')->whereIn('build_id', $ids)
+                ->selectRaw('build_id, COUNT(*) AS total, SUM(created_at >= ?) AS week, MAX(created_at) AS last', [$since])
+                ->groupBy('build_id')->get()->keyBy('build_id');
+
+            $streams[$key] = $builds->values()->map(fn (Build $build, int $i) => [
+                'build_id' => $build->getKey(),
+                'version' => $build->version,
+                'hash' => is_string($build->hash) && strlen($build->hash) === 16 ? bin2hex($build->hash) : null,
+                'android_hash' => md5("{$build->version}-Android"),
+                'date' => $build->date,
+                'private' => (bool) $build->private,
+                'counts' => (bool) $build->allow_ranking && (bool) $build->allow_performance,
+                'status' => $i < static::CURRENT ? 'current' : 'outdated',
+                'plays' => (int) ($plays[$build->getKey()]->total ?? 0),
+                'plays_week' => (int) ($plays[$build->getKey()]->week ?? 0),
+                'last_play' => $plays[$build->getKey()]->last ?? null,
+            ])->all();
+        }
+
+        $defaultBuild = (int) $GLOBALS['cfg']['osu']['client']['default_build_id'];
+        $unmatched = \DB::table('score_tokens')->where('build_id', $defaultBuild)->where('created_at', '>=', $since)->count();
+        $matched = \DB::table('score_tokens')->where('build_id', '<>', $defaultBuild)->where('created_at', '>=', $since)->count();
+
+        return ['streams' => $streams, 'unmatched_week' => $unmatched, 'matched_week' => $matched, 'current' => static::CURRENT];
+    }
+
     /** @return array<string, array> hash => what lookup() returns for it, for every known release. */
     private static function known(): array
     {

@@ -53,6 +53,7 @@
             ['Staff log', 'panel.admin.log', ['panel.admin.log']],
             ['Servers', 'panel.admin.servers', ['panel.admin.servers']], // TomYum
             ['Client errors', 'panel.admin.client-errors', ['panel.admin.client-errors']], // TomYum
+            ['TumThai builds', 'panel.admin.tumthai-builds', ['panel.admin.tumthai-builds']], // TomYum
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
             ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],

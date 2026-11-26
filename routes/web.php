@@ -198,6 +198,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('log', 'AdminController@staffLogPage')->name('log');
             // TomYum: the game server's nodes (machine, load, plugins, version, latency).
             Route::get('servers', 'AdminController@servers')->name('servers');
+            // TomYum: TumThai's releases as client builds, matched by the version_hash a play sends.
+            Route::get('tumthai-builds', 'AdminController@tumthaiBuilds')->name('tumthai-builds');
             // TomYum: errors and crashes our clients reported (TomYum /_admin/client-errors).
             Route::get('client-errors', 'AdminController@clientErrors')->name('client-errors');
             Route::post('client-errors/{id}/{action}', 'AdminController@clientErrorAction')

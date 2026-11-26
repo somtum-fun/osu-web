@@ -592,6 +592,15 @@ class AdminController extends Controller
         ]);
     }
 
+    /** TomYum: TumThai's releases as client builds (by the version_hash a play sends), and the plays each started. */
+    public function tumthaiBuilds()
+    {
+        return ext_view('panel.admin.tumthai_builds', [
+            'overview' => \App\Libraries\TomYumLazerBuilds::overview(),
+            'enforced' => false,
+        ]);
+    }
+
     /** TomYum: the errors TumThai reported, one row per kind, newest first (open ones, or all with ?status=all). */
     public function clientErrors()
     {
