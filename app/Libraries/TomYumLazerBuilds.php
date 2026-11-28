@@ -40,9 +40,11 @@ class TomYumLazerBuilds
      * off the changelog, when none was written for it yet; writing its changes later just edits it), with the hash,
      * and pp and ranking allowed (scores from a build without them get no pp). Returns what it did, a line each.
      *
+     * With $dryRun nothing is written: the lines say what would be done.
+     *
      * @return list<string>
      */
-    public static function register(array $manifest): array
+    public static function register(array $manifest, bool $dryRun = false): array
     {
         $done = [];
 
@@ -78,15 +80,29 @@ class TomYumLazerBuilds
                 'allow_bancho' => true,
                 'allow_ranking' => true,
                 'allow_performance' => true,
-            ])->save();
+            ]);
+            if ($dryRun) {
+                $id = $build->exists ? $build->getKey() : 'new';
+                $done[] = "{$key}: {$version} {$hash} build {$id} would be {$what}";
+                continue;
+            }
+            $build->save();
             $done[] = "{$key}: {$version} {$hash} build {$build->getKey()} {$what}";
         }
 
         // Older releases keep counting for pp too: their plays are recorded on them from now on.
-        $older = Build::whereIn('stream_id', array_values(static::STREAMS))
+        $olderQuery = Build::whereIn('stream_id', array_values(static::STREAMS))
             ->whereNotNull('hash')
-            ->where(fn ($q) => $q->where('allow_performance', false)->orWhere('allow_ranking', false))
-            ->update(['allow_performance' => true, 'allow_ranking' => true]);
+            ->where(fn ($q) => $q->where('allow_performance', false)->orWhere('allow_ranking', false));
+        if ($dryRun) {
+            $older = $olderQuery->count();
+            if ($older > 0) {
+                $done[] = "older releases that would allow pp and ranking: {$older}";
+            }
+
+            return $done;
+        }
+        $older = $olderQuery->update(['allow_performance' => true, 'allow_ranking' => true]);
         if ($older > 0) {
             $done[] = "older releases now allowing pp and ranking: {$older}";
         }
