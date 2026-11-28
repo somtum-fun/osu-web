@@ -75,6 +75,14 @@ class TomYumLazerBuilds
                 $what .= ", hash was {$old}";
             }
 
+            // The macOS apps are built on GitHub Actions, whose osu.Game.dll differs from the one built here: its hash
+            // goes in last_hash (unused for these streams), so the same release matches either.
+            $macHash = strtolower((string) ($manifest[$key]['version_hash_macos'] ?? ''));
+            if (preg_match('/\A[0-9a-f]{32}\z/', $macHash) === 1 && $macHash !== $hash) {
+                $build->last_hash = hex2bin($macHash);
+                $what .= ", macOS {$macHash}";
+            }
+
             $build->fill([
                 'hash' => hex2bin($hash),
                 'allow_bancho' => true,
@@ -171,7 +179,7 @@ class TomYumLazerBuilds
         foreach (static::STREAMS as $key => $streamId) {
             $builds = Build::where('stream_id', $streamId)->whereNotNull('hash')
                 ->orderByDesc('date')->orderByDesc('build_id')->limit($perStream)
-                ->get(['build_id', 'version', 'hash', 'date', 'private', 'allow_ranking', 'allow_performance']);
+                ->get(['build_id', 'version', 'hash', 'last_hash', 'date', 'private', 'allow_ranking', 'allow_performance']);
             $ids = $builds->pluck('build_id')->all();
             $plays = \DB::table('score_tokens')->whereIn('build_id', $ids)
                 ->selectRaw('build_id, COUNT(*) AS total, SUM(created_at >= ?) AS week, MAX(created_at) AS last', [$since])
@@ -182,6 +190,7 @@ class TomYumLazerBuilds
                 'version' => $build->version,
                 'hash' => is_string($build->hash) && strlen($build->hash) === 16 ? bin2hex($build->hash) : null,
                 'android_hash' => md5("{$build->version}-Android"),
+                'macos_hash' => is_string($build->last_hash) && strlen($build->last_hash) === 16 ? bin2hex($build->last_hash) : null,
                 'date' => $build->date,
                 'private' => (bool) $build->private,
                 'counts' => (bool) $build->allow_ranking && (bool) $build->allow_performance,
@@ -209,7 +218,7 @@ class TomYumLazerBuilds
                 $builds = Build::where('stream_id', $streamId)
                     ->whereNotNull('hash')
                     ->orderByDesc('date')->orderByDesc('build_id')
-                    ->get(['build_id', 'version', 'hash']);
+                    ->get(['build_id', 'version', 'hash', 'last_hash']);
 
                 foreach ($builds as $i => $build) {
                     if (!is_string($build->hash) || strlen($build->hash) !== 16) {
@@ -222,8 +231,11 @@ class TomYumLazerBuilds
                         'stream' => $key,
                         'status' => $i < static::CURRENT ? 'current' : 'outdated',
                     ];
-                    // the desktop dll, and Android's stand-in for it
+                    // the desktop dll, the macOS apps' (built elsewhere, see register), and Android's stand-in for it
                     $map[strtolower(bin2hex($build->hash))] ??= $entry;
+                    if (is_string($build->last_hash) && strlen($build->last_hash) === 16) {
+                        $map[strtolower(bin2hex($build->last_hash))] ??= $entry;
+                    }
                     $map[md5("{$build->version}-Android")] ??= $entry;
                 }
             }

@@ -77,6 +77,9 @@
                         build #{{ $build['build_id'] }}<br>
                         Windows/Linux: <code title="{{ $build['hash'] }}">{{ $short($build['hash']) }}</code> ·
                         Android: <code title="{{ $build['android_hash'] }}">{{ $short($build['android_hash']) }}</code>
+                        @if ($build['macos_hash'] !== null)
+                            · macOS: <code title="{{ $build['macos_hash'] }}">{{ $short($build['macos_hash']) }}</code>
+                        @endif
                     </p>
                 </div>
             @endforeach
